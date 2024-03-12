@@ -199,7 +199,7 @@ def get_decks_of_interest(starting_deck: list[int], shuffle_num=4):
 
 
 def calculate_entropy(locations, total_length):
-    locations.insert(0, 0)
+    locations.insert(0, -1)
     locations.append(total_length)
     distances = [locations[i] - locations[i - 1] for i in range(1, len(locations))]
     return -float(np.std(distances))
@@ -398,11 +398,7 @@ def main(
         brute_stats(starting_deck)
 
     if search:
-        best_sentence = run_search(
-            starting_deck, scoring_method, num_runs, save_file, shuffle_num
-        )
-
-        loc_es = letter_locations(best_sentence, "e")
+        run_search(starting_deck, scoring_method, num_runs, save_file, shuffle_num)
 
     if plot:
         with open(save_file, "r") as f:
