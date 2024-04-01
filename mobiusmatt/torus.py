@@ -6,11 +6,21 @@ from matt_font import Letter
 import fire
 
 
-# Define the parameterization of the Möbius strip
-def mobius_strip(u, v):
-    x = (1 + v / 2 * np.cos(u / 2)) * np.cos(u)
-    y = (1 + v / 2 * np.cos(u / 2)) * np.sin(u)
-    z = v / 5 * np.sin(u / 2)
+def map_to_torus(u, v, R=1, r=0.3):
+    """
+    Maps a grid of points (u, v) to a torus.
+
+    Parameters:
+    - u, v: 2D arrays of points representing the parameterized surface of the torus.
+    - R: The distance from the center of the tube to the center of the torus.
+    - r: The radius of the tube.
+
+    Returns:
+    - x, y, z: Coordinates of the torus surface.
+    """
+    x = (R + r * np.cos(v)) * np.cos(u)
+    y = (R + r * np.cos(v)) * np.sin(u)
+    z = r * np.sin(v)
     return x, y, z
 
 
@@ -62,29 +72,49 @@ def plot_2d_test_layout(masks: list[Letter]):
             ax.add_patch(hole_patch)
 
     # Add colored dots to specified corners
-    ax.plot(2 * np.pi, 0.5, "ro", markersize=20)  # Red dot in the upper right corner
-    ax.plot(0, -0.5, "ro", markersize=20)  # Red dot in the lower left corner
-    ax.plot(2 * np.pi, -0.5, "bo", markersize=20)  # Blue dot in the lower right corner
-    ax.plot(0, 0.5, "bo", markersize=20)  # Blue dot in the upper left corner
+    ax.plot(0, 0, "ro", markersize=20)  # Red dot in the upper right corner
+    ax.plot(0, -2 * np.pi, "ro", markersize=20)  # Red dot in the lower left corner
+    ax.plot(2 * np.pi, 0, "bo", markersize=20)  # Blue dot in the lower right corner
+    ax.plot(
+        2 * np.pi, -2 * np.pi, "bo", markersize=20
+    )  # Blue dot in the upper left corner
 
     ax.set_xlim(0, 2 * np.pi)
-    ax.set_ylim(-0.5, 0.5)
+    ax.set_ylim(-2 * np.pi, 0)
     ax.set_aspect("equal")
     plt.title("2D Preview of Möbius Strip Layout")
     plt.show()
 
 
-def main(word="MATT", test: bool = False, num_times=1):
-    text_on_strip = word * num_times
+def main(word="MATT", test: bool = False, num_x=1, num_y=1):
+    text_on_strip = word * num_x
+    text_on_torus = []
+
+    radius = 2
+    inner_radius = 1.2
+
+    for i in range(num_y * len(word)):
+        text_on_torus.append(text_on_strip[i:] + text_on_strip[:i])
+
     nonconvex_polygons = []
-    for i, letter in enumerate(text_on_strip[::-1]):
-        mask = Letter(letter=letter)
-        mask.stretch(1, 2 * np.pi / len(text_on_strip))
-        mask.rotate(-np.pi / 2)
-        mask.shift(
-            2 * i * np.pi / len(text_on_strip) + np.pi / len(text_on_strip) + 0.01, 0
-        )
-        nonconvex_polygons.append(mask)
+    for j, line in enumerate(text_on_torus):
+        for i, letter in enumerate(line):
+            mask = Letter(letter=letter)
+
+            width_x = num_x * len(word)
+            width_y = num_y * len(word)
+
+            delta_x = 2 * np.pi / width_x
+            delta_y = 2 * np.pi / width_y
+
+            mask.stretch(delta_x, delta_y)
+            x_shift = delta_x * (i + 1 / 2) + 0.01
+            y_shift = -delta_y * (j + 1 / 2) + 0.01
+            mask.shift(
+                x_shift,
+                y_shift,
+            )
+            nonconvex_polygons.append(mask)
 
     if test:
         plot_2d_test_layout(nonconvex_polygons)
@@ -92,11 +122,16 @@ def main(word="MATT", test: bool = False, num_times=1):
     if not test:
         # Generate a dense meshgrid for finer detail
         u = np.linspace(0, 2 * np.pi, 800)
-        v = np.linspace(-0.5, 0.5, 100)
+        v = np.linspace(-2 * np.pi, 0, 200)
         u, v = np.meshgrid(u, v)
 
-        x, y, z = mobius_strip(u, v)
+        fig = plt.figure()
+
+        ax = fig.add_subplot(111, projection="3d")
+
         for polygon_points in nonconvex_polygons:
+            x, y, z = map_to_torus(u, v, R=radius, r=inner_radius)
+
             shifed_border = [
                 (x + polygon_points.center[0], y + polygon_points.center[1])
                 for x, y in polygon_points.border
@@ -107,62 +142,33 @@ def main(word="MATT", test: bool = False, num_times=1):
             ]
 
             inside_mask = is_inside_complex_polygon(shifed_border, shifed_hole, u, v)
+            inside_mask = ~inside_mask
             x[inside_mask], y[inside_mask], z[inside_mask] = (
                 np.nan,
                 np.nan,
                 np.nan,
             )
 
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection="3d")
-        # ax.plot_surface(x, y, z, color="cyan", edgecolor="none", alpha=0.6)
-        colors = plt.cm.hsv(u / (2 * np.pi))
+            colors = plt.cm.hsv(u / (2 * np.pi))
+            # colors = np.zeros((*u.shape, 3), dtype=int)
 
-        # Plot the surface with the facecolors set to the colormap
-        ax.plot_surface(x, y, z, facecolors=colors, edgecolor="none", alpha=0.6)
+            # Plot the surface with the facecolors set to the colormap
+            ax.plot_surface(x, y, z, facecolors=colors, edgecolor="none", alpha=1)
 
         # Set the title and axis limits
         ax.set_title("Möbius Matt", fontsize=40)
-        ax.set_xlim(-1, 1)
-        ax.set_ylim(-1, 1)
-        ax.set_zlim(-1, 1)
+
+        ax.set_xlim(-radius * 1.2, radius * 1.2)
+        ax.set_ylim(-radius * 1.2, radius * 1.2)
+        ax.set_zlim(-radius, radius)
 
         # Hide the axes for a cleaner look
         ax.set_axis_off()
 
         # Set initial view
-        ax.view_init(elev=30, azim=30)
+        ax.view_init(elev=90, azim=30)
 
-        # Oscillation parameters
-        elev_start = -40
-        elev_end = 75
-        frames_per_oscillation = 80
-        total_cycles = 5
-        azim_change_per_frame = 360 / (frames_per_oscillation * total_cycles)
-        azim_current = 30
-
-        try:
-            # Total frames for both upward and downward oscillation
-            for frame in range(frames_per_oscillation * total_cycles * 2):
-                if frame % (frames_per_oscillation * 2) < frames_per_oscillation:
-                    # Upward oscillation in z
-                    elev = np.linspace(elev_start, elev_end, frames_per_oscillation)[
-                        frame % frames_per_oscillation
-                    ]
-                else:
-                    # Downward oscillation in z
-                    elev = np.linspace(elev_end, elev_start, frames_per_oscillation)[
-                        frame % frames_per_oscillation
-                    ]
-
-                # Counter-clockwise rotation by decreasing the azimuth angle
-                azim_current -= azim_change_per_frame
-                ax.view_init(elev=elev, azim=azim_current)
-                plt.draw()
-                plt.pause(0.1)  # Adjust as needed for your screen recording
-
-        except KeyboardInterrupt:
-            pass
+        plt.show()
 
 
 if __name__ == "__main__":
