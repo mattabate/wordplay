@@ -1,3 +1,6 @@
+import fire
+
+
 def seconds_to_time(seconds):
     # Constants for time calculations
     SECONDS_PER_HOUR = 3600
@@ -21,8 +24,34 @@ def seconds_to_time(seconds):
     return time_string
 
 
-if __name__ == "__main__":
-    days = [5, 2]
+def seconds_to_time_len(seconds: int):
+    "covert seconds to string like 1 hour 2 minutes 3 seconds eg"
+
+    seconds_per_hour = 3600
+    seconds_per_minute = 60
+
+    hours = seconds // seconds_per_hour
+    minutes = (seconds % seconds_per_hour) // seconds_per_minute
+    seconds = seconds % seconds_per_minute
+
+    time_string = ""
+    if hours:
+        time_string += f"{hours} hour{'s' if hours > 1 else ''} "
+    if minutes:
+        time_string += f"{minutes} minute{'s' if minutes > 1 else ''} "
+    if seconds:
+        time_string += f"{seconds} second{'s' if seconds > 1 else ''} "
+
+    return time_string.strip()
+
+
+def main(days: list[int] = [5, 2], verbose: bool = False):
+    if len(days) != 2:
+        raise ValueError("Please provide exactly two days")
+
+    print(f"First passage \033[93m{days[0]}\033[0m days")
+    print(f"First passage \033[93m{days[1]}\033[0m days")
+    print("Ways to split:\n")
 
     one_day = 24 * 60 * 60
     times = [float(one_day) * d for d in days]
@@ -43,9 +72,13 @@ if __name__ == "__main__":
         if set(ll[0]) != set(ll[1]):
             continue
 
-        print("number of chunks:", i)
+        print(f"\033[93mChunks: {i}\033[0m")
         for q in [0, 1]:
-            print(f"Passage {q+1}:", f"{days[q]} days")
-            print("step size", steps[q])
-            print("times", [seconds_to_time(tt) for tt in ll[q]])
+            print(f"Step size for Poem {q+1}:", seconds_to_time_len(int(steps[q])))
+            if verbose:
+                print("times", [seconds_to_time(tt) for tt in ll[q]])
         print()
+
+
+if __name__ == "__main__":
+    fire.Fire(main)
