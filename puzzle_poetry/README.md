@@ -1,4 +1,4 @@
-## Overview
+# Puzzle Poetry
 
 This repository accompanies Puzzle Poetry, an article in submission with the Journal of Wordplay Issue #5.
 
