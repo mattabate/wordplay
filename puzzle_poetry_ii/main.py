@@ -1,7 +1,7 @@
 import json
 import tqdm
 
-with open("simple_words.json") as f:
+with open("words_small.json") as f:
     words = json.load(f)
 
 WINNING_SETS = []
@@ -28,9 +28,6 @@ def process(w1, w2) -> tuple[str, str, list[str]]:
     for word in words:
         if word == missing_letters:
             WINNING_SETS.append((short_word + " " + word, long_word))
-
-            with open("winning_sets.json", "w") as f:
-                json.dump(WINNING_SETS, f, indent=2)
             continue
 
         if word.startswith(missing_letters):
@@ -45,6 +42,10 @@ def process(w1, w2) -> tuple[str, str, list[str]]:
 
 
 def process_recursive(w1, w2, level=5):
+    if level > 5:
+        with open("winning_sets.json", "w") as f:
+            json.dump(WINNING_SETS, f, indent=2)
+
     if level < 0:
         return
     a1, b1, words_to_consider1 = process(w1, w2)
@@ -80,4 +81,4 @@ for j in tqdm.tqdm(range(len(words))):
             short_word = w1
             long_word = w2
 
-        process_recursive(short_word, long_word, 3)
+        process_recursive(short_word, long_word, 7)
