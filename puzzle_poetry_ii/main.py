@@ -1,14 +1,15 @@
 import json
 import tqdm
 
-with open("words_small.json") as f:
+with open("words_med.json") as f:
     words = json.load(f)
 
 WINNING_SETS = []
+SEARCH_DEPTH = 5
+SAVE_ON = 1  # starts at 1
 
 
 def process(w1, w2) -> tuple[str, str, list[str]]:
-
     if len(w1.replace(" ", "")) > len(w2.replace(" ", "")):
         short_word = w2
         long_word = w1
@@ -42,11 +43,11 @@ def process(w1, w2) -> tuple[str, str, list[str]]:
 
 
 def process_recursive(w1, w2, level=5):
-    if level > 5:
+    if level > SEARCH_DEPTH - SAVE_ON:
         with open("winning_sets.json", "w") as f:
             json.dump(WINNING_SETS, f, indent=2)
 
-    if level < 0:
+    if level <= 0:
         return
     a1, b1, words_to_consider1 = process(w1, w2)
     if not words_to_consider1:
@@ -61,6 +62,7 @@ for j in tqdm.tqdm(range(len(words))):
     for w2 in words[j:]:
         if not w2.startswith(w1):
             continue
+
         if w1 == w2:
             continue
         if w1 == w2 + "s" or w2 == w1 + "s":
@@ -81,4 +83,4 @@ for j in tqdm.tqdm(range(len(words))):
             short_word = w1
             long_word = w2
 
-        process_recursive(short_word, long_word, 7)
+        process_recursive(short_word, long_word, SEARCH_DEPTH)
