@@ -2,23 +2,44 @@ import json
 import tqdm
 
 with open("words_med.json") as f:
-    words = json.load(f)
+    WORD_LIST = json.load(f)
 
 WINNING_SETS = []
 SEARCH_DEPTH = 5
 SAVE_ON = 1  # starts at 1
 
 
-def process(w1, w2) -> tuple[str, str, list[str]]:
-    if len(w1.replace(" ", "")) > len(w2.replace(" ", "")):
-        short_word = w2
-        long_word = w1
-    else:
-        short_word = w1
-        long_word = w2
+BRAKE_SET = {
+    "bus": ["ear", "earth"],
+    "abuse": ["area"],
+    "abandon": ["eye"],
+    "ban": ["do"],
+}
 
-    c1 = short_word.replace(" ", "").lower()
-    c2 = long_word.replace(" ", "").lower()
+all_vals = []
+for k, v in BRAKE_SET.items():
+    all_vals.extend(v)
+all_vals = list(set(all_vals))
+
+BREAK_SET_BACK = {a: [] for a in all_vals}
+
+for a in all_vals:
+    for k, v in BRAKE_SET.items():
+        if a in v:
+            BREAK_SET_BACK[a].append(k)
+
+
+def process(w1, w2) -> tuple[str, str, list[str]]:
+    """Returns the short word, long word, and the words to consider."""
+    if len(w1.replace(" ", "")) > len(w2.replace(" ", "")):
+        short_sen = w2
+        long_sen = w1
+    else:
+        short_sen = w1
+        long_sen = w2
+
+    c1 = short_sen.replace(" ", "").lower()
+    c2 = long_sen.replace(" ", "").lower()
 
     if not c2.startswith(c1):
         return "", "", []
@@ -26,23 +47,66 @@ def process(w1, w2) -> tuple[str, str, list[str]]:
     words_to_consider = []
     missing_letters = c2[len(c1) :]
 
-    for word in words:
+    for word in WORD_LIST:
+        # if last thre letters are " an" only add words that start with a consonant
+        if short_sen == "an" or short_sen[-3:] == " an":
+            if word[0] not in "aeiou":
+                continue
+            if word in ["a", "i", "either"]:
+                continue
+
+        if short_sen == "a" or short_sen[-2:] == " a":
+            if word[0] in "aeiou":
+                continue
+            if word in [
+                "the",
+                "there",
+                "they",
+                "this",
+                "that",
+                "it",
+                "has",
+                "was",
+                "but",
+            ]:
+                continue
+
+        if word in BREAK_SET_BACK.keys():
+            failed = False
+            for k in BREAK_SET_BACK[word]:
+                if short_sen == k or short_sen[(-len(k) - 1) :] == " " + k:
+                    failed = True
+                    break
+
+            if failed:
+                continue
+
         if word == missing_letters:
-            WINNING_SETS.append((short_word + " " + word, long_word))
+            a = short_sen + " " + word
+            b = long_sen
+            indx_a = a.find(" ")
+            indx_b = b.find(" ")
+            if indx_a < indx_b:
+                WINNING_SETS.append((a, b))
+            else:
+                WINNING_SETS.append((b, a))
             continue
 
         if word.startswith(missing_letters):
+            """If the word starts with the missing letters, then it is a possible word."""
             words_to_consider.append(word)
             continue
 
         if missing_letters.startswith(word):
+            """If the missing letters start with the word, then it is a possible word."""
             words_to_consider.append(word)
             continue
 
-    return short_word, long_word, words_to_consider
+    return short_sen, long_sen, words_to_consider
 
 
 def process_recursive(w1, w2, level=5):
+    """Recursively finds the words that can be added to the short sentence to fit into long sentence"""
     if level > SEARCH_DEPTH - SAVE_ON:
         with open("winning_sets.json", "w") as f:
             json.dump(WINNING_SETS, f, indent=2)
@@ -57,30 +121,26 @@ def process_recursive(w1, w2, level=5):
         process_recursive(a1 + " " + w, b1, level - 1)
 
 
-for j in tqdm.tqdm(range(len(words))):
-    w1 = words[j]
-    for w2 in words[j:]:
-        if not w2.startswith(w1):
-            continue
+if __name__ == "__main__":
+    for j in tqdm.tqdm(range(len(WORD_LIST))):
+        w1 = WORD_LIST[j]
+        for w2 in WORD_LIST[j:]:
+            if not w2.startswith(w1):
+                continue
 
-        if w1 == w2:
-            continue
-        if w1 == w2 + "s" or w2 == w1 + "s":
-            continue
-        if w1 == w2 + "es" or w2 == w1 + "es":
-            continue
-        if w1 == w2 + "d" or w2 == w1 + "d":
-            continue
-        if w1 == w2 + "ed" or w2 == w1 + "ed":
-            continue
-        if w1 == w2 + "ing" or w2 == w1 + "ing":
-            continue
+            short_word, long_word = (w1, w2) if len(w1) < len(w2) else (w2, w1)
 
-        if len(w1) > len(w2):
-            short_word = w2
-            long_word = w1
-        else:
-            short_word = w1
-            long_word = w2
+            if w1 == w2:
+                continue
+            if long_word == short_word + "s":
+                continue
+            if long_word == short_word + "es":
+                continue
+            if long_word == short_word + "d":
+                continue
+            if long_word == short_word + "ed":
+                continue
+            if long_word == short_word + "ing":
+                continue
 
-        process_recursive(short_word, long_word, SEARCH_DEPTH)
+            process_recursive(short_word, long_word, SEARCH_DEPTH)
