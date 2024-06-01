@@ -1,7 +1,7 @@
 import json
 import tqdm
 
-with open("words_med.json") as f:
+with open("words_med_reduced.json") as f:
     WORD_LIST = json.load(f)
 
 WINNING_SETS = []
@@ -10,10 +10,40 @@ SAVE_ON = 1  # starts at 1
 
 
 BRAKE_SET = {
-    "bus": ["ear", "earth"],
+    "a": [
+        "the",
+        "there",
+        "these",
+        "they",
+        "this",
+        "that",
+        "it",
+        "has",
+        "was",
+        "to",
+        "but",
+        "get",
+        "reach",
+        "real",
+    ],
+    "ah": ["or"],
+    "abandon": ["eye", "ear"],
     "abuse": ["area"],
-    "abandon": ["eye"],
+    "age": ["a", "area", "argue", "art", "net", "tap"],
+    "an": ["a", "i", "an", "the"],
+    "be": ["terror", "era"],
+    "bet": ["he"],
     "ban": ["do"],
+    "bus": ["ear", "eat", "earth", "emotional", "era", "eye"],
+    "era": ["way", "get"],
+    "east": ["ear"],
+    "easy": ["ear"],
+    "fee": ["lab"],
+    "gain": ["stare"],
+    "go": ["odd"],
+    "net": ["small"],
+    "these": ["tear", "they", "teach", "this"],
+    "you": ["thin"],
 }
 
 all_vals = []
@@ -58,18 +88,6 @@ def process(w1, w2) -> tuple[str, str, list[str]]:
         if short_sen == "a" or short_sen[-2:] == " a":
             if word[0] in "aeiou":
                 continue
-            if word in [
-                "the",
-                "there",
-                "they",
-                "this",
-                "that",
-                "it",
-                "has",
-                "was",
-                "but",
-            ]:
-                continue
 
         if word in BREAK_SET_BACK.keys():
             failed = False
@@ -86,6 +104,17 @@ def process(w1, w2) -> tuple[str, str, list[str]]:
             b = long_sen
             indx_a = a.find(" ")
             indx_b = b.find(" ")
+
+            ok = True
+            for l in [a, b]:
+                last_word = l.split()[-1]
+                if last_word in ["a", "an", "the"]:
+                    ok = False
+                    break
+
+            if not ok:
+                continue
+
             if indx_a < indx_b:
                 WINNING_SETS.append((a, b))
             else:
@@ -141,6 +170,8 @@ if __name__ == "__main__":
             if long_word == short_word + "ed":
                 continue
             if long_word == short_word + "ing":
+                continue
+            if long_word == short_word + "ment":
                 continue
 
             process_recursive(short_word, long_word, SEARCH_DEPTH)
