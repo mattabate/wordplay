@@ -1,7 +1,7 @@
 import json
 import tqdm
 
-with open("words_med_reduced.json") as f:
+with open("words_med.json") as f:
     WORD_LIST = json.load(f)
 
 WINNING_SETS = []
@@ -23,13 +23,11 @@ BRAKE_SET = {
         "to",
         "but",
         "get",
-        "reach",
-        "real",
     ],
     "ah": ["or"],
     "abandon": ["eye", "ear"],
     "abuse": ["area"],
-    "age": ["a", "area", "argue", "art", "net", "tap"],
+    "age": ["a", "area", "art", "net", "tap"],
     "an": ["a", "i", "an", "the"],
     "be": ["terror", "era"],
     "bet": ["he"],
@@ -42,7 +40,7 @@ BRAKE_SET = {
     "gain": ["stare"],
     "go": ["odd"],
     "net": ["small"],
-    "these": ["tear", "they", "teach", "this"],
+    "these": ["they", "this"],
     "you": ["thin"],
 }
 
@@ -111,8 +109,19 @@ def process(w1, w2) -> tuple[str, str, list[str]]:
                 if last_word in ["a", "an", "the"]:
                     ok = False
                     break
-
             if not ok:
+                continue
+
+            # find locations of spaces
+            a_space = a.find(" ")
+            b_space = b.find(" ")
+
+            # if none continue
+            if a_space == -1 or b_space == -1:
+                continue
+
+            dist_last = abs(len(a) - len(b))
+            if dist_last < 2:
                 continue
 
             if indx_a < indx_b:
@@ -155,6 +164,8 @@ if __name__ == "__main__":
         w1 = WORD_LIST[j]
         for w2 in WORD_LIST[j:]:
             if not w2.startswith(w1):
+                continue
+            if abs(len(w1) - len(w2)) < 2:
                 continue
 
             short_word, long_word = (w1, w2) if len(w1) < len(w2) else (w2, w1)
