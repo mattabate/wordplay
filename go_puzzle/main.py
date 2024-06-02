@@ -37,16 +37,17 @@ def is_square(points: List[Tuple[float, float]]) -> bool:
     return (dists[0] == dists[1] == dists[2] == dists[3]) and (dists[4] == dists[5])
 
 
-solutions = []
-for i in tqdm.tqdm(range(num_dots - 3)):
-    for j in range(i + 1, num_dots - 2):
-        for k in range(j + 1, num_dots - 1):
-            for l in range(k + 1, num_dots):
-                points = [int_to_go_coordinate(x) for x in [i, j, k, l]]
-                if is_square(points):
-                    solutions.append(points)
+if __name__ == "__main__":
+    solutions = []
+    for i in tqdm.tqdm(range(num_dots - 3)):
+        for j in range(i + 1, num_dots - 2):
+            for k in range(j + 1, num_dots - 1):
+                for l in range(k + 1, num_dots):
+                    points = [int_to_go_coordinate(x) for x in [i, j, k, l]]
+                    if is_square(points):
+                        solutions.append(points)
 
-with open("solutions.json", "w") as f:
-    json.dump(solutions, f, indent=2)
+    with open("solutions.json", "w") as f:
+        json.dump(solutions, f, indent=2)
 
-print(f"Found {len(solutions)} solutions")
+    print(f"Found {len(solutions)} solutions")
