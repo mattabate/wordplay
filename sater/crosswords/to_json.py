@@ -23,4 +23,4 @@ for i in range(51):
 # Save the data to a JSON file
 json_file_path = "crossword_words.json"
 with open(json_file_path, "w") as json_file:
-    json.dump(sorted_data, json_file)
+    json.dump(sorted_data, json_file, indent=2)
