@@ -1,4 +1,8 @@
 import json
+import numpy as np
+
+
+ROWLEN = 15
 
 
 def replace_char_at(string, char, index):
@@ -10,68 +14,93 @@ def replace_char_at(string, char, index):
     return string[:index] + char + string[index + 1 :]
 
 
-with open("words_filtered.json") as f:
-    data = json.load(f)
+with open("words.json") as f:
+    word_list = json.load(f)
 
+for i, w in enumerate(word_list):
+    word_list[i] = "." + w + "."
 
-line = "NG.??CAT.????CI"
-if len(line) != 15:
-    print("len line", len(line))
-    exit()
-
-print("initial template:", line)
+line = "a.bb???ab.cb.I."
+print()
+print(line)
 print()
 
-rotations = []
-# i want all rotations of sting
-for i in range(len(line)):
-    new_string = line[i:] + line[:i]
-    if new_string[0] == "?" or new_string[-1] not in ["?"]:
+if len(line) != ROWLEN:
+    print("Invalid row length", len(line))
+    exit()
+
+
+def word_islands_indexes(line: str) -> list[list[int]]:
+    """with wrapping"""
+    """
+    Example: "NB@??.C?T.D??RI" -> [[5, 6], [8, 9, 10], [13, 14, 15, 16, 17]]
+    """
+    if "?" not in line:
+        # TODO: make sure we exit here - if row full, cant do any of the stuff below
+        return []
+
+    qm_positions = [index for index, char in enumerate(line) if char == "?"]
+    qm_positions.append(ROWLEN)
+    result: list[int] = []
+
+    for i in range(len(qm_positions) - 1):
+        in_between = list(range(qm_positions[i] + 1, qm_positions[i + 1]))
+        if in_between:
+            result.append(in_between)
+
+    wrap = line.find("?")
+    if wrap:
+        result[-1].extend([ROWLEN + i for i in range(wrap)])
+
+    return result
+
+
+word_islands = word_islands_indexes(line)
+
+sub_strings = []
+for li in word_islands:
+    word = "".join(line[c % ROWLEN] for c in li)
+    sub_strings.append(
+        (
+            li[0],
+            word,
+        )
+    )
+
+
+print("sub_strings", sub_strings)
+print()
+
+FINAL = []
+for i, s in sub_strings:  # starting index, word
+    periods = s.split(".")
+
+    if len(periods) == 1:
+        FINAL.append(("substring", i, s))
         continue
 
-    word = new_string.split("?")[0]
+    if periods[0]:
+        # this actually works
+        FINAL.append(("suffix", i, periods[0] + "."))
 
-    rotations.append((i, word, new_string))
+    if periods[-1]:
+        FINAL.append(("prefix", i + len(s) - len(periods[-1]) - 1, "." + periods[-1]))
+
+    spots = [j for j, c in enumerate(s) if c == "."]
+
+    for j in range(1, len(periods) - 1):
+        FINAL.append(("infix", i + spots[j - 1], "." + periods[j] + "."))
 
 
-# how many word islands
-# thing one, start at the begining, and
+print(json.dumps(FINAL, indent=4))
+exit()
 
-TEMPLATE_SET = []
+print(FINAL)
+exit()
+line = "NG??.CAT.D??RI"
+chunks = line.split("?")
+print(chunks)
+print(len(chunks) + sum(len(c) for c in chunks))
 
-for i, word, rotated_string in rotations:
-    NEW_TEMPLATES = []
 
-    if word[0] != "." and word[-1] == ".":
-        suffix = word.split(".")[0] + "."
-        print("suffix", suffix)
-        for candidate_word in data:
-            candidate_word = "." + candidate_word + "."
-            if not candidate_word.endswith(suffix):
-                continue
-
-            new_line = rotated_string
-            for yy in range(1, len(candidate_word) - len(suffix) + 1):
-                candidate_letter = candidate_word[-len(suffix) - yy]
-                template_letter = rotated_string[-yy]
-
-                new_line = replace_char_at(new_line, candidate_letter, -yy)
-
-                if template_letter == "?":
-                    continue
-                if template_letter == candidate_letter:
-                    continue
-                if template_letter == "@" and candidate_letter != ".":
-                    continue
-                break
-            else:
-                newline = rotated_string
-
-                NEW_TEMPLATES.append(new_line[-i:] + new_line[:-i])
-
-        TEMPLATE_SET.append(NEW_TEMPLATES)
-
-    if word[0] == "." and word[-1] != ".":
-        print(word)
-
-print(json.dumps(TEMPLATE_SET, indent=2))
+# DO NOT RECOMPUTE POSSIBILITIES FOR HALF AREAS
