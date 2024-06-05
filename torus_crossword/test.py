@@ -56,44 +56,57 @@ def word_islands_indexes(line: str) -> list[list[int]]:
     return sub_strings
 
 
-if __name__ == "__main__":
-    line = "a.bb???ab?c@.@."
-    print()
-    print(line)
-    print()
-
-    t0 = time.time()
-
-    if len(line) != ROWLEN:
-        print("Invalid row length", len(line))
-        exit()
-
-    sub_strings = word_islands_indexes(line)
-
-    print("sub_strings", sub_strings)
-    print()
-
-    FINAL = []
+def word_fixtures(sub_strings: list[tuple[int, str]]) -> list[tuple[str, int, str]]:
+    word_fixtures = []
     for i, s in sub_strings:  # starting index, word
         periods = s.split(".")
 
         if len(periods) == 1:
-            FINAL.append(("substring", i, s))
+            word_fixtures.append(("substring", i, s))
             continue
 
         if periods[0]:
             # this actually works
-            FINAL.append(("suffix", i, periods[0] + "."))
+            word_fixtures.append(("suffix", i, periods[0] + "."))
 
         if periods[-1]:
-            FINAL.append(
+            word_fixtures.append(
                 ("prefix", i + len(s) - len(periods[-1]) - 1, "." + periods[-1])
             )
 
         spots = [j for j, c in enumerate(s) if c == "."]
 
         for j in range(1, len(periods) - 1):
-            FINAL.append(("infix", i + spots[j - 1], "." + periods[j] + "."))
+            if "@" in periods[j]:
+                word_fixtures.append(
+                    ("infix", i + spots[j - 1], "." + periods[j] + ".")
+                )
+
+    return word_fixtures
+
+
+if __name__ == "__main__":
+    line = "A.BB???AB?C@..."
+    # line = "???????????????"
+    # line = "ABCDEDF..AA.AAA"
+    print()
+    print("line:", line)
+    print()
+
+    if len(line) != ROWLEN:
+        print("Invalid row length", len(line))
+        exit()
+
+    t0 = time.time()
+
+    sub_strings = word_islands_indexes(line)
+    fixtures = word_fixtures(sub_strings)
 
     print("processing time", time.time() - t0)
-    print(json.dumps(FINAL, indent=4))
+    print("sub_strings", sub_strings)
+    print()
+    print(json.dumps(fixtures, indent=4))
+
+    for type, i, cont in fixtures:
+        if type == "suffix":
+            1
