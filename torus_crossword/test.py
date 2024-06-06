@@ -139,7 +139,7 @@ if __name__ == "__main__":
         "???????L???????",
         "???????.???????",
         "???????G???????",
-        "SAVER.RING.LIFE",
+        "?????.RING.????",
         "IDAL.TORUS.TORO",
         "CORE.HOLE.APPLE",
         "???????S???????",
@@ -150,30 +150,52 @@ if __name__ == "__main__":
         "???????O???????",
     ]
 
+    t0 = time.time()
+
+    best_row = (-1, [], 1000000000)
+    for i in range(ROWLEN):
+        # line should be the third column of initial template
+        line = INITIAL_TEMPLATE[i]
+
+        if not ("@" in line or "?" in line):
+            continue 
+
+        if bool(re.fullmatch(r"[.?]*", line)):
+            continue
+
+        sub_strings = word_islands_indexes(line)
+        fixtures = word_fixtures(sub_strings)
+        if not fixtures:
+            continue
+        new_tempalates = get_new_templates(fixtures, line)
+        if not new_tempalates:
+            print("no possibilities", f"row {i}")
+            exit()
+        if len(new_tempalates) < best_row[2]:
+            best_row = (i, new_tempalates, len(new_tempalates))
+
+    best_col = (-1, [], 1000000000)
     for i in range(ROWLEN):
         # line should be the third column of initial template
         line = "".join(row[i] for row in INITIAL_TEMPLATE)
 
-        if not ("?" in line  or "@" in line):
-            continue
-        print()
-        print("line:", line)
-        print()
-
-        if len(line) != ROWLEN:
-            print("Invalid row length", len(line))
-            exit()
-
-        t0 = time.time()
+        if not ("@" in line or "?" in line):
+            continue 
 
         sub_strings = word_islands_indexes(line)
         fixtures = word_fixtures(sub_strings)
+        if not fixtures:
+            continue
         new_tempalates = get_new_templates(fixtures, line)
+        if not new_tempalates:
+            print("no possibilities", f"col {i}")
+            exit()
+        if len(new_tempalates) < best_col[2]:
+            best_col = (i, new_tempalates, len(new_tempalates))
 
-        print("num possibilities:", len(new_tempalates))
         
-        print("processing time:", time.time() - t0)
-
-    
-
-
+    print("processing time:", time.time() - t0)
+    print("best column:", best_row[0])
+    print("num possibilities:", best_row[2])
+    print("best column:", best_col[0])
+    print("num possibilities:", best_col[2])
