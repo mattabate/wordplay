@@ -1,6 +1,6 @@
 import json
-import numpy as np
 import time
+import re
 
 ROWLEN = 15
 
@@ -85,28 +85,95 @@ def word_fixtures(sub_strings: list[tuple[int, str]]) -> list[tuple[str, int, st
     return word_fixtures
 
 
+def get_new_templates_all(fixtures: list[tuple[str, int, str]], line: str):
+    new_templates = {i:[] for t, i, c in fixtures}
+    for w in WORDLIST:
+        for _, i, cont in fixtures:
+            pattern = cont.replace("@", "[^.]")
+            matches = re.finditer(pattern, w)
+            positions = [match.start() for match in matches]
+            for p in positions:
+                new_template = line
+                for j, c in enumerate(w):
+                    ooo = (i - p + j) % ROWLEN
+                    if line[ooo] in [c, "?"] or (line[ooo] == "@" and c != "."):
+                        new_template = new_template[:ooo] + c + new_template[ooo + 1 :]
+                        continue
+                    break
+                else:
+                    # clean to convert .?. and .??. to ... and ....
+                    pattern = r"\.[A-Za-z]\."
+                    if bool(re.search(pattern, new_template+new_template)):
+                        continue
+                    pattern = r"\.[A-Za-z]{2}\."
+                    if bool(re.search(pattern, new_template+new_template)):
+                        continue
+
+                    new_template = new_template.replace('.?.', '...').replace('.??.', '....')
+                    new_templates[i].append(new_template)
+
+    return new_templates
+                        
+
+            
+def get_new_templates(fixtures: list[tuple[str, int, str]], line: str) -> list[str]:
+    new_tempalates = get_new_templates_all(fixtures, line)
+    # return shortest item
+    shortest_len = 100000000
+    shortest = []
+    for _, v in new_tempalates.items():
+        if len(v) < shortest_len:
+            shortest_len = len(v)
+            shortest = v 
+
+    return shortest
+
+    
+
+
 if __name__ == "__main__":
-    line = "A.BB???AB?C@..."
-    # line = "???????????????"
-    # line = "ABCDEDF..AA.AAA"
-    print()
-    print("line:", line)
-    print()
+    INITIAL_TEMPLATE = [
+        "???????I???????",
+        "???????D???????",
+        "???????A???????",
+        "???????L???????",
+        "???????.???????",
+        "???????G???????",
+        "SAVER.RING.LIFE",
+        "IDAL.TORUS.TORO",
+        "CORE.HOLE.APPLE",
+        "???????S???????",
+        "???????.???????",
+        "???????P???????",
+        "???????O???????",
+        "???????L???????",
+        "???????O???????",
+    ]
 
-    if len(line) != ROWLEN:
-        print("Invalid row length", len(line))
-        exit()
+    for i in range(ROWLEN):
+        # line should be the third column of initial template
+        line = "".join(row[i] for row in INITIAL_TEMPLATE)
 
-    t0 = time.time()
+        if not ("?" in line  or "@" in line):
+            continue
+        print()
+        print("line:", line)
+        print()
 
-    sub_strings = word_islands_indexes(line)
-    fixtures = word_fixtures(sub_strings)
+        if len(line) != ROWLEN:
+            print("Invalid row length", len(line))
+            exit()
 
-    print("processing time", time.time() - t0)
-    print("sub_strings", sub_strings)
-    print()
-    print(json.dumps(fixtures, indent=4))
+        t0 = time.time()
 
-    for type, i, cont in fixtures:
-        if type == "suffix":
-            1
+        sub_strings = word_islands_indexes(line)
+        fixtures = word_fixtures(sub_strings)
+        new_tempalates = get_new_templates(fixtures, line)
+
+        print("num possibilities:", len(new_tempalates))
+        
+        print("processing time:", time.time() - t0)
+
+    
+
+
