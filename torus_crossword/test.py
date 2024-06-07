@@ -1,6 +1,7 @@
 import json
 import time
 import re
+import tqdm 
 
 ROWLEN = 15
 
@@ -41,6 +42,8 @@ def word_islands_indexes(line: str) -> list[list[int]]:
 
     wrap = line.find("_")
     if wrap:
+        if not word_islands:
+            word_islands = [[]]
         word_islands[-1].extend([ROWLEN + i for i in range(wrap)])
 
     sub_strings = []
@@ -126,7 +129,7 @@ def get_new_templates(fixtures: list[tuple[str, int, str]], line: str) -> list[s
     return shortest
 
     
-def get_new_grids(grid: list[str])->list[list[str]]:
+def get_new_grids(grid: list[str])->tuple[list[str], list[list[str]]]:
     best_row = (-1, [], 1000000000)
     for i in range(ROWLEN):
         # line should be the third column of initial template
@@ -145,12 +148,9 @@ def get_new_grids(grid: list[str])->list[list[str]]:
         new_tempalates = get_new_templates(fixtures, line)
         if not new_tempalates:
             print("no possibilities", f"row {i}")
-            exit()
+            return 0, []
         if len(new_tempalates) < best_row[2]:
             best_row = (i, new_tempalates, len(new_tempalates))
-
-    if best_row[2] == 0:
-        return []
 
     best_col = (-1, [], 1000000000)
     for i in range(ROWLEN):
@@ -166,15 +166,12 @@ def get_new_grids(grid: list[str])->list[list[str]]:
             continue
         new_tempalates = get_new_templates(fixtures, line)
         if not new_tempalates:
-            print("no possibilities", f"col {i}")
-            exit()
+            print("no possibilities", f"col {i}", line)
+            return 0, []
         if len(new_tempalates) < best_col[2]:
             best_col = (i, new_tempalates, len(new_tempalates))
-
-    if best_col[2] == 0:
-        return []
     
-    new_grids = []
+    new_grids : list[list[str]]= []
     if best_row[2] < best_col[2]:
         for l in best_row[1]:
             temp = grid.copy()
@@ -208,7 +205,7 @@ if __name__ == "__main__":
         "_______L_______",
         "_______█_______",
         "_______G_______",
-        "_____█RING█____",
+        "_____█RING█A___",
         "IDAL█TORUS█TORO",
         "CORE█HOLE█APPLE",
         "_______S_______",
@@ -221,12 +218,34 @@ if __name__ == "__main__":
 
     t0 = time.time()
 
-    grids = INITIAL_TEMPLATE.copy()
-    pos, new_grids = get_new_grids(grids)
+    grid = INITIAL_TEMPLATE.copy()
+    pos, new_grids = get_new_grids(grid)
+    print("num possibilities:", pos)
+    print("processing time:", time.time() - t0)
 
     with open("output.json", "w", encoding='utf-8') as f:
         json.dump(new_grids, f, indent=2, ensure_ascii=False)
 
+    # depth 2
+
+    pos, new_grids = get_new_grids(new_grids[0])
     print("num possibilities:", pos)
     print("processing time:", time.time() - t0)
+    with open("output1.json", "w", encoding='utf-8') as f:
+        json.dump(new_grids, f, indent=2, ensure_ascii=False)
+
+
+        
+    pos, new_grids = get_new_grids(new_grids[0])
+    print("num possibilities:", pos)
+    print("processing time:", time.time() - t0)
+    with open("output2.json", "w", encoding='utf-8') as f:
+        json.dump(new_grids, f, indent=2, ensure_ascii=False)
+
+    pos, new_grids = get_new_grids(new_grids[0])
+    print("num possibilities:", pos)
+    print("processing time:", time.time() - t0)
+    with open("output3.json", "w", encoding='utf-8') as f:
+        json.dump(new_grids, f, indent=2, ensure_ascii=False)
+    
    
