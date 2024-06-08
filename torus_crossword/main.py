@@ -179,28 +179,29 @@ def get_new_templates(fixtures: list[tuple[str, int, str]], line: str) -> list[s
 
 
 
-def get_best_row(grid: list[str]) -> tuple[int, list[str]]:
+def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
+    K_INDEX = -1
     K_BEST_SCORE = 1000000000
     K_BEST_GRIDS = []
     
     for i in range(ROWLEN):
+        # for each line
         line = grid[i]
-
         if not ("@" in line or "_" in line):
             # this line cant fit any more words
             continue 
-
         if bool(re.fullmatch(r"[█_]*", line)):
             # this line only contains █ and _ so we cant latch anywhere
             continue
 
         sub_strings = word_islands_indexes(line)
         fixtures = word_fixtures(sub_strings)
+        # TODO: look here
         if not fixtures:
             continue
         new_tempalates = get_new_templates(fixtures, line)
         if not new_tempalates:
-            return K_BEST_SCORE, K_BEST_GRIDS
+            return i, 0, []
         
         new_grids : list[list[str]]= []
         for l in new_tempalates:
@@ -220,30 +221,31 @@ def get_best_row(grid: list[str]) -> tuple[int, list[str]]:
                 new_grids.append(temp)
 
         if len(new_grids) < K_BEST_SCORE:
+            K_INDEX = i
             K_BEST_GRIDS = new_grids
             K_BEST_SCORE = len(new_grids)
 
-    return K_BEST_SCORE, K_BEST_GRIDS
+    return K_INDEX, K_BEST_SCORE, K_BEST_GRIDS
 
 
 
 
 
-def get_new_grids(grid: list[str])->list[list[str]]:
+def get_new_grids(grid: list[str])->tuple[str, list[list[str]]]:
     # find the best row to latch on
-    best_row_score, best_row_grids = get_best_row(grid)
+    row_idx, best_row_score, best_row_grids = get_best_row(grid)
     # transpose to find the best collum
     grid_transposed = ["".join(row[i] for row in grid) for i in range(ROWLEN)]
-    best_col_score, best_col_grids = get_best_row(grid_transposed)
+    col_idx, best_col_score, best_col_grids = get_best_row(grid_transposed)
 
     if best_row_score < best_col_score:
-        return best_row_grids
+        return f"row: {row_idx}", best_row_grids
     else:
         # transform back all of the column grids
         transposed_col_grids = []
         for g in best_col_grids:
             transposed_col_grids.append(["".join(row[i] for row in g) for i in range(ROWLEN)])
-        return transposed_col_grids
+        return f"col {col_idx}", transposed_col_grids
 
 
 
@@ -255,21 +257,22 @@ def grid_filled(grid: list[str]) -> bool:
 
 def recursive_search(grid, level=0):
     if grid_filled(grid):
-        print("\033[93mSolution found")
-        print(json.dumps(grid, indent=2, ensure_ascii=False))
-        print("\033[0m")
+        tqdm.tqdm.write("\033[92mSolution found")  # Green text indicating success
+        tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
+        tqdm.tqdm.write("\033[0m")
         SOLUTIONS.append(grid)
         with open("solutions.json", "w", encoding='utf-8') as f:
             json.dump(SOLUTIONS, f, indent=2, ensure_ascii=False)
         return
     
-    new_grids = get_new_grids(grid)
+    idx_str, new_grids = get_new_grids(grid)
     if not new_grids:
-        print()
-        print("No possibilities")
-        print("\033[91m", json.dumps(grid, indent=2, ensure_ascii=False), "\033[0m")
-        print()
+        tqdm.tqdm.write(f"\nNo possibilities {idx_str}")
+        tqdm.tqdm.write("\033[91m" + json.dumps(grid, indent=2, ensure_ascii=False) + "\033[0m\n")
         return
+    
+    tqdm.tqdm.write(f"\nFocusing on {idx_str}")
+    tqdm.tqdm.write("\033[93m" + json.dumps(grid, indent=2, ensure_ascii=False) + "\033[0m\n")
     
     with tqdm.tqdm(new_grids, desc=f"Level {level}") as t:
         for new_grid in t:
