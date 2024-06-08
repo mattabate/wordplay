@@ -54,7 +54,6 @@ def check_grid_for_short_words(grid: list[str]) -> bool:
                 return True  
     return False
 
-
 def check_grid(grid: list[str]) -> bool:
     # ensure not to many walls
     long_string = "".join(grid)
@@ -65,6 +64,7 @@ def check_grid(grid: list[str]) -> bool:
     if check_grid_for_short_words(grid):
         return False     
            
+
     return True
 
 
@@ -112,11 +112,11 @@ def word_fixtures(sub_strings: list[tuple[int, str]]) -> list[tuple[str, int, st
         periods = s.split(C_WALL)
 
         if len(periods) == 1:
+            # if no periods
             word_fixtures.append(("substring", i, s))
             continue
 
         if periods[0]:
-            # this actually works
             word_fixtures.append(("suffix", i, periods[0] + C_WALL))
 
         if periods[-1]:
@@ -137,7 +137,11 @@ def word_fixtures(sub_strings: list[tuple[int, str]]) -> list[tuple[str, int, st
 
 def get_new_templates_all(fixtures: list[tuple[str, int, str]], line: str):
     new_templates = {i:[] for _, i, _ in fixtures}
+    max_len = max([len(c) for c in (line+line).split(C_WALL)]) + 2
+
     for w in WORDLIST:
+        if len(w) > max_len:
+            continue
         for _, i, cont in fixtures:
             pattern = cont.replace("@", f"[^{C_WALL}]")
             matches = re.finditer(pattern, w)
@@ -147,7 +151,7 @@ def get_new_templates_all(fixtures: list[tuple[str, int, str]], line: str):
                 for j, c in enumerate(w):
                     ooo = (i - p + j) % ROWLEN
                     if line[ooo] in [c, "_"] or (line[ooo] == "@" and c != C_WALL):
-                        new_template = new_template[:ooo] + c + new_template[ooo + 1 :]
+                        new_template = replace_char_at(new_template, c, ooo)
                         continue
                     break
                 else:
@@ -175,8 +179,10 @@ def get_new_templates(fixtures: list[tuple[str, int, str]], line: str) -> list[s
 
 
 
-def get_best_row(grid: list[str]) -> tuple[int, list[str], int]:
-    best_row = (-1, [], 1000000000)
+def get_best_row(grid: list[str]) -> tuple[int, list[str]]:
+    K_BEST_SCORE = 1000000000
+    K_BEST_GRIDS = []
+    
     for i in range(ROWLEN):
         line = grid[i]
 
@@ -194,8 +200,7 @@ def get_best_row(grid: list[str]) -> tuple[int, list[str], int]:
             continue
         new_tempalates = get_new_templates(fixtures, line)
         if not new_tempalates:
-            print("no possibilities", f"row {i}")
-            return []
+            return K_BEST_SCORE, K_BEST_GRIDS
         
         new_grids : list[list[str]]= []
         for l in new_tempalates:
@@ -214,29 +219,31 @@ def get_best_row(grid: list[str]) -> tuple[int, list[str], int]:
             if check_grid(temp):
                 new_grids.append(temp)
 
-        if len(new_grids) < best_row[2]:
-            best_row = (i, new_grids, len(new_grids))
+        if len(new_grids) < K_BEST_SCORE:
+            K_BEST_GRIDS = new_grids
+            K_BEST_SCORE = len(new_grids)
 
-    return best_row
-
-
-
+    return K_BEST_SCORE, K_BEST_GRIDS
 
 
-def get_new_grids(grid: list[str])->tuple[list[str], list[list[str]]]:
-    
+
+
+
+def get_new_grids(grid: list[str])->list[list[str]]:
     # find the best row to latch on
-    best_row = get_best_row(grid)
-
+    best_row_score, best_row_grids = get_best_row(grid)
+    # transpose to find the best collum
     grid_transposed = ["".join(row[i] for row in grid) for i in range(ROWLEN)]
-    best_col = get_best_row(grid_transposed)
+    best_col_score, best_col_grids = get_best_row(grid_transposed)
 
-
-    # this can be totally revised to make a better algorithm.
-    if best_row[2] < best_col[2]:
-        return best_row[1]
+    if best_row_score < best_col_score:
+        return best_row_grids
     else:
-        return best_col[1]
+        # transform back all of the column grids
+        transposed_col_grids = []
+        for g in best_col_grids:
+            transposed_col_grids.append(["".join(row[i] for row in g) for i in range(ROWLEN)])
+        return transposed_col_grids
 
 
 
