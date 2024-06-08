@@ -44,19 +44,27 @@ def check_line_for_short_words(line: str) -> bool:
         return True
     return False
 
-def check_grid(grid: list[str]) -> bool:
+
+def check_grid_for_short_words(grid: list[str]) -> bool:
+    """Check if there are any one or two letter words in the line."""
     transpose = ["".join(row[i] for row in grid) for i in range(ROWLEN)]
-    
+    for g in [grid, transpose]:
+        for l in g:
+            if check_line_for_short_words(l):
+                return True  
+    return False
+
+
+def check_grid(grid: list[str]) -> bool:
     # ensure not to many walls
     long_string = "".join(grid)
     if long_string.count(C_WALL) > MAX_WALLS:
         return False
 
     # ensure not one or two letter words
-    for g in [grid, transpose]:
-        for l in g:
-            if check_line_for_short_words(l):
-                return False            
+    if check_grid_for_short_words(grid):
+        return False     
+           
     return True
 
 
@@ -131,7 +139,7 @@ def get_new_templates_all(fixtures: list[tuple[str, int, str]], line: str):
     new_templates = {i:[] for _, i, _ in fixtures}
     for w in WORDLIST:
         for _, i, cont in fixtures:
-            pattern = cont.replace("@", "[^█]")
+            pattern = cont.replace("@", f"[^{C_WALL}]")
             matches = re.finditer(pattern, w)
             positions = [match.start() for match in matches]
             for p in positions:
@@ -143,11 +151,7 @@ def get_new_templates_all(fixtures: list[tuple[str, int, str]], line: str):
                         continue
                     break
                 else:
-
-                    # clean to convert ._. and .__. to ... and ....
-                    if bool(re.search(r"█[A-Za-z]█", new_template+new_template)):
-                        continue
-                    if bool(re.search(r"█[A-Za-z]{2}█", new_template+new_template)):
+                    if check_line_for_short_words(new_template):
                         continue
                     new_template = new_template.replace(f'{C_WALL}_{C_WALL}', 3*C_WALL).replace(f'{C_WALL}__{C_WALL}', 4*C_WALL)
                     new_templates[i].append(new_template)
@@ -157,6 +161,7 @@ def get_new_templates_all(fixtures: list[tuple[str, int, str]], line: str):
 
             
 def get_new_templates(fixtures: list[tuple[str, int, str]], line: str) -> list[str]:
+    """Get all possible new lines templates for a line given the fixtures."""
     new_tempalates = get_new_templates_all(fixtures, line)
     # return shortest item
     shortest_len = 100000000
@@ -172,13 +177,14 @@ def get_new_templates(fixtures: list[tuple[str, int, str]], line: str) -> list[s
 def get_new_grids(grid: list[str])->tuple[list[str], list[list[str]]]:
     best_row = (-1, [], 1000000000)
     for i in range(ROWLEN):
-        # line should be the third column of initial template
         line = grid[i]
 
         if not ("@" in line or "_" in line):
+            # this line cant fit any more words
             continue 
 
         if bool(re.fullmatch(r"[█_]*", line)):
+            # this line only contains █ and _ so we cant latch anywhere
             continue
 
         sub_strings = word_islands_indexes(line)
@@ -194,7 +200,6 @@ def get_new_grids(grid: list[str])->tuple[list[str], list[list[str]]]:
 
     best_col = (-1, [], 1000000000)
     for i in range(ROWLEN):
-        # line should be the third column of initial template
         line = "".join(row[i] for row in grid)
 
         if not ("@" in line or "_" in line):
@@ -213,17 +218,22 @@ def get_new_grids(grid: list[str])->tuple[list[str], list[list[str]]]:
     
     new_grids : list[list[str]]= []
     # this can be totally revised to make a better algorithm.
+
+
     if best_row[2] < best_col[2]:
         for l in best_row[1]:
             temp = grid.copy()
-            temp[best_row[0]] = l
+            temp[best_row[0]] = l # make line word from options
 
-            for i, c in enumerate(l):
+            long_string = "".join(temp)
+            for i, c in enumerate(long_string):
                 if c == C_WALL:
-                    temp[ROWLEN - 1 - best_row[0]] = replace_char_at(temp[ROWLEN - 1 - best_row[0]], C_WALL, ROWLEN - 1 - i)
-                if char_is_letter(c) and temp[ROWLEN - 1 - best_row[0]][ROWLEN - 1 - i] == "_" :
-                    temp[ROWLEN - 1 - best_row[0]] = replace_char_at(temp[ROWLEN - 1 - best_row[0]], "@", ROWLEN - 1 - i)
-            
+                    long_string = replace_char_at(long_string, C_WALL, len(long_string) - 1 - i)
+                elif char_is_letter(c) and long_string[len(long_string) - 1 - i] == "_" :
+                    long_string = replace_char_at(long_string, "@", len(long_string) - 1 - i)
+
+            temp = [long_string[i:i+ROWLEN] for i in range(0, len(long_string), ROWLEN)]
+
             if check_grid(temp):
                 new_grids.append(temp)
     else:
@@ -244,27 +254,31 @@ def get_new_grids(grid: list[str])->tuple[list[str], list[list[str]]]:
     return new_grids
 
 
-def recursive_search(grid, level=0):
+
+def grid_filled(grid: list[str]) -> bool:
     for l in grid:
         if "_" in l or "@" in l:
-            break
-    else:
-        # print in yellow
-        print("\033[93m", end="")
-        print("solution found")
+            return False
+    return True
+
+def recursive_search(grid, level=0):
+    if grid_filled(grid):
+        print("\033[93mSolution found")
         print(json.dumps(grid, indent=2, ensure_ascii=False))
-        print("\033[0m", end="")
+        print("\033[0m")
         SOLUTIONS.append(grid)
         with open("solutions.json", "w", encoding='utf-8') as f:
             json.dump(SOLUTIONS, f, indent=2, ensure_ascii=False)
         return
+    
     new_grids = get_new_grids(grid)
     if not new_grids:
-        # red
-        print("no possibilities")
+        print()
+        print("No possibilities")
         print("\033[91m", json.dumps(grid, indent=2, ensure_ascii=False), "\033[0m")
         print()
         return
+    
     with tqdm.tqdm(new_grids, desc=f"Level {level}") as t:
         for new_grid in t:
             recursive_search(new_grid, level + 1)
