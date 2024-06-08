@@ -174,7 +174,8 @@ def get_new_templates(fixtures: list[tuple[str, int, str]], line: str) -> list[s
     return shortest
 
 
-def get_new_grids(grid: list[str])->tuple[list[str], list[list[str]]]:
+
+def get_best_row(grid: list[str]) -> tuple[int, list[str], int]:
     best_row = (-1, [], 1000000000)
     for i in range(ROWLEN):
         line = grid[i]
@@ -195,63 +196,47 @@ def get_new_grids(grid: list[str])->tuple[list[str], list[list[str]]]:
         if not new_tempalates:
             print("no possibilities", f"row {i}")
             return []
-        if len(new_tempalates) < best_row[2]:
-            best_row = (i, new_tempalates, len(new_tempalates))
-
-    best_col = (-1, [], 1000000000)
-    for i in range(ROWLEN):
-        line = "".join(row[i] for row in grid)
-
-        if not ("@" in line or "_" in line):
-            continue 
-
-        sub_strings = word_islands_indexes(line)
-        fixtures = word_fixtures(sub_strings)
-        if not fixtures:
-            continue
-        new_tempalates = get_new_templates(fixtures, line)
-        if not new_tempalates:
-            print("no possibilities", f"col {i}", line)
-            return []
-        if len(new_tempalates) < best_col[2]:
-            best_col = (i, new_tempalates, len(new_tempalates))
-    
-    new_grids : list[list[str]]= []
-    # this can be totally revised to make a better algorithm.
-
-
-    if best_row[2] < best_col[2]:
-        for l in best_row[1]:
+        
+        new_grids : list[list[str]]= []
+        for l in new_tempalates:
             temp = grid.copy()
-            temp[best_row[0]] = l # make line word from options
+            temp[i] = l # make line word from options
 
             long_string = "".join(temp)
-            for i, c in enumerate(long_string):
+            for j, c in enumerate(long_string):
                 if c == C_WALL:
-                    long_string = replace_char_at(long_string, C_WALL, len(long_string) - 1 - i)
-                elif char_is_letter(c) and long_string[len(long_string) - 1 - i] == "_" :
-                    long_string = replace_char_at(long_string, "@", len(long_string) - 1 - i)
+                    long_string = replace_char_at(long_string, C_WALL, len(long_string) - 1 - j)
+                elif char_is_letter(c) and long_string[len(long_string) - 1 - j] == "_" :
+                    long_string = replace_char_at(long_string, "@", len(long_string) - 1 - j)
 
-            temp = [long_string[i:i+ROWLEN] for i in range(0, len(long_string), ROWLEN)]
+            temp = [long_string[j:j+ROWLEN] for j in range(0, len(long_string), ROWLEN)]
 
             if check_grid(temp):
                 new_grids.append(temp)
+
+        if len(new_grids) < best_row[2]:
+            best_row = (i, new_grids, len(new_grids))
+
+    return best_row
+
+
+
+
+
+def get_new_grids(grid: list[str])->tuple[list[str], list[list[str]]]:
+    
+    # find the best row to latch on
+    best_row = get_best_row(grid)
+
+    grid_transposed = ["".join(row[i] for row in grid) for i in range(ROWLEN)]
+    best_col = get_best_row(grid_transposed)
+
+
+    # this can be totally revised to make a better algorithm.
+    if best_row[2] < best_col[2]:
+        return best_row[1]
     else:
-        for l in best_col[1]:
-            temp = grid.copy()
-            for i, c in enumerate(l):
-                temp[i] = replace_char_at(temp[i], c, best_col[0])
-
-                reflexted = ROWLEN - 1 - i
-                if c == C_WALL:
-                    temp[reflexted] = replace_char_at(temp[reflexted], C_WALL, ROWLEN - 1 - best_col[0])
-                if char_is_letter(c) and temp[reflexted][ROWLEN - 1 - best_col[0]] == "_" :
-                    temp[reflexted] = replace_char_at(temp[reflexted], "@", ROWLEN - 1 - best_col[0])
-
-            if check_grid(temp):
-                new_grids.append(temp)
-
-    return new_grids
+        return best_col[1]
 
 
 
