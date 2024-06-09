@@ -4,6 +4,7 @@ import re
 import tqdm 
 
 ROWLEN = 15
+GRIDCELLS = ROWLEN * ROWLEN
 SOLUTIONS = []
 C_WALL = "█"
 MAX_WALLS = 40
@@ -54,16 +55,6 @@ def check_line_for_short_words(line: str) -> bool:
         return True
     return False
 
-def check_grid_for_short_words(grid: list[str]) -> bool:
-    """Check if there are any one or two letter words in the line."""
-    transpose = ["".join(row[i] for row in grid) for i in range(ROWLEN)]
-    for g in [grid, transpose]:
-        for l in g:
-            if check_line_for_short_words(l):
-                return True  
-    return False
-
-
 def word_islands_indexes(line: str) -> list[list[int]]:
     """with wrapping"""
     """
@@ -106,8 +97,9 @@ def word_fixtures(sub_strings: list[tuple[int, str]]) -> list[tuple[str, int, st
     word_fixtures = []
     for i, s in sub_strings:  # starting index, word
         periods = s.split(C_WALL)
+        num_periods = len(periods)
 
-        if len(periods) == 1:
+        if num_periods == 1:
             # if no periods
             word_fixtures.append(("substring", i, s))
             continue
@@ -122,7 +114,7 @@ def word_fixtures(sub_strings: list[tuple[int, str]]) -> list[tuple[str, int, st
 
         spots = [j for j, c in enumerate(s) if c == C_WALL]
 
-        for j in range(1, len(periods) - 1):
+        for j in range(1, num_periods - 1):
             if "@" in periods[j]:
                 word_fixtures.append(
                     ("infix", i + spots[j - 1], C_WALL + periods[j] + C_WALL)
@@ -167,8 +159,9 @@ def get_new_templates(fixtures: list[tuple[str, int, str]], line: str) -> list[s
     shortest_len = 100000000
     shortest = []
     for _, v in new_tempalates.items():
-        if len(v) < shortest_len:
-            shortest_len = len(v)
+        len_v = len(v)
+        if len_v < shortest_len:
+            shortest_len = len_v
             shortest = v 
 
     return shortest
@@ -208,8 +201,9 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
 
             # NOTE: This adds rotational symetry if missing
             long_string = "".join(candidate_grid)
+            # length_string = len(long_string)]
             for j, c in enumerate(long_string):
-                rvs_idx = len(long_string) - 1 - j
+                rvs_idx = GRIDCELLS - 1 - j
                 if long_string[rvs_idx] != "_":
                     continue
 
@@ -222,14 +216,14 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             if long_string.count(C_WALL) > MAX_WALLS:
                 continue
 
-            candidate_grid = [long_string[j:j+ROWLEN] for j in range(0, len(long_string), ROWLEN)]
+            candidate_grid = [long_string[j:j+ROWLEN] for j in range(0, GRIDCELLS, ROWLEN)]
             
             
 
             # NOTE: This ensures no short words
-            transpose = ["".join(row[i] for row in grid) for i in range(ROWLEN)] # compute transpose matrix
+            tr = transpose(grid) # compute transpose matrix
             g_val = "@@@".join(l+l for l in candidate_grid) # double the lines, and then join and create long string
-            t_val = "@@@".join(l+l for l in transpose)
+            t_val = "@@@".join(l+l for l in tr)
             search_string = g_val + "@@@" + t_val
             bites = search_string.split(C_WALL)
             for word in bites[1:-1]:
@@ -251,8 +245,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
 
 
 def transpose(grid: list[str]) -> list[str]:
-    return ["".join(row[i] for row in grid) for i in range(ROWLEN)]
-
+    return [''.join(row) for row in zip(*grid)]
 
 def get_new_grids(grid: list[str])->tuple[int, list[list[str]]]:
     # find the best row to latch on
