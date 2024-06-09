@@ -6,7 +6,7 @@ import tqdm
 ROWLEN = 15
 SOLUTIONS = []
 C_WALL = "█"
-MAX_WALLS = 20
+MAX_WALLS = 40
 
 with open("words.json") as f:
     WORDLIST = json.load(f)
@@ -228,23 +228,25 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
     return K_INDEX, K_BEST_SCORE, K_BEST_GRIDS
 
 
-
+def transpose(grid: list[str]) -> list[str]:
+    return ["".join(row[i] for row in grid) for i in range(ROWLEN)]
 
 
 def get_new_grids(grid: list[str])->tuple[str, list[list[str]]]:
     # find the best row to latch on
     row_idx, best_row_score, best_row_grids = get_best_row(grid)
     # transpose to find the best collum
-    grid_transposed = ["".join(row[i] for row in grid) for i in range(ROWLEN)]
+    grid_transposed = transpose(grid)
     col_idx, best_col_score, best_col_grids = get_best_row(grid_transposed)
 
+    # TODO: SOMETHING WRONG HERE???
     if best_row_score < best_col_score:
         return f"row: {row_idx}", best_row_grids
     else:
         # transform back all of the column grids
         transposed_col_grids = []
         for g in best_col_grids:
-            transposed_col_grids.append(["".join(row[i] for row in g) for i in range(ROWLEN)])
+            transposed_col_grids.append(transpose(g))
         return f"col {col_idx}", transposed_col_grids
 
 
