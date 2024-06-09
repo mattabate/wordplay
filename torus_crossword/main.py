@@ -23,6 +23,12 @@ for i, w in enumerate(WORDLIST):
     WORDLIST[i] = C_WALL + w + C_WALL
 
 
+def grid_filled(grid: list[str]) -> bool:
+    for l in grid:
+        if "_" in l or "@" in l:
+            return False
+    return True
+
 def char_is_letter(c: str) -> bool:
     if len(c) != 1:
         raise ValueError("Input must be a single character")
@@ -48,10 +54,10 @@ def replace_char_at(string, char, index):
 
 def check_line_for_short_words(line: str) -> bool:
     """Check if there are any one or two letter words in the line."""
-    if bool(re.search(r"█[A-Za-z@]█", 2*line)) or bool(re.search(r"█[A-Za-z@]{2}█", 2*line)):
+    # Combine both patterns into one
+    if bool(re.search(r"█[A-Za-z@]█|█[A-Za-z@]{2}█", 2 * line)):
         return True
     return False
-
 
 def check_grid_for_short_words(grid: list[str]) -> bool:
     """Check if there are any one or two letter words in the line."""
@@ -198,7 +204,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
         if not ("@" in line or "_" in line):
             # this line cant fit any more words
             continue 
-        if bool(re.fullmatch(r"[█_]*", line)):
+        if not any(c not in ["█", "_"] for c in line):
             # this line only contains █ and _ so we cant latch anywhere
             continue
 
@@ -211,6 +217,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
         if not new_tempalates:
             return i, 0, []
         
+        # TODO: DO THIS WITHOUT COMPUTING GRIDS EXPLICITLY
         new_grids : list[list[str]]= []
         for l in new_tempalates:
             temp = grid.copy()
@@ -257,13 +264,6 @@ def get_new_grids(grid: list[str])->tuple[int, list[list[str]]]:
             transposed_col_grids.append(transpose(g))
         return "c", col_idx, transposed_col_grids
 
-
-
-def grid_filled(grid: list[str]) -> bool:
-    for l in grid:
-        if "_" in l or "@" in l:
-            return False
-    return True
 
 def print_grid(grid: list[str], h: tuple[str, int, str]):
     BACKGROUND = T_NORMAL
