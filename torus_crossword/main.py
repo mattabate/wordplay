@@ -29,11 +29,6 @@ def grid_filled(grid: list[str]) -> bool:
             return False
     return True
 
-def char_is_letter(c: str) -> bool:
-    if len(c) != 1:
-        raise ValueError("Input must be a single character")
-    return c in "@ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
 def replace_char_at(string, char, index):
     """Replace a character at a specific index in a string.
     
@@ -67,19 +62,6 @@ def check_grid_for_short_words(grid: list[str]) -> bool:
             if check_line_for_short_words(l):
                 return True  
     return False
-
-def check_grid(grid: list[str]) -> bool:
-    # ensure not to many walls
-    long_string = "".join(grid)
-    if long_string.count(C_WALL) > MAX_WALLS:
-        return False
-
-    # ensure not one or two letter words
-    if check_grid_for_short_words(grid):
-        return False     
-           
-
-    return True
 
 
 def word_islands_indexes(line: str) -> list[list[int]]:
@@ -213,33 +195,58 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
         # TODO: look here
         if not fixtures:
             continue
-        new_tempalates = get_new_templates(fixtures, line)
-        if not new_tempalates:
+        candidate_lines = get_new_templates(fixtures, line)
+        if not candidate_lines:
             return i, 0, []
         
         # TODO: DO THIS WITHOUT COMPUTING GRIDS EXPLICITLY
+        # now that you have the words that fit, do any lead to a trvially bad grid?
         new_grids : list[list[str]]= []
-        for l in new_tempalates:
-            temp = grid.copy()
-            temp[i] = l # make line word from options
+        for l in candidate_lines:
+            candidate_grid = grid.copy() 
+            candidate_grid[i] = l # make line word from options
 
-            long_string = "".join(temp)
+            # NOTE: This adds rotational symetry if missing
+            long_string = "".join(candidate_grid)
             for j, c in enumerate(long_string):
+                rvs_idx = len(long_string) - 1 - j
+                if long_string[rvs_idx] != "_":
+                    continue
+
                 if c == C_WALL:
-                    long_string = replace_char_at(long_string, C_WALL, len(long_string) - 1 - j)
-                elif char_is_letter(c) and long_string[len(long_string) - 1 - j] == "_" :
-                    long_string = replace_char_at(long_string, "@", len(long_string) - 1 - j)
+                    long_string = replace_char_at(long_string, C_WALL, rvs_idx)
+                elif c in "@ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+                    long_string = replace_char_at(long_string, "@", rvs_idx)
 
-            temp = [long_string[j:j+ROWLEN] for j in range(0, len(long_string), ROWLEN)]
+            # NOTE: This ensures not to many walls
+            if long_string.count(C_WALL) > MAX_WALLS:
+                continue
 
-            if check_grid(temp):
-                new_grids.append(temp)
+            candidate_grid = [long_string[j:j+ROWLEN] for j in range(0, len(long_string), ROWLEN)]
+            
+            
+
+            # NOTE: This ensures no short words
+            transpose = ["".join(row[i] for row in grid) for i in range(ROWLEN)] # compute transpose matrix
+            g_val = "@@@".join(l+l for l in candidate_grid) # double the lines, and then join and create long string
+            t_val = "@@@".join(l+l for l in transpose)
+            search_string = g_val + "@@@" + t_val
+            bites = search_string.split(C_WALL)
+            for word in bites[1:-1]:
+                if (
+                    len(word) in [1, 2] and 
+                    any(c.isalpha() or c == '@' for c in word)
+                ):
+                    break
+            else:
+                new_grids.append(candidate_grid)
 
         if len(new_grids) < K_BEST_SCORE:
             K_INDEX = i
             K_BEST_GRIDS = new_grids
             K_BEST_SCORE = len(new_grids)
 
+    # candidate_grid = [long_string[j:j+ROWLEN] for j in range(0, len(long_string), ROWLEN)]
     return K_INDEX, K_BEST_SCORE, K_BEST_GRIDS
 
 
