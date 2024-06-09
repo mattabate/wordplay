@@ -8,6 +8,14 @@ SOLUTIONS = []
 C_WALL = "█"
 MAX_WALLS = 40
 
+
+
+T_NORMAL = "\033[0m"
+T_BLUE = "\033[94m"
+T_YELLOW = "\033[93m"
+T_GREEN = "\033[92m"
+T_PINK = "\033[95m"
+
 with open("words.json") as f:
     WORDLIST = json.load(f)
 
@@ -232,7 +240,7 @@ def transpose(grid: list[str]) -> list[str]:
     return ["".join(row[i] for row in grid) for i in range(ROWLEN)]
 
 
-def get_new_grids(grid: list[str])->tuple[str, list[list[str]]]:
+def get_new_grids(grid: list[str])->tuple[int, list[list[str]]]:
     # find the best row to latch on
     row_idx, best_row_score, best_row_grids = get_best_row(grid)
     # transpose to find the best collum
@@ -241,13 +249,13 @@ def get_new_grids(grid: list[str])->tuple[str, list[list[str]]]:
 
     # TODO: SOMETHING WRONG HERE???
     if best_row_score < best_col_score:
-        return f"row: {row_idx}", best_row_grids
+        return "r", row_idx, best_row_grids
     else:
         # transform back all of the column grids
         transposed_col_grids = []
         for g in best_col_grids:
             transposed_col_grids.append(transpose(g))
-        return f"col {col_idx}", transposed_col_grids
+        return "c", col_idx, transposed_col_grids
 
 
 
@@ -256,6 +264,24 @@ def grid_filled(grid: list[str]) -> bool:
         if "_" in l or "@" in l:
             return False
     return True
+
+def print_grid(grid: list[str], h: tuple[str, int, str]):
+    BACKGROUND = T_NORMAL
+
+    print_grid = grid.copy()
+
+    h_color = h[2]
+    if h[0] == "r":
+        print_grid[h[1]] = h_color + print_grid[h[1]] + BACKGROUND
+    else:
+        for i in range(ROWLEN):
+            print_grid[i] = replace_char_at(
+                print_grid[i], 
+                h_color + print_grid[i][h[1]] + BACKGROUND, h[1]
+            )
+
+    return "\n".join(print_grid) + T_NORMAL
+
 
 def recursive_search(grid, level=0):
     if grid_filled(grid):
@@ -267,14 +293,16 @@ def recursive_search(grid, level=0):
             json.dump(SOLUTIONS, f, indent=2, ensure_ascii=False)
         return
     
-    idx_str, new_grids = get_new_grids(grid)
+    x, idx_str, new_grids = get_new_grids(grid)
     if not new_grids:
-        tqdm.tqdm.write(f"\nNo possibilities {idx_str}")
-        tqdm.tqdm.write("\033[91m" + json.dumps(grid, indent=2, ensure_ascii=False) + "\033[0m\n")
+        out1 = f"\nNo possibilities ROW {idx_str}" if x == "r" else f"\nNo possibilities COL {idx_str}"
+        tqdm.tqdm.write(out1)
+        tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_PINK)))
         return
     
-    tqdm.tqdm.write(f"\nFocusing on {idx_str}")
-    tqdm.tqdm.write("\033[93m" + json.dumps(grid, indent=2, ensure_ascii=False) + "\033[0m\n")
+    out2 = f"\nTesting {len(new_grids)} possibilities for ROW {idx_str}" if x == "r" else f"\nTesting {len(new_grids)} possibilities for COL {idx_str}"
+    tqdm.tqdm.write(out2)
+    tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_GREEN)  ))
     
     with tqdm.tqdm(new_grids, desc=f"Level {level}") as t:
         for new_grid in t:
@@ -289,9 +317,9 @@ if __name__ == "__main__":
         "_______L_______",
         "_______█_______",
         "_______G_______",
-        "_____█RING█____",
+        "ECORE█RING█APPL",
         "IDAL█TORUS█TORO",
-        "CORE█HOLE█APPLE",
+        "TUBE█HOLE█INNER",
         "_______S_______",
         "_______█_______",
         "_______P_______",
