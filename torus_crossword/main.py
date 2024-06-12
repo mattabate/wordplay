@@ -1,14 +1,13 @@
 import json
 import time
 import re
-import tqdm 
+import tqdm
 
 ROWLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
 SOLUTIONS = []
 C_WALL = "█"
 MAX_WALLS = 40
-
 
 
 T_NORMAL = "\033[0m"
@@ -23,6 +22,9 @@ with open("words.json") as f:
 for i, w in enumerate(WORDLIST):
     WORDLIST[i] = C_WALL + w + C_WALL
 
+# sort long words first
+WORDLIST.sort(key=len, reverse=True)
+
 
 def grid_filled(grid: list[str]) -> bool:
     for l in grid:
@@ -30,14 +32,15 @@ def grid_filled(grid: list[str]) -> bool:
             return False
     return True
 
+
 def replace_char_at(string, char, index):
     """Replace a character at a specific index in a string.
-    
+
     Args:
         string (str): The original string
         char (str): The character to replace with
         index (int): The index at which to replace the character
-        
+
     Returns:
         str: The modified string
     """
@@ -55,13 +58,18 @@ def check_line_for_short_words(line: str) -> bool:
         return True
     return False
 
+
 def word_islands_indexes(line: str) -> list[list[int]]:
     """with wrapping"""
     """
     Example: "a█bb___ab_c@█@█" -> [(7, 'ab'), (10, 'c@█@█a█bb')]
     """
+    # TODO: NEED TO FIX THIS TO ACCOMIDATE only @
     if "_" not in line:
         # HACK: must exit here since no _ means no starting index for word islands
+        if "@" in line and "█" in line:
+            loc = line.find("█")
+            return [(loc, line[loc:] + line[:loc])]
         return []
 
     qm_positions = [index for index, char in enumerate(line) if char == "_"]
@@ -96,6 +104,9 @@ def word_islands_indexes(line: str) -> list[list[int]]:
 def word_fixtures(sub_strings: list[tuple[int, str]]) -> list[tuple[str, int, str]]:
     word_fixtures = []
     for i, s in sub_strings:  # starting index, word
+        if len(s) == 15 and s[0] == C_WALL:
+            s = s + C_WALL
+
         periods = s.split(C_WALL)
         num_periods = len(periods)
 
@@ -124,8 +135,8 @@ def word_fixtures(sub_strings: list[tuple[int, str]]) -> list[tuple[str, int, st
 
 
 def get_new_templates_all(fixtures: list[tuple[str, int, str]], line: str):
-    new_templates = {i:[] for _, i, _ in fixtures}
-    max_len = max([len(c) for c in (line+line).split(C_WALL)]) + 2
+    new_templates = {i: [] for _, i, _ in fixtures}
+    max_len = max([len(c) for c in (line + line).split(C_WALL)]) + 2
 
     for w in WORDLIST:
         if len(w) > max_len:
@@ -145,13 +156,27 @@ def get_new_templates_all(fixtures: list[tuple[str, int, str]], line: str):
                 else:
                     if check_line_for_short_words(new_template):
                         continue
-                    new_template = new_template.replace(f'{C_WALL}_{C_WALL}', 3*C_WALL).replace(f'{C_WALL}__{C_WALL}', 4*C_WALL)
+                    new_template = new_template.replace(
+                        f"{C_WALL}_{C_WALL}", 3 * C_WALL
+                    ).replace(f"{C_WALL}__{C_WALL}", 4 * C_WALL)
                     new_templates[i].append(new_template)
 
     return new_templates
-                        
 
-            
+
+def a_contains_b(a: list[str], b: list[str]) -> bool:
+    """check if A grid a super set of b grid (B fails if A fails)"""
+
+    for line1, line2 in zip(a, b):
+        for c1, c2 in zip(line1, line2):
+            if c1 not in "@_" and c2 != c1:
+                return False
+            if c1 == "@" and c2 in "_█":
+                return False
+
+    return True
+
+
 def get_new_templates(fixtures: list[tuple[str, int, str]], line: str) -> list[str]:
     """Get all possible new lines templates for a line given the fixtures."""
     new_tempalates = get_new_templates_all(fixtures, line)
@@ -162,25 +187,36 @@ def get_new_templates(fixtures: list[tuple[str, int, str]], line: str) -> list[s
         len_v = len(v)
         if len_v < shortest_len:
             shortest_len = len_v
-            shortest = v 
+            shortest = v
 
     return shortest
 
+
+def is_line_filled(line: str) -> bool:
+    return not ("@" in line or "_" in line)
+
+
+def latches_in_line(line: str) -> bool:
+    """return true if line contains latches"""
+    return not any(c not in ["█", "_"] for c in line)
+
+
+def fill_in_small_holes(grid: list[str]) -> list[str]:
+    new_grid = [l.replace("█_█", "███").replace("█__█", "████") for l in grid]
+    tr = transpose(new_grid)  # compute transpose matrix
+    new_grid = [l.replace("█_█", "███").replace("█__█", "████") for l in tr]
+    return transpose(new_grid)
 
 
 def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
     K_INDEX = -1
     K_BEST_SCORE = 1000000000
     K_BEST_GRIDS = []
-    
+
     for i in range(ROWLEN):
         # for each line
         line = grid[i]
-        if not ("@" in line or "_" in line):
-            # this line cant fit any more words
-            continue 
-        if not any(c not in ["█", "_"] for c in line):
-            # this line only contains █ and _ so we cant latch anywhere
+        if is_line_filled(line) or latches_in_line(line):
             continue
 
         sub_strings = word_islands_indexes(line)
@@ -189,15 +225,16 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
         if not fixtures:
             continue
         candidate_lines = get_new_templates(fixtures, line)
+
         if not candidate_lines:
             return i, 0, []
-        
+
         # TODO: DO THIS WITHOUT COMPUTING GRIDS EXPLICITLY
         # now that you have the words that fit, do any lead to a trvially bad grid?
-        new_grids : list[list[str]]= []
+        new_grids: list[list[str]] = []
         for l in candidate_lines:
-            candidate_grid = grid.copy() 
-            candidate_grid[i] = l # make line word from options
+            candidate_grid = grid.copy()
+            candidate_grid[i] = l  # make line word from options
 
             # NOTE: This adds rotational symetry if missing
             long_string = "".join(candidate_grid)
@@ -212,28 +249,31 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
                 elif c in "@ABCDEFGHIJKLMNOPQRSTUVWXYZ":
                     long_string = replace_char_at(long_string, "@", rvs_idx)
 
+            candidate_grid = [
+                long_string[j : j + ROWLEN] for j in range(0, GRIDCELLS, ROWLEN)
+            ]
+
+            candidate_grid = fill_in_small_holes(candidate_grid)
+            tr = transpose(candidate_grid)
+
             # NOTE: This ensures not to many walls
             if long_string.count(C_WALL) > MAX_WALLS:
                 continue
 
-            candidate_grid = [long_string[j:j+ROWLEN] for j in range(0, GRIDCELLS, ROWLEN)]
-            
-            
-
             # NOTE: This ensures no short words
-            tr = transpose(grid) # compute transpose matrix
-            g_val = "@@@".join(l+l for l in candidate_grid) # double the lines, and then join and create long string
-            t_val = "@@@".join(l+l for l in tr)
+            g_val = "@@@".join(
+                l + l for l in candidate_grid
+            )  # double the lines, and then join and create long string
+            t_val = "@@@".join(l + l for l in tr)
             search_string = g_val + "@@@" + t_val
             bites = search_string.split(C_WALL)
             for word in bites[1:-1]:
-                if (
-                    len(word) in [1, 2] and 
-                    any(c.isalpha() or c == '@' for c in word)
-                ):
+                if len(word) in [1, 2] and any(c.isalpha() or c == "@" for c in word):
                     break
             else:
                 new_grids.append(candidate_grid)
+                if len(new_grids) >= K_BEST_SCORE:
+                    break
 
         if len(new_grids) < K_BEST_SCORE:
             K_INDEX = i
@@ -245,9 +285,11 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
 
 
 def transpose(grid: list[str]) -> list[str]:
-    return [''.join(row) for row in zip(*grid)]
+    return ["".join(row) for row in zip(*grid)]
 
-def get_new_grids(grid: list[str])->tuple[int, list[list[str]]]:
+
+def get_new_grids(grid: list[str]) -> tuple[int, list[list[str]]]:
+    """Given a grid, find the best row or column to latch on to."""
     # find the best row to latch on
     row_idx, best_row_score, best_row_grids = get_best_row(grid)
     # transpose to find the best collum
@@ -276,68 +318,75 @@ def print_grid(grid: list[str], h: tuple[str, int, str]):
     else:
         for i in range(ROWLEN):
             print_grid[i] = replace_char_at(
-                print_grid[i], 
-                h_color + print_grid[i][h[1]] + BACKGROUND, h[1]
+                print_grid[i], h_color + print_grid[i][h[1]] + BACKGROUND, h[1]
             )
 
     return "\n".join(print_grid) + T_NORMAL
 
 
 def recursive_search(grid, level=0):
+
     if grid_filled(grid):
         tqdm.tqdm.write("\033[92mSolution found")  # Green text indicating success
         tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
         tqdm.tqdm.write("\033[0m")
         SOLUTIONS.append(grid)
-        with open("solutions.json", "w", encoding='utf-8') as f:
+        with open("solutions.json", "w", encoding="utf-8") as f:
             json.dump(SOLUTIONS, f, indent=2, ensure_ascii=False)
         return
-    
+
     x, idx_str, new_grids = get_new_grids(grid)
     if not new_grids:
-        out1 = f"\nNo possibilities ROW {idx_str}" if x == "r" else f"\nNo possibilities COL {idx_str}"
+        out1 = (
+            f"\nNo possibilities ROW {idx_str}"
+            if x == "r"
+            else f"\nNo possibilities COL {idx_str}"
+        )
         tqdm.tqdm.write(out1)
         tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_PINK)))
+
         return
-    
-    out2 = f"\nTesting {len(new_grids)} possibilities for ROW {idx_str}" if x == "r" else f"\nTesting {len(new_grids)} possibilities for COL {idx_str}"
-    tqdm.tqdm.write(out2)
-    tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_GREEN)  ))
-    
+
     with tqdm.tqdm(new_grids, desc=f"Level {level}") as t:
+        out2 = (
+            f"\nTesting {len(new_grids)} possibilities for ROW {idx_str}"
+            if x == "r"
+            else f"\nTesting {len(new_grids)} possibilities for COL {idx_str}"
+        )
+        tqdm.tqdm.write(out2)
+        tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_GREEN)))
+
         for new_grid in t:
             recursive_search(new_grid, level + 1)
 
 
 if __name__ == "__main__":
     INITIAL_TEMPLATE = [
-        "_______I_______",
-        "_______D_______",
-        "_______A_______",
-        "_______L_______",
-        "_______█_______",
-        "_______G_______",
-        "ECORE█RING█APPL",
-        "IDAL█TORUS█TORO",
-        "TUBE█HOLE█INNER",
-        "_______S_______",
-        "_______█_______",
-        "_______P_______",
-        "_______O_______",
-        "_______L_______",
-        "_______O_______"
+        "______█____█___",
+        "UNCHIE█____█SCR",
+        "_______________",
+        "_______________",
+        "ING█____█ONIONR",
+        "_______________",
+        "_______________",
+        "HNUT█TORUS█DOUG",
+        "_______________",
+        "_______________",
+        "DTCAKE█____█BUN",
+        "_______________",
+        "_______________",
+        "UBE█____█INNERT",
+        "___█____█______",
     ]
 
-    with open("fails.json", "r") as f:
-        data = json.load(f)
-        if INITIAL_TEMPLATE in data:
-            print("already failed")
-            exit()
+    with open("fails.json") as f:
+        fails = json.load(f)
+    if INITIAL_TEMPLATE in fails:
+        print("This grid has already been proven to have no solution.")
+        exit()
 
     t0 = time.time()
 
     grid = INITIAL_TEMPLATE.copy()
 
-
     recursive_search(grid, 0)
-    
