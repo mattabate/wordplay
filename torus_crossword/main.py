@@ -6,13 +6,13 @@ import os
 
 ROWLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
-if os.path.exists("solutions.json"):
-    with open("solutions.json") as f:
+if os.path.exists("solutions1.json"):
+    with open("solutions1.json") as f:
         SOLUTIONS = json.load(f)
 else:
     SOLUTIONS = []
 C_WALL = "█"
-MAX_WALLS = 50
+MAX_WALLS = 46
 
 
 T_NORMAL = "\033[0m"
@@ -26,6 +26,7 @@ v_best_score = 0
 v_best_grids = []
 
 f_allow_edge_small_words = False
+
 
 with open("words.json") as f:
     WORDLIST = json.load(f)
@@ -72,8 +73,10 @@ def replace_char_at(string, char, index):
 
 def check_line_for_short_words(line: str) -> bool:
     """Check if there are any one or two letter words in the line."""
-    if re.search(r"█[A-Za-z@]{1,2}█", line):
-        return True
+    m = line.split(C_WALL)
+    for word in m:
+        if len(word) in [1, 2] and any(c.isalpha() or c == "@" for c in word):
+            return True
     return False
 
 
@@ -82,10 +85,14 @@ def get_new_templates_all(fixtures: list[tuple[int, str]], line: str):
     max_len = max([len(c) for c in (line + line).split(C_WALL)]) + 2
 
     # possible
-    for w in WORDLIST:
-        if len(w) > max_len:
+    for w in SORTED_WORDLIST_L:
+        lw = len(w)
+        if lw > max_len:
             continue
         for i, cont in fixtures:
+            mil_len = len(cont)
+            if mil_len > lw:
+                continue
             pattern = cont.replace("@", f"[^{C_WALL}]")
             matches = re.finditer(pattern, w)
             positions = [match.start() for match in matches]
@@ -98,8 +105,6 @@ def get_new_templates_all(fixtures: list[tuple[int, str]], line: str):
                         continue
                     break
                 else:
-                    if check_line_for_short_words(new_template):
-                        continue
                     new_templates[i].append(new_template)
 
     return new_templates
@@ -326,6 +331,12 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             candidate_grid = grid.copy()
             candidate_grid[i] = l  # make line word from options
 
+            tr = transpose(candidate_grid)
+            if any(check_line_for_short_words(l) for l in candidate_grid):
+                continue
+            if any(check_line_for_short_words(l) for l in tr):
+                continue
+
             candidate_grid = enforce_symmetry(candidate_grid)
             candidate_grid = fill_in_small_holes(candidate_grid)
 
@@ -394,11 +405,17 @@ def recursive_search(grid, level=0):
     global v_best_grids
 
     if grid_filled(grid):
-        tqdm.tqdm.write("\033[92mSolution found")  # Green text indicating success
+        tqdm.tqdm.write(T_YELLOW + "Solution found")  # Green text indicating success
         tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
-        tqdm.tqdm.write("\033[0m")
+        tqdm.tqdm.write(T_NORMAL)
+        tqdm.tqdm.write(
+            json.dumps(
+                T_YELLOW + INITIAL_TEMPLATE + T_NORMAL, indent=2, ensure_ascii=False
+            )
+        )
+
         SOLUTIONS.append(grid)
-        with open("solutions.json", "w", encoding="utf-8") as f:
+        with open("solutions1.json", "w", encoding="utf-8") as f:
             json.dump(SOLUTIONS, f, indent=2, ensure_ascii=False)
         return
 
@@ -436,58 +453,98 @@ def recursive_search(grid, level=0):
                         "parrent": grid,
                     }
                 )
-                with open("bests.json", "w") as f:
+                with open("bests1.json", "w") as f:
                     json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
 
             recursive_search(new_grid, level + 1)
 
 
 if __name__ == "__main__":
+    global solution_found
+
     initial_template = [
-        "@@@___█_@@_█@@@",
-        "@@@@@@█_@@_█@@@",
-        "@@@@@@__@@__@@@",
+        "@@@___█@@@_█@@@",
+        "ERTUBE█@@@_█INN",
+        "@@@@@@█@@@_@@@@",
+        "███______@@@███",
+        "__________@@___",
+        "__________@____",
         "_______________",
         "_______________",
         "_______________",
-        "_______________",
-        "HNUT█TORUS█DOUG",
-        "_______________",
-        "_______________",
-        "_______________",
-        "_______________",
-        "@@@__@@__@@@@@@",
-        "@@@█_@@_█@@@@@@",
-        "@@@█_@@_█___@@@",
+        "____@__________",
+        "___@@__________",
+        "███@@@_______██",
+        "@@@@_@@@█@@@@@@",
+        "ING█_@@@█ONIONR",
+        "@@@█_@@@█___@@@",
     ]
 
-    words = [
-        ("█INNERTUBE█", "r", 1, 11),
-        ("█SCRUNCHIE█", "r", 4, 8),
-        ("█BUNDTCAKE█", "r", 10, 11),
-        ("█ONIONRING█", "r", 13, 8),
-    ]
+    # thing = ["█INNERTUBE█", "█SCRUNCHIE█", "█BUNDTCAKE█", "█ONIONRING█"]
+    # thing = ["█SCRUNCHIE█", "█INNERTUBE█", "█BUNDTCAKE█", "█ONIONRING█"]
+    # thing = ["█BUNDTCAKE█", "█INNERTUBE█", "█SCRUNCHIE█", "█ONIONRING█"]
+    # thing = ["█INNERTUBE█", "█BUNDTCAKE█", "█SCRUNCHIE█", "█ONIONRING█"]
+    thing = ["█INNERTUBE█", "█ONIONRING█", "█BUNDTCAKE█", "█SCRUNCHIE█"]
 
-    for w, d, rw, cl in words:
-        if d == "r":
-            for i, c in enumerate(w):
-                initial_template[rw] = replace_char_at(
-                    initial_template[rw], c, (cl + i) % ROWLEN
-                )
+    import itertools
 
-    INITIAL_TEMPLATE = initial_template
-    with open("fails.json") as f:
-        fails = json.load(f)
-    if INITIAL_TEMPLATE in fails:
-        print("This grid has already been proven to have no solution.")
-        print_grid(INITIAL_TEMPLATE, ("r", 1, T_NORMAL))
-        exit()
+    # combinations = list(itertools.permutations(thing))
+    # combinations of len 2
+    combinations = list(itertools.combinations(thing, 2))
 
-    t0 = time.time()
+    for j, t in enumerate(combinations):
+        words = [
+            (t[0], "r", 1, 11),
+            (t[1], "r", 13, 8),
+            # (t[1], "r", 4, 8),
+            # (t[2], "r", 10, 11)
+        ]
 
-    grid = INITIAL_TEMPLATE.copy()
+        # words = [
+        #     (t[0], "r", 3, 10),  # row, start
+        #     (t[1], "c", 8, 5),  # col, start
+        #     (t[2], "r", 11, 9),
+        #     (t[3], "c", 11, 9),
+        # ]
 
-    recursive_search(grid, 0)
+        for w, d, rw, cl in words:
+            if d == "r":
+                for i, c in enumerate(w):
+                    initial_template[rw] = replace_char_at(
+                        initial_template[rw], c, (cl + i) % ROWLEN
+                    )
+            if d == "c":
+                for i, c in enumerate(w):
+                    initial_template[(rw + i) % ROWLEN] = replace_char_at(
+                        initial_template[(rw + i) % ROWLEN], c, cl
+                    )
+
+        INITIAL_TEMPLATE = initial_template
+
+        with open("fails.json") as f:
+            fails = json.load(f)
+        if INITIAL_TEMPLATE in fails:
+            print(
+                f"{j}/{len(combinations)} This grid has already been proven to have no solution."
+            )
+            continue
+
+        grid = INITIAL_TEMPLATE.copy()
+
+        solution_found = False
+        recursive_search(grid, 0)
+
+        if not solution_found:
+            print("No solution found")
+            with open("fails.json", "w") as f:
+                fails.append(INITIAL_TEMPLATE)
+                json.dump(fails, f, indent=2, ensure_ascii=False)
+
+            print(
+                T_PINK
+                + json.dumps(INITIAL_TEMPLATE, indent=2, ensure_ascii=False)
+                + T_NORMAL
+            )
 
 
 # 15
