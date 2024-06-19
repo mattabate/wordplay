@@ -4,23 +4,44 @@ import re
 import tqdm
 import os
 
+
+INITIAL_TEMPLATE = [
+    "█@@@@_█@@@@█@@@",
+    "DTCAKE█@@@@█BUN",
+    "@@@@@@_@@@@_@@@",
+    "@@@____________",
+    "███____________",
+    "@@@____________",
+    "@@@____________",
+    "HNUT█TORUS█DOUG",
+    "____________@@@",
+    "____________@@@",
+    "____________███",
+    "____________@@@",
+    "@@@_@@@@_@@@@@@",
+    "UBE█@@@@█INNERT",
+    "@@@█@@@@█_@@@@█",
+]
+
+f_allow_edge_small_words = False
+only_corners = False
+
 ROWLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
-MAX_WALLS = 40
+MAX_WALLS = 42
+
+SOL_JSON = "solutions1.json"
+BES_JSON = "bests1.json"
+WOR_JSON = "words.json"
+FAI_JSON = "fails.json"
 
 C_WALL = "█"
-
 
 T_NORMAL = "\033[0m"
 T_BLUE = "\033[94m"
 T_YELLOW = "\033[93m"
 T_GREEN = "\033[92m"
 T_PINK = "\033[95m"
-
-SOL_JSON = "solutions1.json"
-BES_JSON = "bests1.json"
-WOR_JSON = "words.json"
-FAI_JSON = "fails.json"
 
 if os.path.exists(SOL_JSON):
     with open(SOL_JSON) as f:
@@ -32,19 +53,19 @@ else:
 v_best_score = 0
 v_best_grids = []
 
-f_allow_edge_small_words = False
-
-
 with open(WOR_JSON) as f:
     WORDLIST = json.load(f)
 
 for i, w in enumerate(WORDLIST):
     WORDLIST[i] = C_WALL + w + C_WALL
 
-# sort short words first
-SORTED_WORDLIST = sorted(WORDLIST, key=len)
-# sort long words first
-SORTED_WORDLIST_L = sorted(SORTED_WORDLIST, key=len, reverse=True)
+SORTED_WORDLIST = sorted(WORDLIST, key=len)  # short words first
+SORTED_WORDLIST_L = sorted(SORTED_WORDLIST, key=len, reverse=True)  # long words first
+
+import random
+
+random.shuffle(WORDLIST)
+WORDS_TO_USE = WORDLIST
 
 
 def grid_filled(grid: list[str]) -> bool:
@@ -54,8 +75,16 @@ def grid_filled(grid: list[str]) -> bool:
     return True
 
 
-def count_letters(grid: list[str]) -> int:
-    return GRIDCELLS - sum([l.count("_") + l.count("@") + l.count("█") for l in grid])
+def count_letters(grid: list[str], only_corners=False) -> int:
+    if only_corners:
+        _sum = 0
+        for i in [0, 1, 2, 3, 11, 12, 13, 14]:
+            _sum += grid[i].count("_") + grid[i].count("@") + grid[i].count("█")
+        return 120 - _sum
+    else:
+        return GRIDCELLS - sum(
+            [l.count("_") + l.count("@") + l.count("█") for l in grid]
+        )
 
 
 def replace_char_at(string, char, index):
@@ -87,34 +116,54 @@ def check_line_for_short_words(line: str) -> bool:
     return False
 
 
+def can_letter_go_there(letter: str, line: str, pos) -> bool:
+    line_entry = line[pos]
+    if line_entry in [letter, "_"]:
+        # if entries the same
+        return True
+    if line_entry == "@" and letter != C_WALL:
+        # if that location is _ in the line, or if line entry is "@"
+        # and the suggested letter is not letter
+        return True
+    return False
+
+
+def can_word_go_there(word: str, line: str, pos) -> bool:
+    for j, suggested_letter in enumerate(word):  # suggested letter
+        if not can_letter_go_there(suggested_letter, line, pos=(pos + j) % ROWLEN):
+            return False
+    return True
+
+
+def replace_word_at(word: str, line: str, start_idx: int) -> str:
+    new_template = line
+    for j, suggested_letter in enumerate(word):
+        new_template = replace_char_at(
+            new_template, suggested_letter, (start_idx + j) % ROWLEN
+        )
+    return new_template
+
+
 def get_new_templates_all(fixtures: list[tuple[int, str]], line: str):
-    new_templates = {i: [] for i, _ in fixtures}
+    output = {i: [] for i, _ in fixtures}
     max_len = max([len(c) for c in (line + line).split(C_WALL)]) + 2
 
     # possible
-    for w in SORTED_WORDLIST_L:
+    for w in WORDS_TO_USE:
         lw = len(w)
         if lw > max_len:
             continue
         for i, cont in fixtures:
-            mil_len = len(cont)
-            if mil_len > lw:
+            if len(cont) > lw:
                 continue
             pattern = cont.replace("@", f"[^{C_WALL}]")
             matches = re.finditer(pattern, w)
             positions = [match.start() for match in matches]
             for p in positions:
-                new_template = line
-                for j, c in enumerate(w):
-                    ooo = (i - p + j) % ROWLEN
-                    if line[ooo] in [c, "_"] or (line[ooo] == "@" and c != C_WALL):
-                        new_template = replace_char_at(new_template, c, ooo)
-                        continue
-                    break
-                else:
-                    new_templates[i].append(new_template)
+                if can_word_go_there(w, line, i - p):
+                    output[i].append(replace_word_at(w, line, i - p))
 
-    return new_templates
+    return output
 
 
 def get_new_templates(fixtures: list[tuple[str, int, str]], line: str) -> list[str]:
@@ -184,7 +233,7 @@ def enforce_symmetry(grid: list[str]) -> list[str]:
 
         if c == C_WALL:
             long_string = replace_char_at(long_string, C_WALL, rvs_idx)
-        elif c in "@ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+        elif c != "_":
             long_string = replace_char_at(long_string, "@", rvs_idx)
 
     return [long_string[j : j + ROWLEN] for j in range(0, GRIDCELLS, ROWLEN)]
@@ -257,54 +306,6 @@ def get_fixtures(line: str):
     return fixtures
 
 
-def filter_lines_by_size(i, lines: list[str], grid: str) -> list[str]:
-    """i is row"""
-    # TODO: probably way to do this involves computing words that can fit on both lines
-
-    if i in [1, 2]:
-        zz = []
-        for j, q in enumerate(zip(grid[0], grid[1])):
-            c1, c2 = q
-            if c1 not in "█_" or c2 not in "█_":
-                zz.append(j)
-
-        filtered = []
-        for l in lines:
-            for z in zz:
-                if l[z] == "█":
-                    break
-            else:
-                filtered.append(l)
-        lines = filtered
-
-    if i in [ROWLEN - 2, ROWLEN - 3]:
-        zz = []
-        for j, q in enumerate(zip(grid[ROWLEN - 1], grid[ROWLEN - 2])):
-            c1, c2 = q
-            if c1 not in "█_" or c2 not in "█_":
-                zz.append(j)
-
-        filtered = []
-        for l in lines:
-            for z in zz:
-                if l[z] == "█":
-                    break
-            else:
-                filtered.append(l)
-        lines = filtered
-
-    filtered = []
-    for l in lines:
-        if (l[1] == "█" or l[2] == "█") and not (l[0] in "_█" and l[1] in "_█"):
-            continue
-        if (l[-2] == "█" or l[-3] == "█") and not (l[-1] in "_█" and l[-2] in "_█"):
-            continue
-        filtered.append(l)
-    lines = filtered
-
-    return lines
-
-
 def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
     K_INDEX = -1
     K_BEST_SCORE = 1000000000
@@ -326,7 +327,6 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
 
         # TODO: get possible word lens from the grid:
         candidate_lines = get_new_templates(fixtures, line)
-        candidate_lines = filter_lines_by_size(i, candidate_lines, grid)
 
         if not candidate_lines:
             # no words fit template
@@ -340,10 +340,9 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             candidate_grid = grid.copy()
             candidate_grid[i] = l  # make line word from options
 
-            tr = transpose(candidate_grid)
             if any(check_line_for_short_words(l) for l in candidate_grid):
                 continue
-            if any(check_line_for_short_words(l) for l in tr):
+            if any(check_line_for_short_words(l) for l in transpose(candidate_grid)):
                 continue
 
             candidate_grid = enforce_symmetry(candidate_grid)
@@ -450,8 +449,16 @@ def recursive_search(grid, level=0):
         tqdm.tqdm.write(out2)
         tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_GREEN)))
 
+        # words = []
+        # for i, new_grid in enumerate(t):
+        #     if x == "r":
+        #         words.append(new_grid[idx_str])
+        #     else:
+        #         words.append("".join([l[idx_str] for l in new_grid]))
+
+        # tqdm.tqdm.write("\n".join(words))
         for new_grid in t:
-            l = count_letters(new_grid)
+            l = count_letters(new_grid, only_corners=only_corners)
             if l > v_best_score:
                 v_best_score = l
                 v_best_grids.append(
@@ -470,26 +477,6 @@ def recursive_search(grid, level=0):
 
 if __name__ == "__main__":
     global solution_found
-
-    initial_template = [
-        "█@@@@@█@@@@█@@@",
-        "UNCHIE█@@@@█SCR",
-        "@@@@@@_@@@@_@@@",
-        "@@@____________",
-        "███____________",
-        "@@@____________",
-        "@@@____________",
-        "@@@_█_____█_@@@",
-        "____________@@@",
-        "____________@@@",
-        "____________███",
-        "____________@@@",
-        "@@@_@@@@_@@@@@@",
-        "UBE█@@@@█INNERT",
-        "@@@█@@@@█@@@@@█",
-    ]
-
-    INITIAL_TEMPLATE = initial_template
 
     with open(FAI_JSON) as f:
         fails = json.load(f)
