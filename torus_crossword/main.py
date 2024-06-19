@@ -6,32 +6,31 @@ import os
 
 
 INITIAL_TEMPLATE = [
-    "█@@@@_█@@@@█@@@",
+    "@@@@@_█@@@@█@@@",
     "DTCAKE█@@@@█BUN",
     "@@@@@@_@@@@_@@@",
-    "@@@____________",
-    "███____________",
-    "@@@____________",
-    "@@@____________",
+    "@@@_________@@_",
+    "███_________@__",
+    "@@@_________███",
+    "@@@_________@@_",
     "HNUT█TORUS█DOUG",
-    "____________@@@",
-    "____________@@@",
-    "____________███",
-    "____________@@@",
+    "_@@_________@@@",
+    "███_________@@@",
+    "__@_________███",
+    "_@@_________@@@",
     "@@@_@@@@_@@@@@@",
     "UBE█@@@@█INNERT",
-    "@@@█@@@@█_@@@@█",
+    "@@@█@@@@█_@@@@@",
 ]
 
-f_allow_edge_small_words = False
 only_corners = False
 
 ROWLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
 MAX_WALLS = 42
 
-SOL_JSON = "solutions1.json"
-BES_JSON = "bests1.json"
+SOL_JSON = "solutions4.json"
+BES_JSON = "bests4.json"
 WOR_JSON = "words.json"
 FAI_JSON = "fails.json"
 
@@ -136,11 +135,15 @@ def can_word_go_there(word: str, line: str, pos) -> bool:
 
 
 def replace_word_at(word: str, line: str, start_idx: int) -> str:
-    new_template = line
-    for j, suggested_letter in enumerate(word):
-        new_template = replace_char_at(
-            new_template, suggested_letter, (start_idx + j) % ROWLEN
-        )
+    new_template = line[:start_idx] + word
+    t_len = len(new_template)
+    if t_len < ROWLEN:
+        new_template += line[t_len:]
+    elif t_len > ROWLEN:
+        y = t_len - ROWLEN
+        new_template = new_template[:ROWLEN]
+        new_template = word[-y:] + new_template[y:]
+
     return new_template
 
 
@@ -194,15 +197,15 @@ def latches_in_line(line: str) -> bool:
 
 def fill_small_holes_line(line: str) -> str:
     # fastest approach it seems
-    if not f_allow_edge_small_words:
-        if line.startswith("_█"):
-            line = "██" + line[2:]
-        if line.endswith("█_"):
-            line = line[:-2] + "██"
-        if line.startswith("__█") or line.startswith("_██"):
-            line = "███" + line[3:]
-        if line.endswith("█__") or line.endswith("██_"):
-            line = line[:-3] + "███"
+
+    if line.startswith("_█"):
+        line = "██" + line[2:]
+    if line.endswith("█_"):
+        line = line[:-2] + "██"
+    if line.startswith("__█") or line.startswith("_██"):
+        line = "███" + line[3:]
+    if line.endswith("█__") or line.endswith("██_"):
+        line = line[:-3] + "███"
     return (
         line.replace("█_█", "███")
         .replace("█__█", "████")
@@ -240,31 +243,13 @@ def enforce_symmetry(grid: list[str]) -> list[str]:
 
 
 def grid_contains_short_words(grid: list[str]) -> bool:
-    tr = transpose(grid)
-    # NOTE: This ensures no short words
+    for line in grid:
+        if check_line_for_short_words(line):
+            return True
 
-    if f_allow_edge_small_words:
-        g_val = "@@@".join(
-            l + l for l in grid
-        )  # double the lines, and then join and create long string
-        t_val = "@@@".join(l + l for l in tr)
-        search_string = g_val + "@@@" + t_val
-        bites = search_string.split(C_WALL)
-
-        for word in bites[1:-1]:
-            if len(word) in [1, 2] and any(c.isalpha() or c == "@" for c in word):
-                return True
-    else:
-        rows_split = [l.split(C_WALL) for l in grid]
-        cols_split = [l.split(C_WALL) for l in tr]
-
-        for word in rows_split:
-            if len(word) in [1, 2] and any(c.isalpha() or c == "@" for c in word):
-                return True
-        for word in cols_split:
-            if len(word) in [1, 2] and any(c.isalpha() or c == "@" for c in word):
-                return True
-
+    for line in transpose(grid):
+        if check_line_for_short_words(line):
+            return True
     return False
 
 
@@ -340,11 +325,6 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             candidate_grid = grid.copy()
             candidate_grid[i] = l  # make line word from options
 
-            if any(check_line_for_short_words(l) for l in candidate_grid):
-                continue
-            if any(check_line_for_short_words(l) for l in transpose(candidate_grid)):
-                continue
-
             candidate_grid = enforce_symmetry(candidate_grid)
             candidate_grid = fill_in_small_holes(candidate_grid)
 
@@ -377,17 +357,14 @@ def get_new_grids(grid: list[str]) -> tuple[int, list[list[str]]]:
     # find the best row to latch on
     row_idx, best_row_score, best_row_grids = get_best_row(grid)
     # transpose to find the best collum
-    grid_transposed = transpose(grid)
-    col_idx, best_col_score, best_col_grids = get_best_row(grid_transposed)
+    col_idx, best_col_score, best_col_grids = get_best_row(transpose(grid))
 
     # TODO: SOMETHING WRONG HERE???
     if best_row_score < best_col_score:
         return "r", row_idx, best_row_grids
     else:
         # transform back all of the column grids
-        transposed_col_grids = []
-        for g in best_col_grids:
-            transposed_col_grids.append(transpose(g))
+        transposed_col_grids = [transpose(g) for g in best_col_grids]
         return "c", col_idx, transposed_col_grids
 
 
@@ -449,26 +426,11 @@ def recursive_search(grid, level=0):
         tqdm.tqdm.write(out2)
         tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_GREEN)))
 
-        # words = []
-        # for i, new_grid in enumerate(t):
-        #     if x == "r":
-        #         words.append(new_grid[idx_str])
-        #     else:
-        #         words.append("".join([l[idx_str] for l in new_grid]))
-
-        # tqdm.tqdm.write("\n".join(words))
         for new_grid in t:
             l = count_letters(new_grid, only_corners=only_corners)
             if l > v_best_score:
                 v_best_score = l
-                v_best_grids.append(
-                    {
-                        "level": level,
-                        "score": l,
-                        "grid": new_grid,
-                        "parrent": grid,
-                    }
-                )
+                v_best_grids.append({"level": level, "score": l, "grid": new_grid})
                 with open(BES_JSON, "w") as f:
                     json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
 
