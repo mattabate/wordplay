@@ -473,45 +473,21 @@ if __name__ == "__main__":
 
     initial_template = [
         "█@@@@@█@@@@█@@@",
-        "@@@@@@█@@@@█@@@",
+        "UNCHIE█@@@@█SCR",
         "@@@@@@_@@@@_@@@",
         "@@@____________",
         "███____________",
-        "_______________",
-        "_______________",
-        "____█_____█____",
-        "_______________",
-        "_______________",
+        "@@@____________",
+        "@@@____________",
+        "@@@_█_____█_@@@",
+        "____________@@@",
+        "____________@@@",
         "____________███",
         "____________@@@",
         "@@@_@@@@_@@@@@@",
-        "@@@█@@@@█@@@@@@",
+        "UBE█@@@@█INNERT",
         "@@@█@@@@█@@@@@█",
     ]
-
-    # thing = ["█INNERTUBE█", "█SCRUNCHIE█", "█BUNDTCAKE█", "█ONIONRING█"]
-    # thing = ["█SCRUNCHIE█", "█INNERTUBE█", "█BUNDTCAKE█", "█ONIONRING█"]
-    # thing = ["█BUNDTCAKE█", "█INNERTUBE█", "█SCRUNCHIE█", "█ONIONRING█"]
-    # thing = ["█INNERTUBE█", "█BUNDTCAKE█", "█SCRUNCHIE█", "█ONIONRING█"]
-    thing = ["█SCRUNCHIE█", "█ONIONRING█", "█BUNDTCAKE█", "█INNERTUBE█"]
-    thing = ["█INNERTUBE█", "█ONIONRING█", "█SCRUNCHIE█", "█BUNDTCAKE█"]
-
-    words = [
-        (thing[0], "r", 1, 11),
-        (thing[1], "r", 13, 8),
-    ]
-
-    for w, d, rw, cl in words:
-        if d == "r":
-            for i, c in enumerate(w):
-                initial_template[rw] = replace_char_at(
-                    initial_template[rw], c, (cl + i) % ROWLEN
-                )
-        if d == "c":
-            for i, c in enumerate(w):
-                initial_template[(rw + i) % ROWLEN] = replace_char_at(
-                    initial_template[(rw + i) % ROWLEN], c, cl
-                )
 
     INITIAL_TEMPLATE = initial_template
 
