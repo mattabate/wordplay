@@ -1,5 +1,4 @@
 import json
-import time
 import re
 import tqdm
 import os
@@ -23,14 +22,16 @@ INITIAL_TEMPLATE = [
     "@@@█@@@@█_@@@@@",
 ]
 
-only_corners = False
+save = 4
+
+only_corners = True
 
 ROWLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
 MAX_WALLS = 42
 
-SOL_JSON = "solutions4.json"
-BES_JSON = "bests4.json"
+SOL_JSON = f"solutions{save}.json"
+BES_JSON = f"bests{save}.json"
 WOR_JSON = "words.json"
 FAI_JSON = "fails.json"
 
@@ -77,8 +78,10 @@ def grid_filled(grid: list[str]) -> bool:
 def count_letters(grid: list[str], only_corners=False) -> int:
     if only_corners:
         _sum = 0
-        for i in [0, 1, 2, 3, 11, 12, 13, 14]:
-            _sum += grid[i].count("_") + grid[i].count("@") + grid[i].count("█")
+        for i in [0, 1, 2, 12, 13, 14]:
+            bits = grid[i].split(C_WALL)
+            _sum += bits[0].count("_") + bits[0].count("@") + bits[0].count("█")
+            _sum += bits[-1].count("_") + bits[-1].count("@") + bits[-1].count("█")
         return 120 - _sum
     else:
         return GRIDCELLS - sum(
@@ -115,12 +118,11 @@ def check_line_for_short_words(line: str) -> bool:
     return False
 
 
-def can_letter_go_there(letter: str, line: str, pos) -> bool:
-    line_entry = line[pos]
-    if line_entry in [letter, "_"]:
+def can_letter_go_there(suggestion: str, current_entry: str) -> bool:
+    if current_entry in [suggestion, "_"] or (
+        suggestion != C_WALL and current_entry == "@"
+    ):
         # if entries the same
-        return True
-    if line_entry == "@" and letter != C_WALL:
         # if that location is _ in the line, or if line entry is "@"
         # and the suggested letter is not letter
         return True
@@ -129,7 +131,8 @@ def can_letter_go_there(letter: str, line: str, pos) -> bool:
 
 def can_word_go_there(word: str, line: str, pos) -> bool:
     for j, suggested_letter in enumerate(word):  # suggested letter
-        if not can_letter_go_there(suggested_letter, line, pos=(pos + j) % ROWLEN):
+        p = (pos + j) % ROWLEN
+        if not can_letter_go_there(suggestion=suggested_letter, current_entry=line[p]):
             return False
     return True
 
@@ -149,22 +152,23 @@ def replace_word_at(word: str, line: str, start_idx: int) -> str:
 
 def get_new_templates_all(fixtures: list[tuple[int, str]], line: str):
     output = {i: [] for i, _ in fixtures}
-    max_len = max([len(c) for c in (line + line).split(C_WALL)]) + 2
+    max_len = max([len(c) for c in (line + line).split(C_WALL)]) + 2  # includes 2 walls
 
     # possible
-    for w in WORDS_TO_USE:
-        lw = len(w)
-        if lw > max_len:
-            continue
-        for i, cont in fixtures:
-            if len(cont) > lw:
+    for i, cont in fixtures:
+        lc = len(cont)
+        for candidate_word in WORDS_TO_USE:
+            lw = len(candidate_word)
+            if lw > max_len or lw < lc:
                 continue
+
             pattern = cont.replace("@", f"[^{C_WALL}]")
-            matches = re.finditer(pattern, w)
+            matches = re.finditer(pattern, candidate_word)
             positions = [match.start() for match in matches]
+
             for p in positions:
-                if can_word_go_there(w, line, i - p):
-                    output[i].append(replace_word_at(w, line, i - p))
+                if can_word_go_there(candidate_word, line, i - p):
+                    output[i].append(replace_word_at(candidate_word, line, i - p))
 
     return output
 
@@ -426,14 +430,14 @@ def recursive_search(grid, level=0):
         tqdm.tqdm.write(out2)
         tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_GREEN)))
 
-        for new_grid in t:
-            l = count_letters(new_grid, only_corners=only_corners)
-            if l > v_best_score:
-                v_best_score = l
-                v_best_grids.append({"level": level, "score": l, "grid": new_grid})
-                with open(BES_JSON, "w") as f:
-                    json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
+        l = count_letters(grid, only_corners=only_corners)
+        if l > v_best_score:
+            v_best_score = l
+            v_best_grids.append({"level": level, "score": l, "grid": grid})
+            with open(BES_JSON, "w") as f:
+                json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
 
+        for new_grid in t:
             recursive_search(new_grid, level + 1)
 
 
