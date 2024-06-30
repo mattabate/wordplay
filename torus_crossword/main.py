@@ -2,36 +2,37 @@ import json
 import re
 import tqdm
 import os
-
+import time
 
 INITIAL_TEMPLATE = [
-    "@@@@@_█@@@@█@@@",
-    "DTCAKE█@@@@█BUN",
-    "@@@@@@_@@@@_@@@",
-    "@@@_________@@_",
-    "███_________@__",
-    "@@@_________███",
-    "@@@_________@@_",
+    "@@@█@D@@█U@@@@@",
+    "@@@█@T@@█B@@@@@",
+    "@@@█@C@@█E@@@@@",
+    "@@@@█A@@@█@@@@@",
+    "███@@K@█@@@@███",
+    "@@@@@E█@@@█@@@@",
+    "@@@@@█@@@@█@@@@",
     "HNUT█TORUS█DOUG",
-    "_@@_________@@@",
-    "███_________@@@",
-    "__@_________███",
-    "_@@_________@@@",
-    "@@@_@@@@_@@@@@@",
-    "UBE█@@@@█INNERT",
-    "@@@█@@@@█_@@@@@",
+    "@@@@█@@@@█@@@@@",
+    "@@@@█@@@█I@@@@@",
+    "███@@@@█@N@@███",
+    "@@@@@█@@@N█@@@@",
+    "@@@@@B█@@R@█@@@",
+    "@@@@@U█@@R@█@@@",
+    "@@@@@N█@@T@█@@@",
 ]
 
-save = 4
+only_corners = False
+search_w_polarity = True
+f_verbose = True
 
-only_corners = True
 
 ROWLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
-MAX_WALLS = 42
+MAX_WALLS = 50
 
-SOL_JSON = f"solutions{save}.json"
-BES_JSON = f"bests{save}.json"
+SOL_JSON = f"results/solutions_{int(time.time())}.json"
+BES_JSON = f"results/bests_{int(time.time())}.json"
 WOR_JSON = "words.json"
 FAI_JSON = "fails.json"
 
@@ -66,6 +67,19 @@ import random
 
 random.shuffle(WORDLIST)
 WORDS_TO_USE = WORDLIST
+
+WORDLIST_BY_LEN = {}
+for w in WORDLIST:
+    l = len(w)
+    if l not in WORDLIST_BY_LEN:
+        WORDLIST_BY_LEN[l] = []
+    WORDLIST_BY_LEN[l].append(w)
+
+
+if not os.path.exists(FAI_JSON):
+    with open(FAI_JSON, "w") as f:
+        json.dump([], f, indent=2, ensure_ascii=False)
+fails = json.load(open(FAI_JSON))
 
 
 def grid_filled(grid: list[str]) -> bool:
@@ -157,7 +171,7 @@ def get_new_templates_all(fixtures: list[tuple[int, str]], line: str):
     # possible
     for i, cont in fixtures:
         lc = len(cont)
-        for candidate_word in WORDS_TO_USE:
+        for candidate_word in WORDLIST_BY_LEN[lc]:
             lw = len(candidate_word)
             if lw > max_len or lw < lc:
                 continue
@@ -358,6 +372,7 @@ def transpose(grid: list[str]) -> list[str]:
 
 def get_new_grids(grid: list[str]) -> tuple[int, list[list[str]]]:
     """Given a grid, find the best row or column to latch on to."""
+
     # find the best row to latch on
     row_idx, best_row_score, best_row_grids = get_best_row(grid)
     # transpose to find the best collum
@@ -368,6 +383,20 @@ def get_new_grids(grid: list[str]) -> tuple[int, list[list[str]]]:
         return "r", row_idx, best_row_grids
     else:
         # transform back all of the column grids
+        transposed_col_grids = [transpose(g) for g in best_col_grids]
+        return "c", col_idx, transposed_col_grids
+
+
+def get_new_grids_p(grid: list[str], p) -> tuple[int, list[list[str]]]:
+    """Given a grid, find the best row or column to latch on to."""
+
+    if p % 2 == 0:
+        # find the best row to latch on
+        row_idx, best_row_score, best_row_grids = get_best_row(grid)
+        return "r", row_idx, best_row_grids
+    else:
+        # transpose to find the best collum
+        col_idx, best_col_score, best_col_grids = get_best_row(transpose(grid))
         transposed_col_grids = [transpose(g) for g in best_col_grids]
         return "c", col_idx, transposed_col_grids
 
@@ -408,27 +437,33 @@ def recursive_search(grid, level=0):
             json.dump(SOLUTIONS, f, indent=2, ensure_ascii=False)
         return
 
-    x, idx_str, new_grids = get_new_grids(grid)
+    if search_w_polarity:
+        x, idx_str, new_grids = get_new_grids_p(grid, level)
+    else:
+        x, idx_str, new_grids = get_new_grids(grid)
+
     len_new_grids = len(new_grids)
     if not new_grids:
-        out1 = (
-            f"\nNo possibilities ROW {idx_str}"
-            if x == "r"
-            else f"\nNo possibilities COL {idx_str}"
-        )
-        tqdm.tqdm.write(out1)
-        tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_PINK)))
+        if f_verbose:
+            out1 = (
+                f"\nNo possibilities ROW {idx_str}"
+                if x == "r"
+                else f"\nNo possibilities COL {idx_str}"
+            )
+            tqdm.tqdm.write(out1)
+            tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_PINK)))
 
         return
 
     with tqdm.tqdm(new_grids, desc=f"Level {level}") as t:
-        out2 = (
-            f"\nTesting {len_new_grids} possibilities for ROW {idx_str}"
-            if x == "r"
-            else f"\nTesting {len_new_grids} possibilities for COL {idx_str}"
-        )
-        tqdm.tqdm.write(out2)
-        tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_GREEN)))
+        if f_verbose:
+            out2 = (
+                f"\nTesting {len_new_grids} possibilities for ROW {idx_str}"
+                if x == "r"
+                else f"\nTesting {len_new_grids} possibilities for COL {idx_str}"
+            )
+            tqdm.tqdm.write(out2)
+            tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_GREEN)))
 
         l = count_letters(grid, only_corners=only_corners)
         if l > v_best_score:
