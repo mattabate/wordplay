@@ -3,27 +3,56 @@ import re
 import tqdm
 import os
 import time
+from enum import Enum
 
 INITIAL_TEMPLATE = [
-    "@@@█@D@@█U@@@@@",
-    "@@@█@T@@█B@@@@@",
-    "@@@█@C@@█E@@@@@",
-    "@@@@█A@@@█@@@@@",
-    "███@@K@█@@@@███",
+    "@@@█@E@@█A@@@@@",
+    "@@@█@R@@█K@@@@@",
+    "@@@█@T@@█E@@@@@",
+    "@@@@█U@@@█@@@@@",
+    "███@@B@█@@@@███",
     "@@@@@E█@@@█@@@@",
     "@@@@@█@@@@█@@@@",
     "HNUT█TORUS█DOUG",
     "@@@@█@@@@█@@@@@",
-    "@@@@█@@@█I@@@@@",
-    "███@@@@█@N@@███",
+    "@@@@█@@@█B@@@@@",
+    "███@@@@█@U@@███",
     "@@@@@█@@@N█@@@@",
-    "@@@@@B█@@R@█@@@",
-    "@@@@@U█@@R@█@@@",
+    "@@@@@I█@@D@█@@@",
     "@@@@@N█@@T@█@@@",
+    "@@@@@N█@@C@█@@@",
+]
+INITIAL_TEMPLATE = [
+    "@@@█@@@@███@@@@",
+    "@@@█@@@@██@@@@@",
+    "UBE█@@@@█INNERT",
+    "@@@@@@@@@@@@███",
+    "@@@@@@@█@@@█@@@",
+    "███@@@@@@@@@@@@",
+    "@@@█@@@@@█@@@@@",
+    "HNUT█TORUS█DOUG",
+    "@@@@@█@@@@@█@@@",
+    "@@@@@@@@@@@@███",
+    "@@@█@@@█@@@@@@@",
+    "███@@@@@@@@@@@@",
+    "DTCAKE█@@@@█BUN",
+    "@@@@@██@@@@█@@@",
+    "@@@@███@@@@█@@@",
 ]
 
+
 only_corners = False
-search_w_polarity = True
+
+
+class SearchType(Enum):
+    NONE = 0
+    POLARITY = 1
+    QUAT = 2
+    OCT = 3
+
+
+SEARCHTYPE = SearchType.NONE
+
 f_verbose = True
 
 
@@ -171,7 +200,7 @@ def get_new_templates_all(fixtures: list[tuple[int, str]], line: str):
     # possible
     for i, cont in fixtures:
         lc = len(cont)
-        for candidate_word in WORDLIST_BY_LEN[lc]:
+        for candidate_word in WORDLIST_BY_LEN[lc]:  # HACK: REQUIRES NO _
             lw = len(candidate_word)
             if lw > max_len or lw < lc:
                 continue
@@ -390,7 +419,35 @@ def get_new_grids(grid: list[str]) -> tuple[int, list[list[str]]]:
 def get_new_grids_p(grid: list[str], p) -> tuple[int, list[list[str]]]:
     """Given a grid, find the best row or column to latch on to."""
 
-    if p % 2 == 0:
+    if p % 2 == 1:
+        # find the best row to latch on
+        row_idx, best_row_score, best_row_grids = get_best_row(grid)
+        return "r", row_idx, best_row_grids
+    else:
+        # transpose to find the best collum
+        col_idx, best_col_score, best_col_grids = get_best_row(transpose(grid))
+        transposed_col_grids = [transpose(g) for g in best_col_grids]
+        return "c", col_idx, transposed_col_grids
+
+
+def get_new_grids_o(grid: list[str], p) -> tuple[int, list[list[str]]]:
+    """Given a grid, find the best row or column to latch on to."""
+
+    if p % 8 not in [0, 1, 2, 3]:
+        # find the best row to latch on
+        row_idx, best_row_score, best_row_grids = get_best_row(grid)
+        return "r", row_idx, best_row_grids
+    else:
+        # transpose to find the best collum
+        col_idx, best_col_score, best_col_grids = get_best_row(transpose(grid))
+        transposed_col_grids = [transpose(g) for g in best_col_grids]
+        return "c", col_idx, transposed_col_grids
+
+
+def get_new_grids_q(grid: list[str], p) -> tuple[int, list[list[str]]]:
+    """Given a grid, find the best row or column to latch on to."""
+
+    if p % 4 not in [0, 1]:
         # find the best row to latch on
         row_idx, best_row_score, best_row_grids = get_best_row(grid)
         return "r", row_idx, best_row_grids
@@ -437,10 +494,14 @@ def recursive_search(grid, level=0):
             json.dump(SOLUTIONS, f, indent=2, ensure_ascii=False)
         return
 
-    if search_w_polarity:
+    if SEARCHTYPE == SearchType.POLARITY:
         x, idx_str, new_grids = get_new_grids_p(grid, level)
-    else:
+    elif SEARCHTYPE == SearchType.QUAT:
+        x, idx_str, new_grids = get_new_grids_q(grid, level)
+    elif SEARCHTYPE == SearchType.NONE:
         x, idx_str, new_grids = get_new_grids(grid)
+    elif SEARCHTYPE == SearchType.OCT:
+        x, idx_str, new_grids = get_new_grids_o(grid, level)
 
     len_new_grids = len(new_grids)
     if not new_grids:
