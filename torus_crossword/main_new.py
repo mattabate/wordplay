@@ -139,7 +139,7 @@ def update_square_possibilities(
 def update_word_possibilities(
     words: list[Word], square_to_word_map: dict[tuple[int, int], Sqaure]
 ) -> list[Word]:
-    for w in tqdm.tqdm(words):
+    for w in words:
         new_possibilities = []
         for p in w.possibilities:
             if w.direction == Direction.ACROSS:
@@ -170,50 +170,84 @@ def update_word_possibilities(
     return words
 
 
-# NOTE: initialize words
-words = get_word_locations(INITIAL_TEMPLATE)
-
-# NOTE: initialize square_to_word_map
-square_to_word_map: dict[tuple[int, int], Sqaure] = {}
-for i in range(ROWLEN):
-    for j in range(ROWLEN):
-        if INITIAL_TEMPLATE[i][j] != C_WALL:
-            square_to_word_map[(i, j)] = Sqaure(None, None)
-            if INITIAL_TEMPLATE[i][j] != "@":
-                square_to_word_map[(i, j)].possible_chars = {INITIAL_TEMPLATE[i][j]}
+def replace_char_at(gird: list[str], loc: tuple[int, int], c: str) -> list[str]:
+    row = gird[loc[0]]
+    row = row[: loc[1]] + c + row[loc[1] + 1 :]
+    gird[loc[0]] = row
+    return gird
 
 
-for wid, w in enumerate(words):
-    if w.direction == Direction.ACROSS:
-        for i in range(w.length):
-            row, col = w.start[0], (w.start[1] + i) % ROWLEN
-            square_to_word_map[(row, col)].across = (wid, i)
+def get_new_grids(grid: list[str]) -> list[list[str]]:
+    # NOTE: initialize words
+    words = get_word_locations(grid)
 
-    if w.direction == Direction.DOWN:
-        for i in range(w.length):
-            row, col = (w.start[0] + i) % ROWLEN, w.start[1]
-            square_to_word_map[(row, col)].down = (wid, i)
+    # NOTE: initialize square_to_word_map
+    square_to_word_map: dict[tuple[int, int], Sqaure] = {}
+    for i in range(ROWLEN):
+        for j in range(ROWLEN):
+            if INITIAL_TEMPLATE[i][j] != C_WALL:
+                square_to_word_map[(i, j)] = Sqaure(None, None)
+                if INITIAL_TEMPLATE[i][j] != "@":
+                    square_to_word_map[(i, j)].possible_chars = {INITIAL_TEMPLATE[i][j]}
 
-print(json.dumps(INITIAL_TEMPLATE, indent=2, ensure_ascii=False))
+    for wid, w in enumerate(words):
+        if w.direction == Direction.ACROSS:
+            for i in range(w.length):
+                row, col = w.start[0], (w.start[1] + i) % ROWLEN
+                square_to_word_map[(row, col)].across = (wid, i)
+
+        if w.direction == Direction.DOWN:
+            for i in range(w.length):
+                row, col = (w.start[0] + i) % ROWLEN, w.start[1]
+                square_to_word_map[(row, col)].down = (wid, i)
+
+    old_vector = [len(w.possibilities) for w in words]
+    for zz in range(10):
+        words = update_word_possibilities(words, square_to_word_map)
+        new_vector = [len(w.possibilities) for w in words]
+        if old_vector == new_vector:
+            print("no change", zz)
+            # sort vector and print
+            print(sorted(new_vector))
+            print(sorted([len(s.possible_chars) for s in square_to_word_map.values()]))
+
+            # take grid and add all letters for which there is one possibility
+
+            output = []
+            new_grid = grid.copy()
+            for s in square_to_word_map.keys():
+                if len(square_to_word_map[s].possible_chars) == 1:
+                    new_grid = replace_char_at(
+                        new_grid, s, list(square_to_word_map[s].possible_chars)[0]
+                    )
+
+            # get square with min possibilities, not including 1
+            min_possibilities = 26
+            min_square = None
+            for s in square_to_word_map.keys():
+                num_pos = len(square_to_word_map[s].possible_chars)
+                if num_pos == 1:
+                    continue
+                if num_pos < min_possibilities:
+                    min_possibilities = num_pos
+                    min_square = s
+
+            for p in square_to_word_map[min_square].possible_chars:
+                g = new_grid.copy()
+                g = replace_char_at(g, min_square, p)
+                output.append(g)
+            return output
+        old_vector = new_vector
+
+        square_to_word_map = update_square_possibilities(square_to_word_map, words)
+
+        for s in square_to_word_map.keys():
+            if len(square_to_word_map[s].possible_chars) == 0:
+                print("reached a dead end", s)
+                return []
 
 
-for w in words[:10]:
-    print(w.start, w.direction, w.length, len(w.possibilities))
+new_grids = get_new_grids(INITIAL_TEMPLATE)
 
-print(words[square_to_word_map[(0, 4)].across[0]].possibilities[:10])
-
-
-for zz in range(10):
-    words = update_word_possibilities(words, square_to_word_map)
-    print()
-    for w in words[:10]:
-        print(w.start, w.direction, w.length, len(w.possibilities))
-
-    print(words[square_to_word_map[(0, 4)].across[0]].possibilities[:10])
-
-    square_to_word_map = update_square_possibilities(square_to_word_map, words)
-
-    for s in square_to_word_map.keys():
-        if len(square_to_word_map[s].possible_chars) == 0:
-            print("reached a dead end", s)
-            exit()
+for g in new_grids:
+    print(json.dumps(g, indent=2, ensure_ascii=False))
