@@ -1,13 +1,11 @@
 import json
-import os
-import time
 import tqdm
-from enum import Enum
-
+from schema import Direction, Sqaure, Word
+import time
 
 INITIAL_TEMPLATE = [
     "@@@█@E@@█A@@@@@",
-    "@@@█@R@@█KL@@@@",
+    "@@@█@R@@█K@@@@@",
     "@@@█@T@@█E@@@@@",
     "@@@@█U@@@█@@@@@",
     "███@@B@█@@@@███",
@@ -23,53 +21,28 @@ INITIAL_TEMPLATE = [
     "@@@@@N█@@C@█@@@",
 ]
 
+BES_JSON = f"results/bests_{int(time.time())}.json"
+FAI_JSON = "fails.json"
+
 ROWLEN = 15
-WOR_JSON = "words.json"
+GRIDCELLS = ROWLEN * ROWLEN
+
 C_WALL = "█"
 
+T_NORMAL = "\033[0m"
+T_BLUE = "\033[94m"
+T_YELLOW = "\033[93m"
+T_GREEN = "\033[92m"
+T_PINK = "\033[95m"
 
-with open(WOR_JSON) as f:
-    WORDLIST = json.load(f)
-
-WORDLIST_BY_LEN = {}
-for w in WORDLIST:
-    l = len(w)
-    if l not in WORDLIST_BY_LEN:
-        WORDLIST_BY_LEN[l] = []
-    WORDLIST_BY_LEN[l].append(w)
+# bests
+v_best_score = 0
+v_best_grids = []
+solution_found = False
 
 
 def transpose(grid):
     return ["".join(x) for x in zip(*grid)]
-
-
-class Direction(Enum):
-    ACROSS = 1
-    DOWN = 2
-
-
-class Word:
-    start: tuple[int, int]
-    direction: Direction
-    length: int
-    possibilities: list[str]
-
-    def __init__(self, start: tuple[int, int], direction: Direction, length: int):
-        self.start = start
-        self.direction = direction
-        self.length = length
-        self.possibilities = WORDLIST_BY_LEN[length]
-
-
-class Sqaure:
-    across: Word
-    down: Word
-    possible_chars: set[str]
-
-    def __init__(self, across: Word, down: Word):
-        self.across = across
-        self.down = down
-        self.possible_chars = set(l for l in "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 
 def get_word_locations(
@@ -185,10 +158,10 @@ def get_new_grids(grid: list[str]) -> list[list[str]]:
     square_to_word_map: dict[tuple[int, int], Sqaure] = {}
     for i in range(ROWLEN):
         for j in range(ROWLEN):
-            if INITIAL_TEMPLATE[i][j] != C_WALL:
+            if grid[i][j] != C_WALL:
                 square_to_word_map[(i, j)] = Sqaure(None, None)
-                if INITIAL_TEMPLATE[i][j] != "@":
-                    square_to_word_map[(i, j)].possible_chars = {INITIAL_TEMPLATE[i][j]}
+                if grid[i][j] != "@":
+                    square_to_word_map[(i, j)].possible_chars = {grid[i][j]}
 
     for wid, w in enumerate(words):
         if w.direction == Direction.ACROSS:
@@ -206,12 +179,6 @@ def get_new_grids(grid: list[str]) -> list[list[str]]:
         words = update_word_possibilities(words, square_to_word_map)
         new_vector = [len(w.possibilities) for w in words]
         if old_vector == new_vector:
-            print("no change", zz)
-            # sort vector and print
-            print(sorted(new_vector))
-            print(sorted([len(s.possible_chars) for s in square_to_word_map.values()]))
-
-            # take grid and add all letters for which there is one possibility
 
             break
         old_vector = new_vector
@@ -220,7 +187,6 @@ def get_new_grids(grid: list[str]) -> list[list[str]]:
 
         for s in square_to_word_map.keys():
             if len(square_to_word_map[s].possible_chars) == 0:
-                print("reached a dead end", s)
                 return []
 
     output = []
@@ -249,7 +215,80 @@ def get_new_grids(grid: list[str]) -> list[list[str]]:
     return output
 
 
-new_grids = get_new_grids(INITIAL_TEMPLATE)
+def count_letters(grid: list[str], only_corners=False) -> int:
+    if only_corners:
+        _sum = 0
+        for i in [0, 1, 2, 12, 13, 14]:
+            bits = grid[i].split(C_WALL)
+            _sum += bits[0].count("_") + bits[0].count("@") + bits[0].count("█")
+            _sum += bits[-1].count("_") + bits[-1].count("@") + bits[-1].count("█")
+        return 120 - _sum
+    else:
+        return GRIDCELLS - sum(
+            [l.count("_") + l.count("@") + l.count("█") for l in grid]
+        )
 
-for g in new_grids:
-    print(json.dumps(g, indent=2, ensure_ascii=False))
+
+def grid_filled(grid: list[str]) -> bool:
+    for l in grid:
+        if "@" in l:
+            return False
+    return True
+
+
+def recursive_search(grid, level=0):
+    global v_best_score
+    global v_best_grids
+    global solution_found
+
+    if grid_filled(grid):
+        tqdm.tqdm.write(T_YELLOW + "Solution found")  # Green text indicating success
+        tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
+        tqdm.tqdm.write(T_NORMAL)
+        tqdm.tqdm.write(
+            json.dumps(
+                T_YELLOW + INITIAL_TEMPLATE + T_NORMAL, indent=2, ensure_ascii=False
+            )
+        )
+        solution_found = True
+        return
+
+    new_grids = get_new_grids(grid)
+
+    if not new_grids:
+        tqdm.tqdm.write(
+            T_PINK + "No solution found" + T_NORMAL
+        )  # Red text indicating failure
+        return
+
+    with tqdm.tqdm(new_grids, desc=f"Level {level}") as t:
+        l = count_letters(grid)
+        l = count_letters(grid)
+        if l > v_best_score:
+            v_best_score = l
+            v_best_grids.append({"level": level, "score": l, "grid": grid})
+            with open(BES_JSON, "w") as f:
+                json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
+
+        for new_grid in t:
+            recursive_search(new_grid, level + 1)
+
+
+if __name__ == "__main__":
+    grid = INITIAL_TEMPLATE.copy()
+    with open(FAI_JSON, "r") as f:
+        fails = json.load(f)
+
+    if grid in fails:
+        print("Already failed")
+        exit()
+
+    solution_found = False
+    recursive_search(grid, 0)
+
+    if not solution_found:
+        print("No solution found")
+
+        fails.append(INITIAL_TEMPLATE)
+        with open(FAI_JSON, "w") as f:
+            json.dump(fails, f, indent=2, ensure_ascii=False)

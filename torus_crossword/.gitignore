@@ -1,2 +1,4 @@
 *.prof
 *.json
+
+__pycache__/
