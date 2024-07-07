@@ -7,7 +7,7 @@ from enum import Enum
 
 INITIAL_TEMPLATE = [
     "@@@█@E@@█A@@@@@",
-    "@@@█@R@@█K@@@@@",
+    "@@@█@R@@█KL@@@@",
     "@@@█@T@@█E@@@@@",
     "@@@@█U@@@█@@@@@",
     "███@@B@█@@@@███",
@@ -213,30 +213,7 @@ def get_new_grids(grid: list[str]) -> list[list[str]]:
 
             # take grid and add all letters for which there is one possibility
 
-            output = []
-            new_grid = grid.copy()
-            for s in square_to_word_map.keys():
-                if len(square_to_word_map[s].possible_chars) == 1:
-                    new_grid = replace_char_at(
-                        new_grid, s, list(square_to_word_map[s].possible_chars)[0]
-                    )
-
-            # get square with min possibilities, not including 1
-            min_possibilities = 26
-            min_square = None
-            for s in square_to_word_map.keys():
-                num_pos = len(square_to_word_map[s].possible_chars)
-                if num_pos == 1:
-                    continue
-                if num_pos < min_possibilities:
-                    min_possibilities = num_pos
-                    min_square = s
-
-            for p in square_to_word_map[min_square].possible_chars:
-                g = new_grid.copy()
-                g = replace_char_at(g, min_square, p)
-                output.append(g)
-            return output
+            break
         old_vector = new_vector
 
         square_to_word_map = update_square_possibilities(square_to_word_map, words)
@@ -245,6 +222,31 @@ def get_new_grids(grid: list[str]) -> list[list[str]]:
             if len(square_to_word_map[s].possible_chars) == 0:
                 print("reached a dead end", s)
                 return []
+
+    output = []
+    new_grid = grid.copy()
+    for s in square_to_word_map.keys():
+        if len(square_to_word_map[s].possible_chars) == 1:
+            new_grid = replace_char_at(
+                new_grid, s, list(square_to_word_map[s].possible_chars)[0]
+            )
+
+    # get square with min possibilities, not including 1
+    min_possibilities = 26
+    min_square = None
+    for s in square_to_word_map.keys():
+        num_pos = len(square_to_word_map[s].possible_chars)
+        if num_pos == 1:
+            continue
+        if num_pos < min_possibilities:
+            min_possibilities = num_pos
+            min_square = s
+
+    for p in square_to_word_map[min_square].possible_chars:
+        g = new_grid.copy()
+        g = replace_char_at(g, min_square, p)
+        output.append(g)
+    return output
 
 
 new_grids = get_new_grids(INITIAL_TEMPLATE)
