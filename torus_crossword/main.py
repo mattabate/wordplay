@@ -5,22 +5,40 @@ import time
 import itertools
 
 # NOTE: instead we need to do somethign where "the letter a in this position implies the letter x in this position."
-INITIAL_TEMPLATE = [  # 1
-    "@@@█@@@@@█@@@@█",
-    "@@@█@@@@@█@@@@@",
-    "@@@█@@@@@█@@@@@",
-    "@@@@@█@@@@█@@@@",
-    "@@@@@@██@@@@███",
-    "███@@@@@█@@@@@@",
-    "@@@@█@@@@█@@@@@",
-    "@@@@█TORUS█@@@@",
-    "@@@@@█@@@@█@@@@",
-    "@@@@@@█@@@@@███",
-    "███@@@@██@@@@@@",
-    "@@@@█@@@@█@@@@@",
-    "@@@@@█@@@@@█@@@",
-    "@@@@@█@@@@@█@@@",
-    "█@@@@█@@@@@█@@@",
+
+# "EAM█OBAN████NIN",
+# "IMA█ROLY████YAK",
+# "TSN█SLYS██IMME█",
+# "███BIEN█APRES██",
+# "█AGONY█PSHAW███",
+# "ORIGINALSIN████",
+# "SEGO██DUALISMS█",
+# "HNUT█TORUS█DOUG",
+# "█SEASONAL██CORP",
+# "████HEALTHCARES",
+# "███ALIIS█SIRES█",
+# "██STENS█LEND███",
+# "█CHOP██JIVE█ETD",
+# "ATE████ELEM█PIR",
+# "TER████NINA█OBI"
+
+# clear that grid for me
+INITIAL_TEMPLATE = [
+    "EAM█OBAN████@@@",
+    "IMA█ROLY████@@@",
+    "TSN█@@@@██@@@@█",
+    "███@@@@█@@@@@██",
+    "█@@@@@█@@@@@███",
+    "@@@@@@@@@@@████",
+    "@@@@██@@@@@@@@█",
+    "HNUT█TORUS█DOUG",
+    "█@@@@@@@@██@@@@",
+    "████HEALTHCARES",
+    "███ALIIS█SIRES█",
+    "██STENS█LEND███",
+    "█CHOP██JIVE█ETD",
+    "ATE████ELEM█PIR",
+    "TER████NINA█OBI",
 ]
 
 id = int(time.time())
@@ -167,7 +185,9 @@ def replace_char_at(gird: list[str], loc: tuple[int, int], c: str) -> list[str]:
     return grid
 
 
-def get_new_grids(grid: list[str]) -> list[list[str]]:
+def get_new_grids(
+    grid: list[str],
+) -> tuple[list[list[str]], list[Word], dict[list[tuple[int, int]], Sqaure]]:
     # NOTE: initialize words
     words = get_word_locations(grid, Direction.ACROSS) + get_word_locations(
         grid, Direction.DOWN
@@ -254,6 +274,10 @@ def recursive_search(grid, level=0):
     global v_best_grids
 
     if grid_filled(grid):
+        for l in solutions:
+            if l["grid"] == grid:
+                return
+
         tqdm.tqdm.write(T_YELLOW + "Solution found")  # Green text indicating success
         tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
         tqdm.tqdm.write(T_NORMAL)
