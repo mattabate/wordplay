@@ -24,9 +24,9 @@ import itertools
 
 # clear that grid for me
 INITIAL_TEMPLATE = [
-    "EAM█@@@@████@@@",
-    "IMA█@@@@████@@@",
-    "TSN█@@@@██@@@@█",
+    "@@@█@@@@████@@@",
+    "@@@█@@@@████@@@",
+    "@@@█@@@@██@@@@@",
     "███@@@@█@@@@@██",
     "█AGORA█@@@@@███",
     "ORIGINALSIN████",
@@ -36,9 +36,9 @@ INITIAL_TEMPLATE = [
     "████HEALTHCARES",
     "███ALIIS█SIRES█",
     "██STENS█LEND███",
-    "█CHOP██JIVE█ETD",
-    "ATE████ELEM█PIR",
-    "TER████NINA█OBI",
+    "@@@@@██@@@@█@@@",
+    "@@@████ELEM█@@@",
+    "@@@████NINA█@@@",
 ]
 
 id = int(time.time())
