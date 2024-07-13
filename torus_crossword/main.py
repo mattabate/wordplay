@@ -24,15 +24,15 @@ import itertools
 
 # clear that grid for me
 INITIAL_TEMPLATE = [
-    "EAM█OBAN████@@@",
-    "IMA█ROLY████@@@",
+    "EAM█@@@@████@@@",
+    "IMA█@@@@████@@@",
     "TSN█@@@@██@@@@█",
     "███@@@@█@@@@@██",
-    "█@@@@@█@@@@@███",
-    "@@@@@@@@@@@████",
-    "@@@@██@@@@@@@@█",
+    "█AGORA█@@@@@███",
+    "ORIGINALSIN████",
+    "SEGO██DUALISMS█",
     "HNUT█TORUS█DOUG",
-    "█@@@@@@@@██@@@@",
+    "█SEASONAL██COPE",
     "████HEALTHCARES",
     "███ALIIS█SIRES█",
     "██STENS█LEND███",
@@ -178,7 +178,7 @@ def update_word_possibilities(
     return words
 
 
-def replace_char_at(gird: list[str], loc: tuple[int, int], c: str) -> list[str]:
+def replace_char_at(grid: list[str], loc: tuple[int, int], c: str) -> list[str]:
     """Replace the character at the given location in the grid."""
     row = grid[loc[0]]
     grid[loc[0]] = f"{row[:loc[1]]}{c}{row[loc[1]+1:]}"
@@ -187,11 +187,12 @@ def replace_char_at(gird: list[str], loc: tuple[int, int], c: str) -> list[str]:
 
 def get_new_grids(
     grid: list[str],
-) -> tuple[list[list[str]], list[Word], dict[list[tuple[int, int]], Sqaure]]:
+) -> list[list[str]]:
     # NOTE: initialize words
     words = get_word_locations(grid, Direction.ACROSS) + get_word_locations(
         grid, Direction.DOWN
     )
+    old_vector = [len(w.possibilities) for w in words]
 
     # NOTE: initialize square_to_word_map
     square_to_word_map: dict[list[tuple[int, int]], Sqaure] = {}
@@ -211,8 +212,6 @@ def get_new_grids(
         elif w.direction == Direction.DOWN:
             for i in range(w.length):
                 square_to_word_map[((x_start + i) % ROWLEN, y_start)].down = (wid, i)
-
-    old_vector = [len(w.possibilities) for w in words]
 
     while True:
         words = update_word_possibilities(words, square_to_word_map)
@@ -272,6 +271,7 @@ def grid_filled(grid: list[str]) -> bool:
 def recursive_search(grid, level=0):
     global v_best_score
     global v_best_grids
+    global solutions
 
     if grid_filled(grid):
         for l in solutions:
@@ -308,7 +308,7 @@ def recursive_search(grid, level=0):
                 json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
 
         for new_grid in t:
-            recursive_search(new_grid, level + 1)
+            recursive_search(new_grid.copy(), level + 1)
 
 
 if __name__ == "__main__":
