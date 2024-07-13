@@ -275,7 +275,6 @@ def recursive_search(grid, level=0):
 
     with tqdm.tqdm(new_grids, desc=f"Level {level}") as t:
         l = count_letters(grid)
-        l = count_letters(grid)
         if l > v_best_score:
             v_best_score = l
             v_best_grids.append({"level": level, "score": l, "grid": grid})
