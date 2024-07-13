@@ -2,7 +2,6 @@ import json
 import tqdm
 from schema import Direction, Sqaure, Word
 import time
-import os
 import itertools
 
 # NOTE: instead we need to do somethign where "the letter a in this position implies the letter x in this position."
@@ -14,7 +13,7 @@ INITIAL_TEMPLATE = [  # 1
     "@@@@@@██@@@@███",
     "███@@@@@█@@@@@@",
     "@@@@█@@@@█@@@@@",
-    "@@@██TORUS██@@@",
+    "@@@@█TORUS█@@@@",
     "@@@@@█@@@@█@@@@",
     "@@@@@@█@@@@@███",
     "███@@@@██@@@@@@",
@@ -106,6 +105,7 @@ def get_word_locations(grid: list[list[str]], direction: Direction) -> list[Word
     return output
 
 
+# NOTE: pass on the word for each square and possibilities to use as initial condidtions
 def update_square_possibilities(
     square_to_word_map: dict[tuple[int, int], Sqaure], words: list[Word]
 ) -> dict[tuple[int, int], Sqaure]:
@@ -132,29 +132,28 @@ def update_word_possibilities(
     for w in words:
         new_possibilities = []
         x_start, y_start = w.start
-        for p in w.possibilities:
-            if w.direction == Direction.ACROSS:
-                for i, c in enumerate(p):
-                    if (
+        match w.direction:
+            case Direction.ACROSS:
+                for p in w.possibilities:
+                    if all(
                         c
-                        not in square_to_word_map[
+                        in square_to_word_map[
                             (x_start, (y_start + i) % ROWLEN)
                         ].possible_chars
+                        for i, c in enumerate(p)
                     ):
-                        break
-                else:
-                    new_possibilities.append(p)
-            elif w.direction == Direction.DOWN:
-                for i, c in enumerate(p):
-                    if (
+                        new_possibilities.append(p)
+            case Direction.DOWN:
+                for p in w.possibilities:
+
+                    if all(
                         c
-                        not in square_to_word_map[
+                        in square_to_word_map[
                             ((x_start + i) % ROWLEN, y_start)
                         ].possible_chars
+                        for i, c in enumerate(p)
                     ):
-                        break
-                else:
-                    new_possibilities.append(p)
+                        new_possibilities.append(p)
 
         w.possibilities = new_possibilities
 
@@ -162,10 +161,10 @@ def update_word_possibilities(
 
 
 def replace_char_at(gird: list[str], loc: tuple[int, int], c: str) -> list[str]:
-    row = gird[loc[0]]
-    row = row[: loc[1]] + c + row[loc[1] + 1 :]
-    gird[loc[0]] = row
-    return gird
+    """Replace the character at the given location in the grid."""
+    row = grid[loc[0]]
+    grid[loc[0]] = f"{row[:loc[1]]}{c}{row[loc[1]+1:]}"
+    return grid
 
 
 def get_new_grids(grid: list[str]) -> list[list[str]]:
@@ -177,10 +176,12 @@ def get_new_grids(grid: list[str]) -> list[list[str]]:
     # NOTE: initialize square_to_word_map
     square_to_word_map: dict[list[tuple[int, int]], Sqaure] = {}
     for i, j in itertools.product(range(ROWLEN), repeat=2):
-        if grid[i][j] != C_WALL:
-            square_to_word_map[(i, j)] = Sqaure(None, None)
-            if grid[i][j] != "@":
-                square_to_word_map[(i, j)].possible_chars = {grid[i][j]}
+        letter = grid[i][j]
+        if letter == C_WALL:
+            continue
+        square_to_word_map[(i, j)] = Sqaure(None, None)
+        if letter != "@":
+            square_to_word_map[(i, j)].possible_chars = {letter}
 
     for wid, w in enumerate(words):
         x_start, y_start = w.start
@@ -238,7 +239,7 @@ def get_new_grids(grid: list[str]) -> list[list[str]]:
 
 
 def count_letters(grid: list[str]) -> int:
-    return GRIDCELLS - sum([l.count("@") + l.count("█") for l in grid])
+    return GRIDCELLS - sum(line.count("@") + line.count("█") for line in grid)
 
 
 def grid_filled(grid: list[str]) -> bool:
