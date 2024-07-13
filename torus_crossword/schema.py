@@ -32,6 +32,7 @@ class Word:
         self.possibilities = WORDLIST_BY_LEN[length]
 
 
+# this is so stupid - it should have a touple position with a position in both words
 class Sqaure:
     across: Word
     down: Word
