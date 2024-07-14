@@ -6,39 +6,24 @@ import itertools
 
 # NOTE: instead we need to do somethign where "the letter a in this position implies the letter x in this position."
 
-# "EAM█OBAN████NIN",
-# "IMA█ROLY████YAK",
-# "TSN█SLYS██IMME█",
-# "███BIEN█APRES██",
-# "█AGONY█PSHAW███",
-# "ORIGINALSIN████",
-# "SEGO██DUALISMS█",
-# "HNUT█TORUS█DOUG",
-# "█SEASONAL██CORP",
-# "████HEALTHCARES",
-# "███ALIIS█SIRES█",
-# "██STENS█LEND███",
-# "█CHOP██JIVE█ETD",
-# "ATE████ELEM█PIR",
-# "TER████NINA█OBI"
 
 # clear that grid for me
 INITIAL_TEMPLATE = [
-    "@@@█@@@@████@@@",
-    "@@@█@@@@████@@@",
-    "@@@█@@@@██@@@@@",
-    "███@@@@█@@@@@██",
-    "█AGORA█@@@@@███",
-    "ORIGINALSIN████",
-    "SEGO██DUALISMS█",
-    "HNUT█TORUS█DOUG",
-    "█SEASONAL██COPE",
-    "████HEALTHCARES",
-    "███ALIIS█SIRES█",
-    "██STENS█LEND███",
-    "@@@@@██@@@@█@@@",
-    "@@@████ELEM█@@@",
-    "@@@████NINA█@@@",
+    "@@@█@@@█@@@@@@@",
+    "@@@█@@@█@@@@@@@",
+    "@@@█@@@█@@@@@@@",
+    "@@@@@@@█@@@████",
+    "@@@@@@█@@@@@@@@",
+    "███@@@█@@@@@@@@",
+    "@@@@@█@@@@@@@@@",
+    "@@@@█TORUS█@@@@",
+    "@@@@@@@@@█@@@@@",
+    "@@@@@@@@█@@@███",
+    "@@@@@@@@█@@@@@@",
+    "████@@@█@@@@@@@",
+    "@@@@@@@█@@@█@@@",
+    "@@@@@@@█@@@█@@@",
+    "@@@@@@@█@@@█@@@",
 ]
 
 id = int(time.time())
@@ -128,7 +113,7 @@ def update_square_possibilities(
     square_to_word_map: dict[tuple[int, int], Sqaure], words: list[Word]
 ) -> dict[tuple[int, int], Sqaure]:
     for s in square_to_word_map.values():
-        across = s.across
+        across: Word = s.across
         word = words[across[0]]
         spot = across[1]
         accross_pos = set(p[spot] for p in word.possibilities)
@@ -139,6 +124,7 @@ def update_square_possibilities(
         down_pos = set(p[spot] for p in word.possibilities)
 
         pos = accross_pos.intersection(down_pos)
+
         s.possible_chars = pos
 
     return square_to_word_map
@@ -153,24 +139,27 @@ def update_word_possibilities(
         match w.direction:
             case Direction.ACROSS:
                 for p in w.possibilities:
-                    if all(
-                        c
-                        in square_to_word_map[
-                            (x_start, (y_start + i) % ROWLEN)
-                        ].possible_chars
-                        for i, c in enumerate(p)
-                    ):
+                    for i, c in enumerate(p):
+                        if (
+                            c
+                            not in square_to_word_map[
+                                (x_start, (y_start + i) % ROWLEN)
+                            ].possible_chars
+                        ):
+                            break
+                    else:
                         new_possibilities.append(p)
             case Direction.DOWN:
                 for p in w.possibilities:
-
-                    if all(
-                        c
-                        in square_to_word_map[
-                            ((x_start + i) % ROWLEN, y_start)
-                        ].possible_chars
-                        for i, c in enumerate(p)
-                    ):
+                    for i, c in enumerate(p):
+                        if (
+                            c
+                            not in square_to_word_map[
+                                ((x_start + i) % ROWLEN, y_start)
+                            ].possible_chars
+                        ):
+                            break
+                    else:
                         new_possibilities.append(p)
 
         w.possibilities = new_possibilities
@@ -185,15 +174,11 @@ def replace_char_at(grid: list[str], loc: tuple[int, int], c: str) -> list[str]:
     return grid
 
 
-def get_new_grids(
-    grid: list[str],
-) -> list[list[str]]:
+def initalize(grid):
     # NOTE: initialize words
     words = get_word_locations(grid, Direction.ACROSS) + get_word_locations(
         grid, Direction.DOWN
     )
-    old_vector = [len(w.possibilities) for w in words]
-
     # NOTE: initialize square_to_word_map
     square_to_word_map: dict[list[tuple[int, int]], Sqaure] = {}
     for i, j in itertools.product(range(ROWLEN), repeat=2):
@@ -212,6 +197,17 @@ def get_new_grids(
         elif w.direction == Direction.DOWN:
             for i in range(w.length):
                 square_to_word_map[((x_start + i) % ROWLEN, y_start)].down = (wid, i)
+
+    return words, square_to_word_map
+
+
+def get_new_grids(
+    grid: list[str],
+) -> list[list[str]]:
+
+    words, square_to_word_map = initalize(grid)
+
+    old_vector = [len(w.possibilities) for w in words]
 
     while True:
         words = update_word_possibilities(words, square_to_word_map)
