@@ -13,18 +13,36 @@ INITIAL_TEMPLATE = [
     "@@@█@@@█@@@@@@@",
     "@@@█@@@█@@@@@@@",
     "@@@@@@@█@@@████",
-    "@@@@@@█@@@@@@@@",
-    "███@@@█@@@@@@@@",
-    "@@@@@█@@@@@@@@@",
+    "███@@@@@@@█@@@@",
+    "@@@@@@█@@@█@@@@",
+    "@@@@@█@@@@█@@@@",
     "@@@@█TORUS█@@@@",
-    "@@@@@@@@@█@@@@@",
-    "@@@@@@@@█@@@███",
-    "@@@@@@@@█@@@@@@",
+    "@@@@█@@@@█@@@@@",
+    "@@@@█@@@█@@@@@@",
+    "@@@@█@@@@@@@███",
     "████@@@█@@@@@@@",
     "@@@@@@@█@@@█@@@",
     "@@@@@@@█@@@█@@@",
     "@@@@@@@█@@@█@@@",
 ]
+
+# FLIP = [
+#     "@@@@@@@█@@@█@@@",
+#     "@@@@@@@█@@@█@@@",
+#     "@@@@@@@█@@@█@@@",
+#     "████@@@█@@@@@@@",
+#     "@@@@█@@@@@@@███",
+#     "@@@@█@@@█@@@@@@",
+#     "@@@@█@@@@█@@@@@",
+#     "@@@@█TORUS█@@@@",
+#     "@@@@@█@@@@█@@@@",
+#     "@@@@@@█@@@█@@@@",
+#     "███@@@@@@@█@@@@",
+#     "@@@@@@@█@@@████",
+#     "@@@█@@@█@@@@@@@",
+#     "@@@█@@@█@@@@@@@",
+#     "@@@█@@@█@@@@@@@",
+# ]
 
 id = int(time.time())
 BES_JSON = f"results/bests_{id}.json"
@@ -116,12 +134,12 @@ def update_square_possibilities(
         across: Word = s.across
         word = words[across[0]]
         spot = across[1]
-        accross_pos = set(p[spot] for p in word.possibilities)
+        accross_pos = {p[spot] for p in word.possibilities}
 
         down = s.down
         word = words[down[0]]
         spot = down[1]
-        down_pos = set(p[spot] for p in word.possibilities)
+        down_pos = {p[spot] for p in word.possibilities}
 
         pos = accross_pos.intersection(down_pos)
 
@@ -138,6 +156,7 @@ def update_word_possibilities(
         x_start, y_start = w.start
         match w.direction:
             case Direction.ACROSS:
+                new_possibilities = ""
                 for p in w.possibilities:
                     for i, c in enumerate(p):
                         if (
@@ -148,8 +167,9 @@ def update_word_possibilities(
                         ):
                             break
                     else:
-                        new_possibilities.append(p)
+                        new_possibilities += "," + p
             case Direction.DOWN:
+                new_possibilities = ""
                 for p in w.possibilities:
                     for i, c in enumerate(p):
                         if (
@@ -160,9 +180,9 @@ def update_word_possibilities(
                         ):
                             break
                     else:
-                        new_possibilities.append(p)
+                        new_possibilities += "," + p
 
-        w.possibilities = new_possibilities
+        w.possibilities = new_possibilities.split(",")[1:]
 
     return words
 
@@ -206,7 +226,6 @@ def get_new_grids(
 ) -> list[list[str]]:
 
     words, square_to_word_map = initalize(grid)
-
     old_vector = [len(w.possibilities) for w in words]
 
     while True:
