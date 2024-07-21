@@ -1,4 +1,6 @@
 *.prof
 *.json
 
+nohup.out
+
 __pycache__/
