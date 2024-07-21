@@ -8,7 +8,6 @@ import tqdm
 # NOTE: instead we need to do somethign where "the letter a in this position implies the letter x in this position."
 id = int(time.time())
 SOL_JSON = f"star_sols.json"
-TRY_JSON = f"star_tries.json"
 
 INITIAL_TEMPLATE = [
     "██████@@@███",
@@ -318,9 +317,6 @@ def recursive_search(grid, level=0):
         recursive_search(new_grid.copy(), level + 1)
 
 
-with open(TRY_JSON, "r") as f:
-    tries = json.load(f)
-
 if __name__ == "__main__":
     words = get_word_locations(INITIAL_TEMPLATE, Direction.ACROSS) + get_word_locations(
         INITIAL_TEMPLATE, Direction.DOWN
@@ -359,10 +355,4 @@ if __name__ == "__main__":
             grid[7] = "███" + seed
             grid[6] = "███" + seed2
 
-            if grid in tries:
-                continue
             recursive_search(grid, 0)
-
-            tries.append(grid)
-            with open(TRY_JSON, "w") as f:
-                json.dump(tries, f, indent=2, ensure_ascii=False)

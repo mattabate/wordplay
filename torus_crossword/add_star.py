@@ -25,21 +25,6 @@ INITIAL_TEMPLATE = [
     "_______________",
     "_______________",
 ]
-corners = [
-    "██████NLE███",
-    "██████AIV███",
-    "INNERTUBE███",
-    "CONVERTER███",
-    "BETENOIRE███",
-    "███ADULATION",
-    "███RESULTSIN",
-    "███DRESSSIZE",
-    "███EER██████",
-    "███NDS██████",
-]
-
-
-only_corners = False
 
 f_verbose = True
 
@@ -83,10 +68,10 @@ SORTED_WORDLIST_L = sorted(SORTED_WORDLIST, key=len, reverse=True)  # long words
 import random
 
 random.shuffle(WORDLIST)
-WORDS_TO_USE = WORDLIST
+WORDS_TO_USE = SORTED_WORDLIST_L
 
 WORDLIST_BY_LEN = {}
-for w in WORDLIST:
+for w in SORTED_WORDLIST_L:
     l = len(w)
     if l not in WORDLIST_BY_LEN:
         WORDLIST_BY_LEN[l] = []
@@ -139,18 +124,8 @@ def grid_filled(grid: list[str]) -> bool:
     return True
 
 
-def count_letters(grid: list[str], only_corners=False) -> int:
-    if only_corners:
-        _sum = 0
-        for i in [0, 1, 2, 12, 13, 14]:
-            bits = grid[i].split(C_WALL)
-            _sum += bits[0].count("_") + bits[0].count("@") + bits[0].count("█")
-            _sum += bits[-1].count("_") + bits[-1].count("@") + bits[-1].count("█")
-        return 120 - _sum
-    else:
-        return GRIDCELLS - sum(
-            [l.count("_") + l.count("@") + l.count("█") for l in grid]
-        )
+def count_letters(grid: list[str]) -> int:
+    return GRIDCELLS - sum([l.count("_") + l.count("@") + l.count("█") for l in grid])
 
 
 def check_line_for_short_words(line: str) -> bool:
@@ -203,7 +178,7 @@ def get_new_templates_all(fixtures: list[tuple[int, str]], line: str):
         lc = len(cont)
         for (
             candidate_word
-        ) in SORTED_WORDLIST:  # WORDLIST_BY_LEN[lc]:  # HACK: REQUIRES NO _
+        ) in SORTED_WORDLIST_L:  # WORDLIST_BY_LEN[lc]:  # HACK: REQUIRES NO _
             lw = len(candidate_word)
             if lw > max_len or lw < lc:
                 continue
@@ -522,7 +497,7 @@ def recursive_search(grid, level=0):
             tqdm.tqdm.write(out2)
             tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_GREEN)))
 
-        l = count_letters(grid, only_corners=only_corners)
+        l = count_letters(grid)
         if l > v_best_score:
             v_best_score = l
             v_best_grids.append({"level": level, "score": l, "grid": grid})
