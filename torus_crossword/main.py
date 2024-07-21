@@ -1,3 +1,5 @@
+"""15x15 grids use █ and @, this script places the letters, and is typically much faster."""
+
 import json
 import tqdm
 from schema import Direction, Sqaure, Word

@@ -1,14 +1,12 @@
-"""optimizes script aimed just at the corners"""
-
 import json
 from schema import Direction, Sqaure, Word, WORDLIST_BY_LEN
 import time
-import tqdm
 
 # NOTE: instead we need to do somethign where "the letter a in this position implies the letter x in this position."
 id = int(time.time())
-SOL_JSON = f"star_sols.json"
-TRY_JSON = f"star_tries.json"
+BES_JSON = f"results/bests_{id}.json"
+SOL_JSON = f"solutions/solutions_{id}.json"
+FAI_JSON = "fails.json"
 
 INITIAL_TEMPLATE = [
     "██████@@@███",
@@ -301,12 +299,10 @@ def recursive_search(grid, level=0):
                 return
 
         print("Solution found")  # Green text indicating success
-        with open(SOL_JSON, "r") as f:
-            solutions = json.load(f)
-        if grid not in solutions:
-            solutions.append(grid)
-            with open(SOL_JSON, "w") as f:
-                json.dump(solutions, f, indent=2, ensure_ascii=False)
+        solutions.append({"level": level, "grid": grid})
+        with open(SOL_JSON, "w") as f:
+            json.dump(solutions, f, indent=2, ensure_ascii=False)
+
         return
 
     new_grids = get_new_grids(grid)
@@ -314,12 +310,17 @@ def recursive_search(grid, level=0):
     if not new_grids:
         return
 
+    l = count_letters(grid)
+    if l > v_best_score:
+        v_best_score = l
+        v_best_grids.append({"level": level, "score": l, "grid": grid})
+
+        with open(BES_JSON, "w") as f:
+            json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
+
     for new_grid in new_grids:
         recursive_search(new_grid.copy(), level + 1)
 
-
-with open(TRY_JSON, "r") as f:
-    tries = json.load(f)
 
 if __name__ == "__main__":
     words = get_word_locations(INITIAL_TEMPLATE, Direction.ACROSS) + get_word_locations(
@@ -350,19 +351,7 @@ if __name__ == "__main__":
             "time remaining:",
             time_remaining,
         )
-        for seed2 in tqdm.tqdm(words_9_letter):
-            current_time = round(time.time() - t0)
-            time_remaining = round(current_time / (i + 1) * (len_wln - i))
-            current_time = time.strftime("%H:%M:%S", time.gmtime(current_time))
-            time_remaining = time.strftime("%H:%M:%S", time.gmtime(time_remaining))
-            grid = INITIAL_TEMPLATE.copy()
-            grid[7] = "███" + seed
-            grid[6] = "███" + seed2
+        grid = INITIAL_TEMPLATE.copy()
+        grid[2] = seed + "███"
 
-            if grid in tries:
-                continue
-            recursive_search(grid, 0)
-
-            tries.append(grid)
-            with open(TRY_JSON, "w") as f:
-                json.dump(tries, f, indent=2, ensure_ascii=False)
+        recursive_search(grid, 0)

@@ -7,23 +7,6 @@ import os
 import time
 from enum import Enum
 
-INITIAL_TEMPLATE = [
-    "@@@█@@@█@@@@@@@",
-    "@@@█@@@█@@@@@@@",
-    "@@@█@@@█@@@@@@@",
-    "@@@@@@@█@@@████",
-    "███@@@@@@@█@@@@",
-    "@@@@@@█@@@█@@@@",
-    "@@@@@█@@@@█@@@@",
-    "@@@@█TORUS█@@@@",
-    "@@@@█@@@@█@@@@@",
-    "@@@@█@@@█@@@@@@",
-    "@@@@█@@@@@@@███",
-    "████@@@█@@@@@@@",
-    "@@@@@@@█@@@█@@@",
-    "@@@@@@@█@@@█@@@",
-    "@@@@@@@█@@@█@@@",
-]
 
 INITIAL_TEMPLATE = [
     "_______________",
@@ -33,7 +16,7 @@ INITIAL_TEMPLATE = [
     "_______________",
     "_______________",
     "_______________",
-    "_____TORUS_____",
+    "____█TORUS█____",
     "_______________",
     "_______________",
     "_______________",
@@ -41,32 +24,34 @@ INITIAL_TEMPLATE = [
     "_______________",
     "_______________",
     "_______________",
+]
+corners = [
+    "██████NLE███",
+    "██████AIV███",
+    "INNERTUBE███",
+    "CONVERTER███",
+    "BETENOIRE███",
+    "███ADULATION",
+    "███RESULTSIN",
+    "███DRESSSIZE",
+    "███EER██████",
+    "███NDS██████",
 ]
 
 
 only_corners = False
-
-
-class SearchType(Enum):
-    NONE = 0
-    POLARITY = 1
-    QUAT = 2
-    OCT = 3
-
-
-SEARCHTYPE = SearchType.NONE
 
 f_verbose = True
 
 
 ROWLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
-MAX_WALLS = 50
+MAX_WALLS = 42
 
 SOL_JSON = f"results/solutions_{int(time.time())}.json"
 BES_JSON = f"results/bests_{int(time.time())}.json"
 WOR_JSON = "words.json"
-FAI_JSON = "fails.json"
+FAI_JSON = "star_fails.json"
 
 C_WALL = "█"
 
@@ -114,6 +99,39 @@ if not os.path.exists(FAI_JSON):
 fails = json.load(open(FAI_JSON))
 
 
+def replace_char_at(string, char, index):
+    """Replace a character at a specific index in a string.
+
+    Args:
+        string (str): The original string
+        char (str): The character to replace with
+        index (int): The index at which to replace the character
+
+    Returns:
+        str: The modified string
+    """
+    l = len(string)
+    if index < 0:
+        index += l
+    if index >= l or index < 0:
+        return string  # Return the original string if index is out of bounds
+
+    return string[:index] + char + string[index + 1 :]
+
+
+def add_star(grid, star):
+    START = (10, 9)
+    for i, line in enumerate(star):
+        for j, l in enumerate(line):
+            if l == "█":
+                continue
+            r = (START[0] + i) % ROWLEN
+            c = (START[1] + j) % ROWLEN
+            grid[r] = replace_char_at(grid[r], l, c)
+
+    return grid
+
+
 def grid_filled(grid: list[str]) -> bool:
     for l in grid:
         if "_" in l or "@" in l:
@@ -133,26 +151,6 @@ def count_letters(grid: list[str], only_corners=False) -> int:
         return GRIDCELLS - sum(
             [l.count("_") + l.count("@") + l.count("█") for l in grid]
         )
-
-
-def replace_char_at(string, char, index):
-    """Replace a character at a specific index in a string.
-
-    Args:
-        string (str): The original string
-        char (str): The character to replace with
-        index (int): The index at which to replace the character
-
-    Returns:
-        str: The modified string
-    """
-    l = len(string)
-    if index < 0:
-        index += l
-    if index >= l or index < 0:
-        return string  # Return the original string if index is out of bounds
-
-    return string[:index] + char + string[index + 1 :]
 
 
 def check_line_for_short_words(line: str) -> bool:
@@ -499,14 +497,7 @@ def recursive_search(grid, level=0):
             json.dump(SOLUTIONS, f, indent=2, ensure_ascii=False)
         return
 
-    if SEARCHTYPE == SearchType.POLARITY:
-        x, idx_str, new_grids = get_new_grids_p(grid, level)
-    elif SEARCHTYPE == SearchType.QUAT:
-        x, idx_str, new_grids = get_new_grids_q(grid, level)
-    elif SEARCHTYPE == SearchType.NONE:
-        x, idx_str, new_grids = get_new_grids(grid)
-    elif SEARCHTYPE == SearchType.OCT:
-        x, idx_str, new_grids = get_new_grids_o(grid, level)
+    x, idx_str, new_grids = get_new_grids(grid)
 
     len_new_grids = len(new_grids)
     if not new_grids:
@@ -547,60 +538,27 @@ if __name__ == "__main__":
 
     with open(FAI_JSON) as f:
         fails = json.load(f)
-    if INITIAL_TEMPLATE in fails:
-        print(f"This grid has already been proven to have no solution.")
-        exit()
 
-    grid = INITIAL_TEMPLATE.copy()
+    with open("star_sols.json") as f:
+        stars = json.load(f)
 
-    solution_found = False
-    recursive_search(grid, 0)
+    for star in stars:
+        grid = INITIAL_TEMPLATE.copy()
+        grid = add_star(grid, star)
+        with open(FAI_JSON, "r") as f:
+            fails = json.load(f)
 
-    if not solution_found:
-        print("No solution found")
-        with open(FAI_JSON, "w") as f:
-            fails.append(INITIAL_TEMPLATE)
-            json.dump(fails, f, indent=2, ensure_ascii=False)
+        if grid in fails:
+            print("Already Failed - Skipping")
+            continue
 
-        print(
-            T_PINK
-            + json.dumps(INITIAL_TEMPLATE, indent=2, ensure_ascii=False)
-            + T_NORMAL
-        )
+        solution_found = False
+        recursive_search(grid, 0)
 
+        if not solution_found:
+            print("No solution found")
+            with open(FAI_JSON, "w") as f:
+                fails.append(grid)
+                json.dump(fails, f, indent=2, ensure_ascii=False)
 
-# 15
-# @@@___█_@@_█POC
-# ONRING█_@@_█ONI
-# @@@@@@__@@__SIA
-# ███________@ES█
-# AKE█____█BUNDTC
-# ROSS█______███H
-# MASS█____@@A██A
-# HNUT█TORUS█DOUG
-# O██S@@____█ANDR
-# L███______█REOI
-# ERTUBE█____█INN
-# █@@@________███
-# @@@__@@__@@@SUA
-# HIE█_@@_█SCRUNC
-# @@@█_@@_█___PIA
-
-# Almost best
-# [
-#     "T I N████@@@██SIW",
-#     "E R TUBE█@@@██INN",
-#     "R E STED█@@@█INTE",
-#     "███ E A S Y T H E R E █ █ █ ",
-#     "___N@H@__█@D@__",
-#     "@@@S@E@█@M@█@@@",
-#     "@@@I@E█__I█R@@@",
-#     "___L@R___SKI___",
-#     "EADS█A__█SIGHTR",
-#     "LLS█@N@█STRAWPO",
-#     "__@A@█__@OST___",
-#     "███ INORDERTO███",
-#     "R O AD█@@@█SENTAB",
-#     "I N G██@@@█ONIONR",
-#     "T H E██@@@████SOO",
-# ]
+            print(T_PINK + json.dumps(grid, indent=2, ensure_ascii=False) + T_NORMAL)
