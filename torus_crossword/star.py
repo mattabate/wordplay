@@ -174,11 +174,10 @@ def update_word_possibilities(
     words: list[Word], square_to_word_map: dict[tuple[int, int], Sqaure]
 ) -> list[Word]:
     for w in words:
-        new_possibilities = []
         x_start, y_start = w.start
+        new_possibilities = ""
         match w.direction:
             case Direction.ACROSS:
-                new_possibilities = ""
                 for p in w.possibilities:
                     for i, c in enumerate(p):
                         if (
@@ -191,7 +190,6 @@ def update_word_possibilities(
                     else:
                         new_possibilities += "," + p
             case Direction.DOWN:
-                new_possibilities = ""
                 for p in w.possibilities:
                     for i, c in enumerate(p):
                         if (
