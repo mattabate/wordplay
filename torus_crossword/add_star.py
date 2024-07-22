@@ -32,8 +32,10 @@ ROWLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
 MAX_WALLS = 42
 
-SOL_JSON = f"results/solutions_{int(time.time())}.json"
-BES_JSON = f"results/bests_{int(time.time())}.json"
+SOL_JSON = f"solutions_from_star.json"
+if not os.path.exists(SOL_JSON):
+    with open(SOL_JSON, "w") as f:
+        json.dump([], f, indent=2, ensure_ascii=False)
 WOR_JSON = "words.json"
 FAI_JSON = "star_fails.json"
 
@@ -46,8 +48,6 @@ T_GREEN = "\033[92m"
 T_PINK = "\033[95m"
 
 # bests
-v_best_score = 0
-v_best_grids = []
 new_solutions = []  # tracks initial conditions solutions
 
 with open(WOR_JSON) as f:
@@ -448,8 +448,6 @@ def print_grid(grid: list[str], h: tuple[str, int, str]):
 
 
 def recursive_search(grid, level=0):
-    global v_best_score
-    global v_best_grids
     global new_solutions
 
     if grid_filled(grid):
@@ -495,13 +493,6 @@ def recursive_search(grid, level=0):
             )
             tqdm.tqdm.write(out2)
             tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_GREEN)))
-
-        l = count_letters(grid)
-        if l > v_best_score:
-            v_best_score = l
-            v_best_grids.append({"level": level, "score": l, "grid": grid})
-            with open(BES_JSON, "w") as f:
-                json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
 
         for new_grid in t:
             recursive_search(new_grid, level + 1)
