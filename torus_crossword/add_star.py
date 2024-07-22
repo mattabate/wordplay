@@ -5,28 +5,27 @@ import re
 import tqdm
 import os
 import time
-from enum import Enum
-
+import random
 
 INITIAL_TEMPLATE = [
+    "______█____█___",
+    "______█____█___",
+    "______█____█___",
+    "███____________",
     "_______________",
+    "_____________██",
     "_______________",
+    "HNUT█TORUS█DOUG",
     "_______________",
+    "███____________",
     "_______________",
-    "_______________",
-    "_______________",
-    "_______________",
-    "____█TORUS█____",
-    "_______________",
-    "_______________",
-    "_______________",
-    "_______________",
-    "_______________",
-    "_______________",
-    "_______________",
+    "____________███",
+    "___█____█______",
+    "___█____█______",
+    "___█____█______",
 ]
 
-f_verbose = True
+f_verbose = False
 
 
 ROWLEN = 15
@@ -46,15 +45,10 @@ T_YELLOW = "\033[93m"
 T_GREEN = "\033[92m"
 T_PINK = "\033[95m"
 
-if os.path.exists(SOL_JSON):
-    with open(SOL_JSON) as f:
-        SOLUTIONS = json.load(f)
-else:
-    SOLUTIONS = []
-
 # bests
 v_best_score = 0
 v_best_grids = []
+new_solutions = []  # tracks initial conditions solutions
 
 with open(WOR_JSON) as f:
     WORDLIST = json.load(f)
@@ -456,9 +450,10 @@ def print_grid(grid: list[str], h: tuple[str, int, str]):
 def recursive_search(grid, level=0):
     global v_best_score
     global v_best_grids
+    global new_solutions
 
     if grid_filled(grid):
-        tqdm.tqdm.write(T_YELLOW + "Solution found")  # Green text indicating success
+        tqdm.tqdm.write(T_GREEN + "Solution found")  # Green text indicating success
         tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
         tqdm.tqdm.write(T_NORMAL)
         tqdm.tqdm.write(
@@ -467,9 +462,13 @@ def recursive_search(grid, level=0):
             )
         )
 
-        SOLUTIONS.append(grid)
+        new_solutions.append(grid)
+        with open(SOL_JSON, "r") as f:
+            solutions = json.load(f)
+
+        solutions.append(grid)
         with open(SOL_JSON, "w", encoding="utf-8") as f:
-            json.dump(SOLUTIONS, f, indent=2, ensure_ascii=False)
+            json.dump(solutions, f, indent=2, ensure_ascii=False)
         return
 
     x, idx_str, new_grids = get_new_grids(grid)
@@ -487,7 +486,7 @@ def recursive_search(grid, level=0):
 
         return
 
-    with tqdm.tqdm(new_grids, desc=f"Level {level}") as t:
+    with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
         if f_verbose:
             out2 = (
                 f"\nTesting {len_new_grids} possibilities for ROW {idx_str}"
@@ -509,31 +508,45 @@ def recursive_search(grid, level=0):
 
 
 if __name__ == "__main__":
-    global solution_found
-
     with open(FAI_JSON) as f:
         fails = json.load(f)
 
     with open("star_sols.json") as f:
         stars = json.load(f)
 
-    for star in stars:
+    random.shuffle(stars)
+
+    stars_of_interest = []
+    for i, star in enumerate(stars):
+        grid = INITIAL_TEMPLATE.copy()
+        grid = add_star(grid, star)
+        with open(FAI_JSON, "r") as f:
+            fails = json.load(f)
+        if grid in fails:
+            continue
+        stars_of_interest.append(star)
+
+    ls = len(stars)
+    lsoi = len(stars_of_interest)
+    print()
+    print(T_YELLOW + f"Starting Again: " + T_GREEN + f"{time.asctime()}" + T_NORMAL)
+    print()
+    for i, star in enumerate(stars_of_interest):
+        tqdm.tqdm.write(T_YELLOW + f"Trial {i} / {lsoi}  ({ls} tot)." + T_NORMAL)
         grid = INITIAL_TEMPLATE.copy()
         grid = add_star(grid, star)
         with open(FAI_JSON, "r") as f:
             fails = json.load(f)
 
         if grid in fails:
-            print("Already Failed - Skipping")
+            print(T_BLUE + "Already Failed - Skipping" + T_NORMAL)
             continue
 
-        solution_found = False
+        new_solutions = []
         recursive_search(grid, 0)
 
-        if not solution_found:
-            print("No solution found")
+        if not new_solutions:
+            print(T_PINK + "No solution found" + T_NORMAL)
             with open(FAI_JSON, "w") as f:
                 fails.append(grid)
                 json.dump(fails, f, indent=2, ensure_ascii=False)
-
-            print(T_PINK + json.dumps(grid, indent=2, ensure_ascii=False) + T_NORMAL)

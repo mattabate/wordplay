@@ -1,4 +1,4 @@
-"""15x15 grids use █ and @, this script places the letters, and is typically much faster."""
+"""15x15 grids use █ and @, this script places the letters, and is typically used to solve crosswords."""
 
 import json
 import tqdm

@@ -1,10 +1,13 @@
 from enum import Enum
 import json
+import random
 
 WOR_JSON = "words.json"
 
 with open(WOR_JSON) as f:
     WORDLIST = json.load(f)
+
+random.shuffle(WORDLIST)
 
 WORDLIST_BY_LEN = {}
 for w in WORDLIST:

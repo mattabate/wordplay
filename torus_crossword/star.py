@@ -330,6 +330,7 @@ if __name__ == "__main__":
     words_9_letter = WORDLIST_BY_LEN[9]
     len_wln = len(words_9_letter)
     t0 = time.time()
+
     for i, seed in enumerate(words_9_letter):
         current_time = round(time.time() - t0)
         time_remaining = round(current_time / (i + 1) * (len_wln - i))
@@ -345,6 +346,7 @@ if __name__ == "__main__":
             time_remaining,
         )
         for seed2 in tqdm.tqdm(words_9_letter):
+
             current_time = round(time.time() - t0)
             time_remaining = round(current_time / (i + 1) * (len_wln - i))
             current_time = time.strftime("%H:%M:%S", time.gmtime(current_time))
