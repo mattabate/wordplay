@@ -6,6 +6,7 @@ import tqdm
 import os
 import time
 import random
+import fcntl
 
 INITIAL_TEMPLATE = [
     "______█____█___",
@@ -13,7 +14,7 @@ INITIAL_TEMPLATE = [
     "______█____█___",
     "███____________",
     "_______________",
-    "_____________██",
+    "____________███",
     "_______________",
     "HNUT█TORUS█DOUG",
     "_______________",
@@ -26,18 +27,19 @@ INITIAL_TEMPLATE = [
 ]
 
 f_verbose = False
-
+f_save_best = False
 
 ROWLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
 MAX_WALLS = 42
 
-SOL_JSON = f"solutions_from_star.json"
-if not os.path.exists(SOL_JSON):
-    with open(SOL_JSON, "w") as f:
-        json.dump([], f, indent=2, ensure_ascii=False)
-WOR_JSON = "words.json"
-FAI_JSON = "star_fails.json"
+id = int(time.time())
+
+WOR_JSON = "word_list.json"
+FAI_JSON = "15x15_grid_failures.json"
+SOL_JSON = f"15x15_grid_solutions.json"
+TOP_JSON = f"results/top_solutions_{id}.json"
+
 
 C_WALL = "█"
 
@@ -49,6 +51,8 @@ T_PINK = "\033[95m"
 
 # bests
 new_solutions = []  # tracks initial conditions solutions
+v_best_grids = []
+v_best_score = 0
 
 with open(WOR_JSON) as f:
     WORDLIST = json.load(f)
@@ -72,10 +76,27 @@ for w in SORTED_WORDLIST_L:
     WORDLIST_BY_LEN[l].append(w)
 
 
-if not os.path.exists(FAI_JSON):
-    with open(FAI_JSON, "w") as f:
-        json.dump([], f, indent=2, ensure_ascii=False)
-fails = json.load(open(FAI_JSON))
+def load_json(json_name):
+    with open(json_name, "r+") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            out = json.load(f)
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
+    return out
+
+
+def append_json(json_name, grid):
+    with open(json_name, "r+") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            fails = json.load(f)
+            fails.append(grid)
+            f.seek(0)
+            json.dump(fails, f, indent=4, ensure_ascii=False)
+            f.truncate()
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
 
 
 def replace_char_at(string, char, index):
@@ -461,12 +482,9 @@ def recursive_search(grid, level=0):
         )
 
         new_solutions.append(grid)
-        with open(SOL_JSON, "r") as f:
-            solutions = json.load(f)
 
-        solutions.append(grid)
-        with open(SOL_JSON, "w", encoding="utf-8") as f:
-            json.dump(solutions, f, indent=2, ensure_ascii=False)
+        append_json(SOL_JSON, grid)
+        exit()
         return
 
     x, idx_str, new_grids = get_new_grids(grid)
@@ -494,40 +512,42 @@ def recursive_search(grid, level=0):
             tqdm.tqdm.write(out2)
             tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_GREEN)))
 
+        if f_save_best:
+            l = count_letters(grid)
+            if l > v_best_score:
+                v_best_score = l
+                v_best_grids.append({"level": level, "score": l, "grid": grid})
+
+                with open(TOP_JSON, "w") as f:
+                    json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
         for new_grid in t:
             recursive_search(new_grid, level + 1)
 
 
 if __name__ == "__main__":
-    with open(FAI_JSON) as f:
-        fails = json.load(f)
-
-    with open("star_sols.json") as f:
-        stars = json.load(f)
-
-    random.shuffle(stars)
+    stars = load_json("star_sols.json")
+    fails = load_json(FAI_JSON)
 
     stars_of_interest = []
     for i, star in enumerate(stars):
         grid = INITIAL_TEMPLATE.copy()
         grid = add_star(grid, star)
-        with open(FAI_JSON, "r") as f:
-            fails = json.load(f)
         if grid in fails:
             continue
         stars_of_interest.append(star)
 
+    random.shuffle(stars_of_interest)
     ls = len(stars)
     lsoi = len(stars_of_interest)
     print()
     print(T_YELLOW + f"Starting Again: " + T_GREEN + f"{time.asctime()}" + T_NORMAL)
+    print("Saving to: ", TOP_JSON)
     print()
     for i, star in enumerate(stars_of_interest):
         tqdm.tqdm.write(T_YELLOW + f"Trial {i} / {lsoi}  ({ls} tot)." + T_NORMAL)
         grid = INITIAL_TEMPLATE.copy()
         grid = add_star(grid, star)
-        with open(FAI_JSON, "r") as f:
-            fails = json.load(f)
+        fails = load_json(FAI_JSON)
 
         if grid in fails:
             print(T_BLUE + "Already Failed - Skipping" + T_NORMAL)
@@ -538,6 +558,4 @@ if __name__ == "__main__":
 
         if not new_solutions:
             print(T_PINK + "No solution found" + T_NORMAL)
-            with open(FAI_JSON, "w") as f:
-                fails.append(grid)
-                json.dump(fails, f, indent=2, ensure_ascii=False)
+            append_json(FAI_JSON, grid)
