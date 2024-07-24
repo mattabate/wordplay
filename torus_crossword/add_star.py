@@ -26,8 +26,8 @@ INITIAL_TEMPLATE = [
     "___█____█______",
 ]
 
-f_verbose = False
-f_save_best = False
+f_verbose = True
+f_save_best = True
 
 ROWLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
@@ -331,6 +331,55 @@ def get_fixtures(line: str):
     return fixtures
 
 
+def grid_contains_englosed_spaces(grid: list[str]) -> bool:
+    # [
+    #     "______█____█___",
+    #     "______█____█___",
+    #     "______█____█___",
+    #     "███____________",
+    #     "_______________",
+    #     "____________███",
+    #     "_______________",
+    #     "HNUT█TORUS█DOUG",
+    #     "_______________",
+    #     "███____________",
+    #     "_______________",
+    #     "____________███",
+    #     "___█____█______",
+    #     "___█____█______",
+    #     "___█____█______",
+    # ]
+
+    if C_WALL == grid[3][11] == grid[4][11]:
+        return True
+    if C_WALL == grid[10][3] == grid[11][3]:
+        return True
+
+    if C_WALL == grid[3][3] == grid[3][4] == grid[3][5]:
+        return True
+    if C_WALL == grid[11][9] == grid[11][10] == grid[11][11]:
+        return True
+
+    if C_WALL == grid[0][7] == grid[0][8] == grid[0][9] == grid[0][10]:
+        return True
+    if C_WALL == grid[3][7] == grid[3][8] == grid[3][9] == grid[3][10]:
+        return True
+    if C_WALL == grid[11][4] == grid[11][5] == grid[11][6] == grid[11][7]:
+        return True
+    if C_WALL == grid[14][4] == grid[14][5] == grid[14][6] == grid[14][7]:
+        return True
+
+    if C_WALL == grid[4][3] == grid[5][4] == grid[6][4] == grid[8][3]:
+        return True
+
+    if C_WALL == grid[4][2]:
+        return True
+    if C_WALL == grid[8][2]:
+        return True
+
+    return False
+
+
 def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
     K_INDEX = -1
     K_BEST_SCORE = 1000000000
@@ -369,20 +418,29 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             candidate_grid = fill_in_small_holes(candidate_grid)
 
             # NOTE: This ensures not to many walls
-            if "".join(candidate_grid).count(C_WALL) > MAX_WALLS:
+            num_walls = "".join(candidate_grid).count(C_WALL)
+            if num_walls > MAX_WALLS:
                 continue
 
             if grid_contains_short_words(candidate_grid):
                 continue
 
+            if grid_contains_englosed_spaces(candidate_grid):
+                continue
+
+            if num_walls == MAX_WALLS:
+                for i in range(ROWLEN):
+                    candidate_grid[i] = candidate_grid[i].replace("_", "@")
+
             working_grids.append(candidate_grid)
+
             m += 1
             if m > K_BEST_SCORE:
                 break
         else:
             K_INDEX = i
-            K_BEST_GRIDS = working_grids
             K_BEST_SCORE = m
+            K_BEST_GRIDS = working_grids
 
     # candidate_grid = [long_string[j:j+ROWLEN] for j in range(0, len(long_string), ROWLEN)]
     return K_INDEX, K_BEST_SCORE, K_BEST_GRIDS
@@ -401,7 +459,7 @@ def get_new_grids(grid: list[str]) -> tuple[int, list[list[str]]]:
     col_idx, best_col_score, best_col_grids = get_best_row(transpose(grid))
 
     # TODO: SOMETHING WRONG HERE???
-    if best_row_score < best_col_score:
+    if best_row_score <= best_col_score:
         return "r", row_idx, best_row_grids
     else:
         # transform back all of the column grids
@@ -470,6 +528,8 @@ def print_grid(grid: list[str], h: tuple[str, int, str]):
 
 def recursive_search(grid, level=0):
     global new_solutions
+    global v_best_score
+    global v_best_grids
 
     if grid_filled(grid):
         tqdm.tqdm.write(T_GREEN + "Solution found")  # Green text indicating success
