@@ -8,6 +8,8 @@ import time
 import random
 import fcntl
 
+from main import get_new_grids as get_new_grids_main
+
 INITIAL_TEMPLATE = [
     "______█____█___",
     "______█____█___",
@@ -26,7 +28,7 @@ INITIAL_TEMPLATE = [
     "___█____█______",
 ]
 
-f_verbose = True
+f_verbose = False
 f_save_best = True
 
 ROWLEN = 15
@@ -385,11 +387,11 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
     K_BEST_SCORE = 1000000000
     K_BEST_GRIDS = []
 
-    for i in range(ROWLEN):
+    for row in range(ROWLEN):
         # for every row, compute the latch with the fewest fitting words
 
         # for each line
-        line = grid[i]
+        line = grid[row]
         if is_line_filled(line) or latches_in_line(line):
             continue
 
@@ -404,7 +406,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
 
         if not candidate_lines:
             # no words fit template
-            return i, 0, []
+            return row, 0, []
 
         # TODO: DO THIS WITHOUT COMPUTING GRIDS EXPLICITLY
         # now that you have the words that fit, do any lead to a trvially bad grid?
@@ -412,7 +414,17 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
         m = 0
         for l in candidate_lines:
             candidate_grid = grid.copy()
-            candidate_grid[i] = l  # make line word from options
+
+            if row == 7:
+                if any(
+                    [
+                        C_WALL in [l[k], l[14 - k]] and l[k] != l[14 - k]
+                        for k in range(ROWLEN)
+                    ]
+                ):
+                    continue
+
+            candidate_grid[row] = l  # make line word from options
 
             candidate_grid = enforce_symmetry(candidate_grid)
             candidate_grid = fill_in_small_holes(candidate_grid)
@@ -428,9 +440,32 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             if grid_contains_englosed_spaces(candidate_grid):
                 continue
 
-            if num_walls == MAX_WALLS:
-                for i in range(ROWLEN):
-                    candidate_grid[i] = candidate_grid[i].replace("_", "@")
+            if num_walls >= MAX_WALLS:
+                for j in range(ROWLEN):
+                    if C_WALL in candidate_grid[j]:
+                        candidate_grid[j] = candidate_grid[j].replace("_", "@")
+
+                passes = True
+                for i, line in enumerate(grid):
+                    if C_WALL not in line:
+                        # tqdm.tqdm.write(
+                        #     f"\nGrid has max walls but ROW {i} has no black squares."
+                        # )
+                        # tqdm.tqdm.write(print_grid(candidate_grid, ("r", i, T_BLUE)))
+                        passes = False
+                        break
+
+                for i, line in enumerate(transpose(grid)):
+                    if C_WALL not in line:
+                        # tqdm.tqdm.write(
+                        #     f"\nGrid has max walls but COL {i} has no black squares."
+                        # )
+                        # tqdm.tqdm.write(print_grid(candidate_grid, ("c", i, T_BLUE)))
+                        passes = False
+                        break
+
+                if not passes:
+                    continue
 
             working_grids.append(candidate_grid)
 
@@ -438,7 +473,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             if m > K_BEST_SCORE:
                 break
         else:
-            K_INDEX = i
+            K_INDEX = row
             K_BEST_SCORE = m
             K_BEST_GRIDS = working_grids
 
@@ -450,7 +485,7 @@ def transpose(grid: list[str]) -> list[str]:
     return ["".join(row) for row in zip(*grid)]
 
 
-def get_new_grids(grid: list[str]) -> tuple[int, list[list[str]]]:
+def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
     """Given a grid, find the best row or column to latch on to."""
 
     # find the best row to latch on
@@ -463,48 +498,6 @@ def get_new_grids(grid: list[str]) -> tuple[int, list[list[str]]]:
         return "r", row_idx, best_row_grids
     else:
         # transform back all of the column grids
-        transposed_col_grids = [transpose(g) for g in best_col_grids]
-        return "c", col_idx, transposed_col_grids
-
-
-def get_new_grids_p(grid: list[str], p) -> tuple[int, list[list[str]]]:
-    """Given a grid, find the best row or column to latch on to."""
-
-    if p % 2 == 1:
-        # find the best row to latch on
-        row_idx, best_row_score, best_row_grids = get_best_row(grid)
-        return "r", row_idx, best_row_grids
-    else:
-        # transpose to find the best collum
-        col_idx, best_col_score, best_col_grids = get_best_row(transpose(grid))
-        transposed_col_grids = [transpose(g) for g in best_col_grids]
-        return "c", col_idx, transposed_col_grids
-
-
-def get_new_grids_o(grid: list[str], p) -> tuple[int, list[list[str]]]:
-    """Given a grid, find the best row or column to latch on to."""
-
-    if p % 8 not in [0, 1, 2, 3]:
-        # find the best row to latch on
-        row_idx, best_row_score, best_row_grids = get_best_row(grid)
-        return "r", row_idx, best_row_grids
-    else:
-        # transpose to find the best collum
-        col_idx, best_col_score, best_col_grids = get_best_row(transpose(grid))
-        transposed_col_grids = [transpose(g) for g in best_col_grids]
-        return "c", col_idx, transposed_col_grids
-
-
-def get_new_grids_q(grid: list[str], p) -> tuple[int, list[list[str]]]:
-    """Given a grid, find the best row or column to latch on to."""
-
-    if p % 4 not in [0, 1]:
-        # find the best row to latch on
-        row_idx, best_row_score, best_row_grids = get_best_row(grid)
-        return "r", row_idx, best_row_grids
-    else:
-        # transpose to find the best collum
-        col_idx, best_col_score, best_col_grids = get_best_row(transpose(grid))
         transposed_col_grids = [transpose(g) for g in best_col_grids]
         return "c", col_idx, transposed_col_grids
 
@@ -547,41 +540,88 @@ def recursive_search(grid, level=0):
         exit()
         return
 
-    x, idx_str, new_grids = get_new_grids(grid)
+    grid_str = "".join(grid)
+    if grid_str.count(C_WALL) >= MAX_WALLS and grid_str.count("_") == 0:
+        for i, line in enumerate(grid):
+            if C_WALL not in line:
+                tqdm.tqdm.write(
+                    f"\nGrid has max walls but ROW {i} has no black squares."
+                )
+                tqdm.tqdm.write(print_grid(grid, ("r", i, T_BLUE)))
+                return
 
-    len_new_grids = len(new_grids)
-    if not new_grids:
-        if f_verbose:
-            out1 = (
-                f"\nNo possibilities ROW {idx_str}"
-                if x == "r"
-                else f"\nNo possibilities COL {idx_str}"
-            )
-            tqdm.tqdm.write(out1)
-            tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_PINK)))
+        for i, line in enumerate(transpose(grid)):
+            if C_WALL not in line:
+                tqdm.tqdm.write(
+                    f"\nGrid has max walls but COL {i} has no black squares."
+                )
+                tqdm.tqdm.write(print_grid(grid, ("c", i, T_BLUE)))
+                return
 
-        return
+        new_grids = get_new_grids_main(grid)
 
-    with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
-        if f_verbose:
-            out2 = (
-                f"\nTesting {len_new_grids} possibilities for ROW {idx_str}"
-                if x == "r"
-                else f"\nTesting {len_new_grids} possibilities for COL {idx_str}"
-            )
-            tqdm.tqdm.write(out2)
-            tqdm.tqdm.write(print_grid(grid, (x, idx_str, T_GREEN)))
+        if not new_grids:
+            if f_verbose:
+                tqdm.tqdm.write(f"\nGrid disqualified by letter check")
+                tqdm.tqdm.write(T_BLUE + "\n".join(grid) + T_NORMAL)
+            return
 
-        if f_save_best:
-            l = count_letters(grid)
-            if l > v_best_score:
-                v_best_score = l
-                v_best_grids.append({"level": level, "score": l, "grid": grid})
+        with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
+            if f_verbose:
+                tqdm.tqdm.write(
+                    T_GREEN
+                    + f"\nTesting {len(new_grids)} possibilities for one square"
+                    + T_NORMAL
+                )
+                tqdm.tqdm.write(T_GREEN + "".join(grid) + T_NORMAL)
 
-                with open(TOP_JSON, "w") as f:
-                    json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
-        for new_grid in t:
-            recursive_search(new_grid, level + 1)
+            if f_save_best:
+                l = count_letters(grid)
+                if l > v_best_score:
+                    v_best_score = l
+                    v_best_grids.append({"level": level, "score": l, "grid": grid})
+
+                    with open(TOP_JSON, "w") as f:
+                        json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
+            for new_grid in t:
+                recursive_search(new_grid, level + 1)
+
+    else:
+        row_or_col, start, new_grids = get_new_grids(grid)
+
+        if not new_grids:
+            if f_verbose:
+                out1 = (
+                    f"\nNo possibilities ROW {start}"
+                    if row_or_col == "r"
+                    else f"\nNo possibilities COL {start}"
+                )
+                tqdm.tqdm.write(out1)
+                tqdm.tqdm.write(print_grid(grid, (row_or_col, start, T_PINK)))
+
+            return
+
+        with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
+            if f_verbose:
+                len_new_grids = len(new_grids)
+                out2 = (
+                    f"\nTesting {len_new_grids} possibilities for ROW {start}"
+                    if row_or_col == "r"
+                    else f"\nTesting {len_new_grids} possibilities for COL {start}"
+                )
+                tqdm.tqdm.write(out2)
+                tqdm.tqdm.write(print_grid(grid, (row_or_col, start, T_GREEN)))
+
+            if f_save_best:
+                l = count_letters(grid)
+                if l > v_best_score:
+                    v_best_score = l
+                    v_best_grids.append({"level": level, "score": l, "grid": grid})
+
+                    with open(TOP_JSON, "w") as f:
+                        json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
+            for new_grid in t:
+                recursive_search(new_grid, level + 1)
 
 
 if __name__ == "__main__":

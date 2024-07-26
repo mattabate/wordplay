@@ -2,7 +2,7 @@ from enum import Enum
 import json
 import random
 
-WOR_JSON = "words.json"
+WOR_JSON = "word_list.json"
 
 with open(WOR_JSON) as f:
     WORDLIST = json.load(f)

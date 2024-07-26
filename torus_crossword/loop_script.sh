@@ -6,7 +6,7 @@ while true; do
     # Capture the process ID of the script
     PID=$!
     # Sleep for 30 seconds
-    sleep 900
+    sleep 90
     # Kill the process
     kill $PID
     # Optional: Wait a moment before restarting the script

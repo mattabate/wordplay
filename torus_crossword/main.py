@@ -29,22 +29,23 @@ import itertools
 # ]
 
 INITIAL_TEMPLATE = [
-    "@@@@@@@█@@@█@@@",
-    "@@@@@@@█@@@█@@@",
-    "@@@@@@@█@@@█@@@",
-    "████@@@█@@@@@@@",
-    "@@@@█@@@@@@@███",
-    "@@@@█@@@█@@@@@@",
-    "@@@@█@@@@█@@@@@",
-    "@@@@█TORUS█@@@@",
-    "@@@@@█@@@@█@@@@",
-    "@@@@@@█@@@█@@@@",
-    "███@@@@@@@█@@@@",
-    "@@@@@@@█@@@████",
-    "@@@█@@@█@@@@@@@",
-    "@@@█@@@█@@@@@@@",
-    "@@@█@@@█@@@@@@@",
+    "NAROCK█@@@@█ARE",
+    "ETABLE█@@@@█SID",
+    "RESSED█@@@@█UND",
+    "███E@@█@@@@@RAE",
+    "OOMS████LADIESR",
+    "@@@S█@@@@@@@███",
+    "@@@██@@@@@@@@@@",
+    "HNUT█TORUS█DOUG",
+    "@@@@@@@@@@██@@@",
+    "███@@@@@@@█R@@@",
+    "RSH@@@@████E@@@",
+    "ETA@@@@@█@@S███",
+    "TAT█@@@@█PHOTOS",
+    "ART█@@@@█STARCH",
+    "IDE█@@@@█TAKEAR",
 ]
+
 
 id = int(time.time())
 BES_JSON = f"results/bests_{id}.json"
@@ -227,7 +228,16 @@ def get_new_grids(
     grid: list[str],
 ) -> list[list[str]]:
 
-    words, square_to_word_map = initalize(grid)
+    try:
+        words, square_to_word_map = initalize(grid)
+    except KeyError as e:
+        if e.args[0] in (1, 2):
+            print("one of the don't know what happened key errors??")
+            print(T_PINK + "\n".join(grid) + T_NORMAL)
+            return []
+        else:
+            raise
+
     old_vector = [len(w.possibilities) for w in words]
 
     while True:
