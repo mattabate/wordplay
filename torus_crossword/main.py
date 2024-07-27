@@ -72,11 +72,11 @@ v_best_grids = []
 solutions = []
 
 
-def transpose(grid):
+def transpose(grid: list[str]) -> list[str]:
     return ["".join(x) for x in zip(*grid)]
 
 
-def get_word_locations(grid: list[list[str]], direction: Direction) -> list[Word]:
+def get_word_locations(grid: list[str], direction: Direction) -> list[Word]:
     """Get all the words in the grid in the given direction.
 
     Args:

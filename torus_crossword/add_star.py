@@ -531,7 +531,7 @@ def recursive_search(grid, level=0):
 
         new_solutions.append(grid)
         append_json(SOL_JSON, grid)
-        exit()
+        time.sleep(60)
         return
 
     grid_str = "".join(grid)

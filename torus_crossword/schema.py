@@ -57,15 +57,3 @@ class Sqaure:
         self.across = across
         self.down = down
         self.possible_chars = set(l for l in "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-
-class WalledWord(Word):
-    def __init__(self, start: tuple[int, int], direction: Direction, length: int):
-        super().__init__(start, direction, length)
-        self.possibilities = WORDLIST_WALLED_BY_LEN[length]
-
-
-class WalledSqaure(Sqaure):
-    def __init__(self, across: WalledWord, down: WalledWord):
-        super().__init__(across, down)
-        self.possible_chars = set(l for l in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + C_WALL)
