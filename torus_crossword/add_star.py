@@ -11,24 +11,24 @@ import fcntl
 from main import get_new_grids as get_new_grids_main
 
 INITIAL_TEMPLATE = [
-    "______█____█___",
-    "______█____█___",
-    "______█____█___",
-    "███____________",
-    "_______________",
+    "______█H___█___",
+    "______█N___█___",
+    "______█U___█___",
+    "███____T_______",
+    "_______█_______",
     "____________███",
     "_______________",
-    "HNUT█TORUS█DOUG",
+    "____█TORUS█____",
     "_______________",
     "███____________",
-    "_______________",
-    "____________███",
-    "___█____█______",
-    "___█____█______",
-    "___█____█______",
+    "_______█_______",
+    "_______D____███",
+    "___█___O█______",
+    "___█___U█______",
+    "___█___G█______",
 ]
 
-f_verbose = False
+f_verbose = True
 f_save_best = True
 
 ROWLEN = 15
@@ -38,7 +38,7 @@ MAX_WALLS = 42
 id = int(time.time())
 
 WOR_JSON = "word_list.json"
-FAI_JSON = "15x15_grid_failures.json"
+FAI_JSON = "15x15_grid_failures_2.json"
 SOL_JSON = f"15x15_grid_solutions.json"
 TOP_JSON = f"results/top_solutions_{id}.json"
 
@@ -92,10 +92,10 @@ def append_json(json_name, grid):
     with open(json_name, "r+") as f:
         fcntl.flock(f, fcntl.LOCK_EX)
         try:
-            fails = json.load(f)
-            fails.append(grid)
+            data = json.load(f)
+            data.append(grid)
             f.seek(0)
-            json.dump(fails, f, indent=4, ensure_ascii=False)
+            json.dump(data, f, indent=4, ensure_ascii=False)
             f.truncate()
         finally:
             fcntl.flock(f, fcntl.LOCK_UN)
@@ -528,14 +528,8 @@ def recursive_search(grid, level=0):
         tqdm.tqdm.write(T_GREEN + "Solution found")  # Green text indicating success
         tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
         tqdm.tqdm.write(T_NORMAL)
-        tqdm.tqdm.write(
-            json.dumps(
-                T_YELLOW + INITIAL_TEMPLATE + T_NORMAL, indent=2, ensure_ascii=False
-            )
-        )
 
         new_solutions.append(grid)
-
         append_json(SOL_JSON, grid)
         exit()
         return
@@ -573,7 +567,7 @@ def recursive_search(grid, level=0):
                     + f"\nTesting {len(new_grids)} possibilities for one square"
                     + T_NORMAL
                 )
-                tqdm.tqdm.write(T_GREEN + "".join(grid) + T_NORMAL)
+                tqdm.tqdm.write(T_GREEN + "\n".join(grid) + T_NORMAL)
 
             if f_save_best:
                 l = count_letters(grid)
