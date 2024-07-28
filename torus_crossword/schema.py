@@ -1,7 +1,7 @@
 from enum import Enum
 import json
 import random
-
+import fcntl
 
 WOR_JSON = "word_list.json"
 C_WALL = "█"
@@ -57,3 +57,46 @@ class Sqaure:
         self.across = across
         self.down = down
         self.possible_chars = set(l for l in "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+
+def replace_char_at(string, char, index):
+    """Replace a character at a specific index in a string.
+
+    Args:
+        string (str): The original string
+        char (str): The character to replace with
+        index (int): The index at which to replace the character
+
+    Returns:
+        str: The modified string
+    """
+    l = len(string)
+    if index < 0:
+        index += l
+    if index >= l or index < 0:
+        return string  # Return the original string if index is out of bounds
+
+    return string[:index] + char + string[index + 1 :]
+
+
+def load_json(json_name):
+    with open(json_name, "r+") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            out = json.load(f)
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
+    return out
+
+
+def append_json(json_name, grid):
+    with open(json_name, "r+") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            data = json.load(f)
+            data.append(grid)
+            f.seek(0)
+            json.dump(data, f, indent=4, ensure_ascii=False)
+            f.truncate()
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)

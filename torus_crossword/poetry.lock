@@ -543,4 +543,4 @@ telegram = ["requests"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "1afd9183511843b5ce4a4b3d8a8f36ae1d3b5153cefed0e62f7f2aff592e5533"
+content-hash = "5f7b91b95c60375283e204c9e278cf6bcb53efcd8589f1ec95d14acf68d3540e"

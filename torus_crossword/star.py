@@ -1,40 +1,50 @@
 """optimizes script aimed just at the corners"""
 
 import json
-from schema import Direction, Sqaure, Word, WORDLIST_BY_LEN
+from schema import Direction, Sqaure, Word, WORDLIST_BY_LEN, load_json, append_json
 import time
 import tqdm
 
 # NOTE: instead we need to do somethign where "the letter a in this position implies the letter x in this position."
 id = int(time.time())
-SOL_JSON = f"star_sols.json"
 
-INITIAL_TEMPLATE = [
-    "██████@@@███",
-    "██████@@@███",
-    "@@@@@@@@@███",
-    "@@@@@@@@@███",
-    "@@@@@@@@@███",
-    "███@@@@@@@@@",
-    "███@@@@@@@@@",
-    "███@@@@@@@@@",
-    "███@@@██████",
-    "███@@@██████",
-]
+f_flipped = True
+f_verbose = False
 
+if not f_flipped:
+    SOL_JSON = f"star_sols.json"
+    CHE_JSON = f"stars_checked.json"
+    INITIAL_TEMPLATE = [
+        "██████@@@███",
+        "██████@@@███",
+        "@@@@@@@@@███",
+        "@@@@@@@@@███",
+        "@@@@@@@@@███",
+        "███@@@@@@@@@",
+        "███@@@@@@@@@",
+        "███@@@@@@@@@",
+        "███@@@██████",
+        "███@@@██████",
+    ]
 
-# INITIAL_TEMPLATE = [
-#     "███@@@██████",
-#     "███@@@██████",
-#     "███@@@@@@@@@",
-#     "███@@@@@@@@@",
-#     "███@@@@@@@@@",
-#     "@@@@@@@@@███",
-#     "@@@@@@@@@███",
-#     "@@@@@@@@@███",
-#     "██████@@@███",
-#     "██████@@@███",
-# ]
+else:
+    SOL_JSON = f"star_sols_flipped.json"
+    CHE_JSON = f"stars_checked_flipped.json"
+    INITIAL_TEMPLATE = [
+        "███@@@██████",
+        "███@@@██████",
+        "███@@@@@@@@@",
+        "███@@@@@@@@@",
+        "███@@@@@@@@@",
+        "@@@@@@@@@███",
+        "@@@@@@@@@███",
+        "@@@@@@@@@███",
+        "██████@@@███",
+        "██████@@@███",
+    ]
+
+ROWS_OF_INTEREST = [2, 3, 4, 5, 6, 7]
+COLS_OF_INTEREST = [3, 4, 5, 6, 7, 8]
 
 ROWLEN = len(INITIAL_TEMPLATE[0])
 COLLEN = len(INITIAL_TEMPLATE)
@@ -55,9 +65,6 @@ T_BLUE = "\033[94m"
 T_YELLOW = "\033[93m"
 T_GREEN = "\033[92m"
 T_PINK = "\033[95m"
-
-ROWS_OF_INTEREST = [2, 3, 4, 5, 6, 7]
-COLS_OF_INTEREST = [3, 4, 5, 6, 7, 8]
 
 
 v_best_score = 0
@@ -285,6 +292,8 @@ def recursive_search(grid, level=0):
     global v_best_grids
     global solutions
 
+    if f_verbose:
+        print(json.dumps(grid, indent=2, ensure_ascii=False))
     if grid_filled(grid):
         # check to make sure rows of interest are valie words
         for r in ROWS_OF_INTEREST:
@@ -298,6 +307,7 @@ def recursive_search(grid, level=0):
                 return
 
         print("Solution found")  # Green text indicating success
+
         with open(SOL_JSON, "r") as f:
             solutions = json.load(f)
         if grid not in solutions:
@@ -345,14 +355,27 @@ if __name__ == "__main__":
             "time remaining:",
             time_remaining,
         )
-        for seed2 in tqdm.tqdm(words_9_letter):
+        grid = INITIAL_TEMPLATE.copy()
+        if not f_flipped:
+            grid[3] = seed + "███"
+        else:
+            grid[3] = "███" + seed
 
+        already_checked = load_json(CHE_JSON)
+        if grid in already_checked:
+            print("Already checked")
+            continue
+
+        for seed2 in tqdm.tqdm(words_9_letter):
             current_time = round(time.time() - t0)
             time_remaining = round(current_time / (i + 1) * (len_wln - i))
             current_time = time.strftime("%H:%M:%S", time.gmtime(current_time))
             time_remaining = time.strftime("%H:%M:%S", time.gmtime(time_remaining))
-            grid = INITIAL_TEMPLATE.copy()
-            grid[7] = "███" + seed
-            grid[6] = "███" + seed2
+            if not f_flipped:
+                grid[4] = seed2 + "███"
+            else:
+                grid[4] = "███" + seed2
 
             recursive_search(grid, 0)
+
+        append_json(CHE_JSON, seed)

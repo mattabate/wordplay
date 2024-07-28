@@ -3,47 +3,88 @@
 import json
 import re
 import tqdm
-import os
 import time
 import random
-import fcntl
 
 from main import get_new_grids as get_new_grids_main
+from schema import C_WALL, replace_char_at, load_json, append_json
 
-INITIAL_TEMPLATE = [
-    "______█H___█___",
-    "______█N___█___",
-    "______█U___█___",
-    "███____T_______",
-    "_______█_______",
-    "____________███",
-    "_______________",
-    "____█TORUS█____",
-    "_______________",
-    "███____________",
-    "_______█_______",
-    "_______D____███",
-    "___█___O█______",
-    "___█___U█______",
-    "___█___G█______",
-]
-
+f_flipped = True
 f_verbose = True
-f_save_best = True
+f_save_best = False
+WOR_JSON = "word_list.json"
+id = int(time.time())
+TOP_JSON = f"results/top_solutions_{id}.json"
 
 ROWLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
 MAX_WALLS = 42
 
-id = int(time.time())
 
-WOR_JSON = "word_list.json"
-FAI_JSON = "15x15_grid_failures_2.json"
+TYPE = "DA"  # TORUS ACROSS
 SOL_JSON = f"15x15_grid_solutions.json"
-TOP_JSON = f"results/top_solutions_{id}.json"
 
 
-C_WALL = "█"
+if not f_flipped:
+    STA_JSON = "star_sols.json"
+    FAI_JSON = f"15x15_grid_failures_{TYPE}.json"
+
+    INITIAL_TEMPLATE = [
+        "______█H___█___",
+        "______█N___█___",
+        "______█U___█___",
+        "███____T_______",
+        "_______█_______",
+        "____________███",
+        "_______________",
+        "____█TORUS█_____",
+        "_______________",
+        "███____________",
+        "_______█_______",
+        "_______D____███",
+        "___█___O█______",
+        "___█___U█______",
+        "___█___G█______",
+    ]
+else:
+    STA_JSON = "star_sols_flipped.json"
+    FAI_JSON = f"15x15_grid_failures_{TYPE}_flipped.json"
+
+    INITIAL_TEMPLATE = [
+        "___█___H█______",
+        "___█___N█______",
+        "___█___U█______",
+        "_______T____███",
+        "_______█_______",
+        "███____________",
+        "_______________",
+        "____█TORUS█____",
+        "_______________",
+        "____________███",
+        "_______█_______",
+        "███____D_______",
+        "______█O___█___",
+        "______█U___█___",
+        "______█G___█___",
+    ]
+
+if TYPE == "AA":
+    INITIAL_TEMPLATE[7] = "HUNT█TORUS█DOUG"
+elif TYPE == "AD":
+    col7 = "HNUT█_____█DOUG"
+    for i in range(ROWLEN):
+        INITIAL_TEMPLATE[i] = replace_char_at(INITIAL_TEMPLATE[i], col7[i], 7)
+    INITIAL_TEMPLATE[7] = "____█TORUS█____"
+elif TYPE == "DA":
+    INITIAL_TEMPLATE[7] = "HNUT█_____█DOUG"
+    col7 = "____█TORUS█____"
+    for i in range(ROWLEN):
+        INITIAL_TEMPLATE[i] = replace_char_at(INITIAL_TEMPLATE[i], col7[i], 7)
+elif TYPE == "DD":
+    col7 = "HUNT█TORUS█DOUG"
+    for i in range(ROWLEN):
+        INITIAL_TEMPLATE[i] = replace_char_at(INITIAL_TEMPLATE[i], col7[i], 7)
+
 
 T_NORMAL = "\033[0m"
 T_BLUE = "\033[94m"
@@ -76,49 +117,6 @@ for w in SORTED_WORDLIST_L:
     if l not in WORDLIST_BY_LEN:
         WORDLIST_BY_LEN[l] = []
     WORDLIST_BY_LEN[l].append(w)
-
-
-def load_json(json_name):
-    with open(json_name, "r+") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
-        try:
-            out = json.load(f)
-        finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
-    return out
-
-
-def append_json(json_name, grid):
-    with open(json_name, "r+") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
-        try:
-            data = json.load(f)
-            data.append(grid)
-            f.seek(0)
-            json.dump(data, f, indent=4, ensure_ascii=False)
-            f.truncate()
-        finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
-
-
-def replace_char_at(string, char, index):
-    """Replace a character at a specific index in a string.
-
-    Args:
-        string (str): The original string
-        char (str): The character to replace with
-        index (int): The index at which to replace the character
-
-    Returns:
-        str: The modified string
-    """
-    l = len(string)
-    if index < 0:
-        index += l
-    if index >= l or index < 0:
-        return string  # Return the original string if index is out of bounds
-
-    return string[:index] + char + string[index + 1 :]
 
 
 def add_star(grid, star):
@@ -352,32 +350,33 @@ def grid_contains_englosed_spaces(grid: list[str]) -> bool:
     #     "___█____█______",
     # ]
 
-    if C_WALL == grid[3][11] == grid[4][11]:
-        return True
-    if C_WALL == grid[10][3] == grid[11][3]:
-        return True
+    if not f_flipped:
+        if C_WALL == grid[3][11] == grid[4][11]:
+            return True
+        if C_WALL == grid[10][3] == grid[11][3]:
+            return True
 
-    if C_WALL == grid[3][3] == grid[3][4] == grid[3][5]:
-        return True
-    if C_WALL == grid[11][9] == grid[11][10] == grid[11][11]:
-        return True
+        if C_WALL == grid[3][3] == grid[3][4] == grid[3][5]:
+            return True
+        if C_WALL == grid[11][9] == grid[11][10] == grid[11][11]:
+            return True
 
-    if C_WALL == grid[0][7] == grid[0][8] == grid[0][9] == grid[0][10]:
-        return True
-    if C_WALL == grid[3][7] == grid[3][8] == grid[3][9] == grid[3][10]:
-        return True
-    if C_WALL == grid[11][4] == grid[11][5] == grid[11][6] == grid[11][7]:
-        return True
-    if C_WALL == grid[14][4] == grid[14][5] == grid[14][6] == grid[14][7]:
-        return True
+        if C_WALL == grid[0][7] == grid[0][8] == grid[0][9] == grid[0][10]:
+            return True
+        if C_WALL == grid[3][7] == grid[3][8] == grid[3][9] == grid[3][10]:
+            return True
+        if C_WALL == grid[11][4] == grid[11][5] == grid[11][6] == grid[11][7]:
+            return True
+        if C_WALL == grid[14][4] == grid[14][5] == grid[14][6] == grid[14][7]:
+            return True
 
-    if C_WALL == grid[4][3] == grid[5][4] == grid[6][4] == grid[8][3]:
-        return True
+        if C_WALL == grid[4][3] == grid[5][4] == grid[6][4] == grid[8][3]:
+            return True
 
-    if C_WALL == grid[4][2]:
-        return True
-    if C_WALL == grid[8][2]:
-        return True
+        if C_WALL == grid[4][2]:
+            return True
+        if C_WALL == grid[8][2]:
+            return True
 
     return False
 
@@ -619,7 +618,7 @@ def recursive_search(grid, level=0):
 
 
 if __name__ == "__main__":
-    stars = load_json("star_sols.json")
+    stars = load_json(STA_JSON)
     fails = load_json(FAI_JSON)
 
     stars_of_interest = []
