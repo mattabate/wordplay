@@ -10,11 +10,11 @@ import os
 from main import get_new_grids as get_new_grids_main
 from schema import C_WALL, replace_char_at, load_json, append_json
 
-f_flipped = True
-TYPE = "DA"  # TORUS ACROSS
+f_flipped = False
+TYPE = "AD"  # TORUS ACROSS
 MAX_WALLS = 40
 
-f_verbose = False
+f_verbose = True
 f_save_best = False
 WOR_JSON = "word_list.json"
 id = int(time.time())
