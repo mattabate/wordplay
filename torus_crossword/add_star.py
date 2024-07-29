@@ -5,11 +5,15 @@ import re
 import tqdm
 import time
 import random
+import os
 
 from main import get_new_grids as get_new_grids_main
 from schema import C_WALL, replace_char_at, load_json, append_json
 
 f_flipped = True
+TYPE = "AD"  # TORUS ACROSS
+MAX_WALLS = 42
+
 f_verbose = True
 f_save_best = False
 WOR_JSON = "word_list.json"
@@ -18,54 +22,63 @@ TOP_JSON = f"results/top_solutions_{id}.json"
 
 ROWLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
-MAX_WALLS = 42
-
-
-TYPE = "DA"  # TORUS ACROSS
-SOL_JSON = f"15x15_grid_solutions.json"
 
 
 if not f_flipped:
     STA_JSON = "star_sols.json"
-    FAI_JSON = f"15x15_grid_failures_{TYPE}.json"
+    FAI_JSON = f"15x15_grid_failures_{TYPE}_{MAX_WALLS}.json"
+    SOL_JSON = f"15x15_grid_solutions_{TYPE}_{MAX_WALLS}.json"
+    if not os.path.exists(FAI_JSON):
+        with open(FAI_JSON, "w") as f:
+            json.dump([], f)
+    if not os.path.exists(SOL_JSON):
+        with open(SOL_JSON, "w") as f:
+            json.dump([], f)
 
     INITIAL_TEMPLATE = [
-        "______█H___█___",
-        "______█N___█___",
-        "______█U___█___",
-        "███____T_______",
-        "_______█_______",
+        "______█____█___",
+        "______█____█___",
+        "______█____█___",
+        "███____________",
+        "_______________",
         "____________███",
         "_______________",
-        "____█TORUS█_____",
+        "_______________",
         "_______________",
         "███____________",
-        "_______█_______",
-        "_______D____███",
-        "___█___O█______",
-        "___█___U█______",
-        "___█___G█______",
+        "_______________",
+        "____________███",
+        "___█____█______",
+        "___█____█______",
+        "___█____█______",
     ]
 else:
     STA_JSON = "star_sols_flipped.json"
-    FAI_JSON = f"15x15_grid_failures_{TYPE}_flipped.json"
+    FAI_JSON = f"15x15_grid_failures_{TYPE}_{MAX_WALLS}_flipped.json"
+    SOL_JSON = f"15x15_grid_solutions_{TYPE}_{MAX_WALLS}_flipped.json"
+    if not os.path.exists(FAI_JSON):
+        with open(FAI_JSON, "w") as f:
+            json.dump([], f)
+    if not os.path.exists(SOL_JSON):
+        with open(SOL_JSON, "w") as f:
+            json.dump([], f)
 
     INITIAL_TEMPLATE = [
-        "___█___H█______",
-        "___█___N█______",
-        "___█___U█______",
-        "_______T____███",
-        "_______█_______",
+        "___█____█______",
+        "___█____█______",
+        "___█____█______",
+        "____________███",
+        "_______________",
         "███____________",
         "_______________",
-        "____█TORUS█____",
+        "_______________",
         "_______________",
         "____________███",
-        "_______█_______",
-        "███____D_______",
-        "______█O___█___",
-        "______█U___█___",
-        "______█G___█___",
+        "_______________",
+        "███____________",
+        "______█____█___",
+        "______█____█___",
+        "______█____█___",
     ]
 
 if TYPE == "AA":
@@ -377,6 +390,41 @@ def grid_contains_englosed_spaces(grid: list[str]) -> bool:
             return True
         if C_WALL == grid[8][2]:
             return True
+    elif f_flipped:
+        # INITIAL_TEMPLATE = [
+        #     "___█____█______",
+        #     "___█____█______",
+        #     "___█____█______",
+        #     "____________███",
+        #     "_______________",
+        #     "███____________",
+        #     "_______________",
+        #     "_______________",
+        #     "_______________",
+        #     "____________███",
+        #     "_______________",
+        #     "███____________",
+        #     "______█____█___",
+        #     "______█____█___",
+        #     "______█____█___",
+        # ]
+
+        if C_WALL == grid[3][3] == grid[4][3]:
+            return True
+        if C_WALL == grid[3][9] == grid[3][10] == grid[3][11]:
+            return True
+        if C_WALL == grid[10][11] == grid[11][11]:
+            return True
+        if C_WALL == grid[11][3] == grid[11][4] == grid[11][5]:
+            return True
+        if C_WALL == grid[0][4] == grid[0][5] == grid[0][6] == grid[0][7]:
+            return True
+        if C_WALL == grid[3][4] == grid[3][5] == grid[3][6] == grid[3][7]:
+            return True
+        if C_WALL == grid[11][7] == grid[11][8] == grid[11][9] == grid[11][10]:
+            return True
+        if C_WALL == grid[14][7] == grid[14][8] == grid[14][9] == grid[14][10]:
+            return True
 
     return False
 
@@ -634,7 +682,10 @@ if __name__ == "__main__":
     lsoi = len(stars_of_interest)
     print()
     print(T_YELLOW + f"Starting Again: " + T_GREEN + f"{time.asctime()}" + T_NORMAL)
-    print("Saving to: ", TOP_JSON)
+    print(T_YELLOW + "Saving Solutions to: " + T_GREEN + SOL_JSON + T_NORMAL)
+    print(T_YELLOW + "Saving Failures to: " + T_GREEN + FAI_JSON + T_NORMAL)
+    if f_save_best:
+        print("Saving bests to: ", TOP_JSON)
     print()
     for i, star in enumerate(stars_of_interest):
         tqdm.tqdm.write(T_YELLOW + f"Trial {i} / {lsoi}  ({ls} tot)." + T_NORMAL)
