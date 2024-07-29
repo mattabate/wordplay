@@ -363,7 +363,7 @@ if __name__ == "__main__":
 
         already_checked = load_json(CHE_JSON)
         if grid in already_checked:
-            print("Already checked")
+            print(T_GREEN + "Already checked" + T_NORMAL)
             continue
 
         for seed2 in tqdm.tqdm(words_9_letter):

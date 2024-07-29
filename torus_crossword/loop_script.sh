@@ -9,7 +9,7 @@ while true; do
     # print ammount of time as string "timestep 1200"
     echo "timestep 30"
     # Sleep for 1200 seconds
-    sleep 45
+    sleep 20
     # Kill the process
     kill $PID
     # Optional: Wait a moment before restarting the script

@@ -11,10 +11,10 @@ from main import get_new_grids as get_new_grids_main
 from schema import C_WALL, replace_char_at, load_json, append_json
 
 f_flipped = True
-TYPE = "AD"  # TORUS ACROSS
-MAX_WALLS = 42
+TYPE = "DA"  # TORUS ACROSS
+MAX_WALLS = 40
 
-f_verbose = True
+f_verbose = False
 f_save_best = False
 WOR_JSON = "word_list.json"
 id = int(time.time())
@@ -122,14 +122,7 @@ SORTED_WORDLIST_L = sorted(SORTED_WORDLIST, key=len, reverse=True)  # long words
 import random
 
 random.shuffle(WORDLIST)
-WORDS_TO_USE = SORTED_WORDLIST_L
-
-WORDLIST_BY_LEN = {}
-for w in SORTED_WORDLIST_L:
-    l = len(w)
-    if l not in WORDLIST_BY_LEN:
-        WORDLIST_BY_LEN[l] = []
-    WORDLIST_BY_LEN[l].append(w)
+WORDS_TO_USE = WORDLIST
 
 
 def add_star(grid, star):
@@ -170,7 +163,7 @@ def can_letter_go_there(suggestion: str, current_entry: str) -> bool:
         suggestion != C_WALL and current_entry == "@"
     ):
         # if entries the same
-        # if that location is _ in the line, or if line entry is "@"
+        # if that ljikmocation is _ in the line, or if line entry is "@"
         # and the suggested letter is not letter
         return True
     return False
@@ -204,9 +197,7 @@ def get_new_templates_all(fixtures: list[tuple[int, str]], line: str):
     # possible
     for i, cont in fixtures:
         lc = len(cont)
-        for (
-            candidate_word
-        ) in SORTED_WORDLIST_L:  # WORDLIST_BY_LEN[lc]:  # HACK: REQUIRES NO _
+        for candidate_word in WORDS_TO_USE:
             lw = len(candidate_word)
             if lw > max_len or lw < lc:
                 continue

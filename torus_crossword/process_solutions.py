@@ -5,7 +5,7 @@ from main import get_word_locations, ROWLEN
 from add_star import load_json, T_PINK, T_NORMAL, T_YELLOW
 import matplotlib.pyplot as plt
 
-SOLS_PATH = "15x15_grid_solutions.json"
+SOLS_PATH = "15x15_grid_solutions_DA_42_flipped.json"
 SCORES_PATH = "crossword_words.json"
 
 
