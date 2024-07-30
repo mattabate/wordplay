@@ -10,9 +10,9 @@ import os
 from main import get_new_grids as get_new_grids_main
 from schema import C_WALL, replace_char_at, load_json, append_json
 
-f_flipped = False
-TYPE = "AD"  # TORUS ACROSS
-MAX_WALLS = 40
+f_flipped = True
+TYPE = "DA"  # TORUS ACROSS
+MAX_WALLS = 38
 
 f_verbose = True
 f_save_best = False
@@ -26,8 +26,8 @@ GRIDCELLS = ROWLEN * ROWLEN
 
 if not f_flipped:
     STA_JSON = "star_sols.json"
-    FAI_JSON = f"15x15_grid_failures_{TYPE}_{MAX_WALLS}.json"
-    SOL_JSON = f"15x15_grid_solutions_{TYPE}_{MAX_WALLS}.json"
+    FAI_JSON = f"failures/15x15_grid_failures_{TYPE}_{MAX_WALLS}.json"
+    SOL_JSON = f"solutions/15x15_grid_solutions_{TYPE}_{MAX_WALLS}.json"
     if not os.path.exists(FAI_JSON):
         with open(FAI_JSON, "w") as f:
             json.dump([], f)
@@ -54,8 +54,8 @@ if not f_flipped:
     ]
 else:
     STA_JSON = "star_sols_flipped.json"
-    FAI_JSON = f"15x15_grid_failures_{TYPE}_{MAX_WALLS}_flipped.json"
-    SOL_JSON = f"15x15_grid_solutions_{TYPE}_{MAX_WALLS}_flipped.json"
+    FAI_JSON = f"failures/15x15_grid_failures_{TYPE}_{MAX_WALLS}_flipped.json"
+    SOL_JSON = f"solutions/15x15_grid_solutions_{TYPE}_{MAX_WALLS}_flipped.json"
     if not os.path.exists(FAI_JSON):
         with open(FAI_JSON, "w") as f:
             json.dump([], f)
