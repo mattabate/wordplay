@@ -21,10 +21,10 @@ from schema import (
 )
 
 f_flipped = True
-TYPE = "DA"  # TORUS ACROSS
-MAX_WALLS = 36
+TYPE = "DD"  # TORUS ACROSS
+MAX_WALLS = 42
 
-f_verbose = True
+f_verbose = False
 f_save_best = False
 WOR_JSON = "word_list.json"
 id = int(time.time())
