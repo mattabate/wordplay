@@ -6,6 +6,14 @@ import fcntl
 WOR_JSON = "word_list.json"
 C_WALL = "█"
 
+
+T_NORMAL = "\033[0m"
+T_BLUE = "\033[94m"
+T_YELLOW = "\033[93m"
+T_GREEN = "\033[92m"
+T_PINK = "\033[95m"
+
+
 with open(WOR_JSON) as f:
     WORDLIST = json.load(f)
 

@@ -8,7 +8,17 @@ import random
 import os
 
 from main import get_new_grids as get_new_grids_main
-from schema import C_WALL, replace_char_at, load_json, append_json
+from schema import (
+    C_WALL,
+    replace_char_at,
+    load_json,
+    append_json,
+    T_BLUE,
+    T_GREEN,
+    T_NORMAL,
+    T_PINK,
+    T_YELLOW,
+)
 
 f_flipped = True
 TYPE = "DA"  # TORUS ACROSS
@@ -97,13 +107,6 @@ elif TYPE == "DD":
     col7 = "HUNT█TORUS█DOUG"
     for i in range(ROWLEN):
         INITIAL_TEMPLATE[i] = replace_char_at(INITIAL_TEMPLATE[i], col7[i], 7)
-
-
-T_NORMAL = "\033[0m"
-T_BLUE = "\033[94m"
-T_YELLOW = "\033[93m"
-T_GREEN = "\033[92m"
-T_PINK = "\033[95m"
 
 # bests
 new_solutions = []  # tracks initial conditions solutions
