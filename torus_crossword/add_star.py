@@ -22,7 +22,7 @@ from schema import (
 
 f_flipped = True
 TYPE = "DA"  # TORUS ACROSS
-MAX_WALLS = 40
+MAX_WALLS = 36
 
 f_verbose = True
 f_save_best = False
@@ -237,7 +237,8 @@ def get_new_templates(fixtures: list[tuple[str, int, str]], line: str) -> list[s
             shortest_len = len_v
             shortest_i = i
 
-    return new_tempalates[shortest_i]
+    candidate_lines = new_tempalates[shortest_i]
+    return candidate_lines
 
 
 def is_line_filled(line: str) -> bool:
@@ -495,21 +496,13 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
                         candidate_grid[j] = candidate_grid[j].replace("_", "@")
 
                 passes = True
-                for i, line in enumerate(grid):
+                for line in grid:
                     if C_WALL not in line:
-                        # tqdm.tqdm.write(
-                        #     f"\nGrid has max walls but ROW {i} has no black squares."
-                        # )
-                        # tqdm.tqdm.write(print_grid(candidate_grid, ("r", i, T_BLUE)))
                         passes = False
                         break
 
-                for i, line in enumerate(transpose(grid)):
+                for line in transpose(grid):
                     if C_WALL not in line:
-                        # tqdm.tqdm.write(
-                        #     f"\nGrid has max walls but COL {i} has no black squares."
-                        # )
-                        # tqdm.tqdm.write(print_grid(candidate_grid, ("c", i, T_BLUE)))
                         passes = False
                         break
 
