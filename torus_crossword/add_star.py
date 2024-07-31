@@ -194,7 +194,7 @@ def replace_word_at(word: str, line: str, start_idx: int) -> str:
 
 
 # TODO: Change this to break after each iteration surpasses the best score
-def get_new_templates(fixtures: list[tuple[str, int, str]], line: str) -> list[str]:
+def get_new_lines(fixtures: list[tuple[str, int, str]], line: str) -> list[str]:
     """Get all possible new lines templates for a line given the fixtures."""
     new_tempalates = {i: [] for i, _ in fixtures}
     max_len = max([len(c) for c in (line + line).split(C_WALL)]) + 2  # includes 2 walls
@@ -452,7 +452,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             continue
 
         # TODO: get possible word lens from the grid:
-        candidate_lines = get_new_templates(fixtures, line)
+        candidate_lines = get_new_lines(fixtures, line)
 
         if not candidate_lines:
             # no words fit template
