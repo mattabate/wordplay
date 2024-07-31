@@ -22,7 +22,7 @@ from schema import (
 
 f_flipped = True
 TYPE = "DA"  # TORUS ACROSS
-MAX_WALLS = 42
+MAX_WALLS = 40
 
 f_verbose = True
 f_save_best = False
@@ -705,3 +705,5 @@ if __name__ == "__main__":
         if not new_solutions:
             print(T_PINK + "No solution found" + T_NORMAL)
             append_json(FAI_JSON, grid)
+        else:
+            append_json("delete.json", grid)
