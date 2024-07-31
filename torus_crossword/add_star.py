@@ -20,9 +20,15 @@ from schema import (
     T_YELLOW,
 )
 
+<<<<<<< HEAD
 f_flipped = True
 TYPE = "DD"  # TORUS ACROSS
 MAX_WALLS = 42
+=======
+f_flipped = False
+TYPE = "AD"  # TORUS ACROSS
+MAX_WALLS = 40
+>>>>>>> e568609 (saving)
 
 f_verbose = False
 f_save_best = False
