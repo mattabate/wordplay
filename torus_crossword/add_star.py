@@ -190,37 +190,45 @@ def replace_word_at(word: str, line: str, start_idx: int) -> str:
     return new_template
 
 
-def get_new_templates_all(fixtures: list[tuple[int, str]], line: str):
-    output = {i: [] for i, _ in fixtures}
+# TODO: Change this to break after each iteration surpasses the best score
+def get_new_templates(fixtures: list[tuple[str, int, str]], line: str) -> list[str]:
+    """Get all possible new lines templates for a line given the fixtures."""
+    new_tempalates = {i: [] for i, _ in fixtures}
     max_len = max([len(c) for c in (line + line).split(C_WALL)]) + 2  # includes 2 walls
 
     # possible
+    # return shortest item
+    shortest_len = 100000000
+    shortest_i = -1
     for i, cont in fixtures:
+
+        stop_processing = False
+        num_possible_words = 0
         lc = len(cont)
+        pattern = cont.replace("@", f"[^{C_WALL}]")
         for candidate_word in WORDS_TO_USE:
             lw = len(candidate_word)
             if lw > max_len or lw < lc:
                 continue
 
-            pattern = cont.replace("@", f"[^{C_WALL}]")
             matches = re.finditer(pattern, candidate_word)
             positions = [match.start() for match in matches]
 
             for p in positions:
                 if can_word_go_there(candidate_word, line, i - p):
-                    output[i].append(replace_word_at(candidate_word, line, i - p))
+                    new_tempalates[i].append(
+                        replace_word_at(candidate_word, line, i - p)
+                    )
+                    num_possible_words += 1
+                    if num_possible_words > shortest_len:
+                        stop_processing = True
+                        break
+            if stop_processing:
+                break
+        if stop_processing:
+            continue
 
-    return output
-
-
-def get_new_templates(fixtures: list[tuple[str, int, str]], line: str) -> list[str]:
-    """Get all possible new lines templates for a line given the fixtures."""
-    new_tempalates = get_new_templates_all(fixtures, line)
-
-    # return shortest item
-    shortest_len = 100000000
-    shortest_i = -1
-    for i, v in new_tempalates.items():
+        v = new_tempalates[i]
         len_v = len(v)
         if len_v < shortest_len:
             shortest_len = len_v
