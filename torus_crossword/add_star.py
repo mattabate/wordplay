@@ -12,7 +12,7 @@ from schema import C_WALL, replace_char_at, load_json, append_json
 
 f_flipped = True
 TYPE = "DA"  # TORUS ACROSS
-MAX_WALLS = 38
+MAX_WALLS = 42
 
 f_verbose = True
 f_save_best = False

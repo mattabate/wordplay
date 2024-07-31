@@ -7,9 +7,9 @@ while true; do
     PID=$!
     # set timestep as variable
     # print ammount of time as string "timestep 1200"
-    echo "timestep 30"
+    echo "timestep 3000"
     # Sleep for 1200 seconds
-    sleep 120
+    sleep 35
     # Kill the process
     kill $PID
     # Optional: Wait a moment before restarting the script
