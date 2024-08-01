@@ -24,7 +24,7 @@ f_flipped = False
 TYPE = "AD"  # TORUS ACROSS
 MAX_WALLS = 42
 
-f_verbose = False
+f_verbose = True
 f_save_best = False
 WOR_JSON = "word_list.json"
 id = int(time.time())
