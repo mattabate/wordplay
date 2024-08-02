@@ -1,6 +1,6 @@
 import json
 import os
-from schema import append_json, T_BLUE, T_GREEN, T_NORMAL, T_PINK, T_YELLOW
+from lib import append_json, T_BLUE, T_GREEN, T_NORMAL, T_YELLOW
 
 for TYPE in ["AA", "AD", "DA", "DD"]:
     print(f"{T_BLUE}Pruning Type: {TYPE}{T_NORMAL}")
