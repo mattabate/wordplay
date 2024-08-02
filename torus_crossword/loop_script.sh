@@ -2,14 +2,14 @@
 
 while true; do
     # Start the python script in the background
-    python3 add_star.py &
+    python3 main.py &
     # Capture the process ID of the script
     PID=$!
     # set timestep as variable
     # print ammount of time as string "timestep 1200"
     echo "timestep 3000"
     # Sleep for 1200 seconds
-    sleep 60
+    sleep 360
     # Kill the process
     kill $PID
     # Optional: Wait a moment before restarting the script
