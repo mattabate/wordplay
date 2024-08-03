@@ -22,7 +22,7 @@ from lib import (
 
 f_flipped = False
 TYPE = "DA"  # TORUS ACROSS
-MAX_WALLS = 42
+MAX_WALLS = 40
 
 f_verbose = True
 f_save_best = False
