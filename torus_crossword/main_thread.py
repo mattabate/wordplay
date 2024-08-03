@@ -20,9 +20,12 @@ from lib import (
     T_YELLOW,
 )
 
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 f_flipped = False
 TYPE = "DA"  # TORUS ACROSS
-MAX_WALLS = 42
+MAX_WALLS = 40
 
 f_verbose = True
 f_save_best = False
@@ -492,7 +495,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             if grid_contains_englosed_spaces(candidate_grid):
                 continue
 
-            if num_walls == MAX_WALLS:
+            if num_walls >= MAX_WALLS:
                 for j in range(ROWLEN):
                     if C_WALL in candidate_grid[j]:
                         candidate_grid[j] = candidate_grid[j].replace("_", "@")
@@ -563,13 +566,9 @@ def print_grid(grid: list[str], h: tuple[str, int, str]):
     return "\n".join(print_grid) + T_NORMAL
 
 
-def recursive_search(grid, level=0):
-    global new_solutions
-    global v_best_score
-    global v_best_grids
-
+def recursive_search(grid, level=0, executor=None):
     if grid_filled(grid):
-        tqdm.tqdm.write(T_GREEN + "Solution found")  # Green text indicating success
+        tqdm.tqdm.write(T_GREEN + "Solution found")
         tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
         tqdm.tqdm.write(T_NORMAL)
 
@@ -578,6 +577,15 @@ def recursive_search(grid, level=0):
         time.sleep(60)
         return
 
+    if level == 0:
+        # Only create an executor at the top level
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            recursive_search_impl(grid, level, executor)
+    else:
+        recursive_search_impl(grid, level, executor)
+
+
+def recursive_search_impl(grid, level, executor):
     grid_str = "".join(grid)
     if grid_str.count(C_WALL) >= MAX_WALLS and grid_str.count("_") == 0:
         for i, line in enumerate(grid):
@@ -597,36 +605,21 @@ def recursive_search(grid, level=0):
                 return
 
         new_grids = get_new_grids_main(grid)
-
-        if not new_grids:
-            if f_verbose:
-                tqdm.tqdm.write(f"\nGrid disqualified by letter check")
-                tqdm.tqdm.write(T_BLUE + "\n".join(grid) + T_NORMAL)
+        if f_verbose:
+            tqdm.tqdm.write(f"\nGrid disqualified by letter check")
+            tqdm.tqdm.write(T_BLUE + "\n".join(grid) + T_NORMAL)
             return
 
-        with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
-            if f_verbose:
-                tqdm.tqdm.write(
-                    T_GREEN
-                    + f"\nTesting {len(new_grids)} possibilities for one square"
-                    + T_NORMAL
-                )
-                tqdm.tqdm.write(T_GREEN + "\n".join(grid) + T_NORMAL)
-
-            if f_save_best:
-                l = count_letters(grid)
-                if l > v_best_score:
-                    v_best_score = l
-                    v_best_grids.append({"level": level, "score": l, "grid": grid})
-
-                    with open(TOP_JSON, "w") as f:
-                        json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
-            for new_grid in t:
-                recursive_search(new_grid, level + 1)
+        # Submitting all recursive calls to the executor
+        futures = [
+            executor.submit(recursive_search, new_grid, level + 1, executor)
+            for new_grid in new_grids
+        ]
+        for future in as_completed(futures):
+            future.result()  # Waiting for completion and catching exceptions if necessary
 
     else:
         row_or_col, start, new_grids = get_new_grids(grid)
-
         if not new_grids:
             if f_verbose:
                 out1 = (
@@ -639,27 +632,12 @@ def recursive_search(grid, level=0):
 
             return
 
-        with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
-            if f_verbose:
-                len_new_grids = len(new_grids)
-                out2 = (
-                    f"\nTesting {len_new_grids} possibilities for ROW {start}"
-                    if row_or_col == "r"
-                    else f"\nTesting {len_new_grids} possibilities for COL {start}"
-                )
-                tqdm.tqdm.write(out2)
-                tqdm.tqdm.write(print_grid(grid, (row_or_col, start, T_GREEN)))
-
-            if f_save_best:
-                l = count_letters(grid)
-                if l > v_best_score:
-                    v_best_score = l
-                    v_best_grids.append({"level": level, "score": l, "grid": grid})
-
-                    with open(TOP_JSON, "w") as f:
-                        json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
-            for new_grid in t:
-                recursive_search(new_grid, level + 1)
+        futures = [
+            executor.submit(recursive_search, new_grid, level + 1, executor)
+            for new_grid in new_grids
+        ]
+        for future in as_completed(futures):
+            future.result()
 
 
 if __name__ == "__main__":
