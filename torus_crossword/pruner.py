@@ -47,8 +47,8 @@ for TYPE in ["AA", "AD", "DA", "DD"]:
                         T_GREEN + str(lower_number) + T_NORMAL,
                     )
 
-        with open(file2, "w") as f:
-            json.dump(lower_data, f, indent=4, ensure_ascii=False)
+            with open(file2, "w") as f:
+                json.dump(lower_data, f, indent=4, ensure_ascii=False)
 
     print()
     print(f"{T_YELLOW}Starting flipped: {T_NORMAL}")

@@ -21,8 +21,8 @@ from lib import (
 )
 
 f_flipped = False
-TYPE = "DA"  # TORUS ACROSS
-MAX_WALLS = 40
+TYPE = "AD"  # TORUS ACROSS
+MAX_WALLS = 42
 
 f_verbose = True
 f_save_best = False
@@ -480,6 +480,22 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
 
             candidate_grid = enforce_symmetry(candidate_grid)
             candidate_grid = fill_in_small_holes(candidate_grid)
+
+            if "".join(candidate_grid).count("_") < 10:
+                new_candidate_grid = candidate_grid.copy()
+                for i, l in enumerate(candidate_grid):
+                    for j, c in enumerate(l):
+                        if c != "_":
+                            continue
+                        sample = candidate_grid.copy()
+                        sample[i] = replace_char_at(l, C_WALL, j)
+
+                        if (
+                            "".join(fill_in_small_holes(sample)).count(C_WALL)
+                            >= MAX_WALLS
+                        ):
+                            new_candidate_grid[i] = replace_char_at(l, "@", j)
+                candidate_grid = new_candidate_grid
 
             # NOTE: This ensures not to many walls
             num_walls = "".join(candidate_grid).count(C_WALL)

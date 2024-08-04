@@ -1,15 +1,17 @@
 #!/bin/bash
 
+# Function to handle SIGINT (Ctrl+C)
+trap 'echo "Exiting..."; kill $PID; exit 0;' SIGINT
+
 while true; do
     # Start the python script in the background
     python3 main.py &
     # Capture the process ID of the script
     PID=$!
-    # set timestep as variable
-    # print ammount of time as string "timestep 1200"
+    # Print amount of time as string "timestep 3000"
     echo "timestep 3000"
-    # Sleep for 1200 seconds
-    sleep 360
+    # Sleep for 180 seconds
+    sleep 180
     # Kill the process
     kill $PID
     # Optional: Wait a moment before restarting the script
