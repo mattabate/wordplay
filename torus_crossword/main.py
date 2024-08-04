@@ -20,8 +20,8 @@ from lib import (
     T_YELLOW,
 )
 
-f_flipped = False
-TYPE = "AD"  # TORUS ACROSS
+f_flipped = True
+TYPE = "DA"  # TORUS ACROSS
 MAX_WALLS = 42
 
 f_verbose = True
@@ -481,7 +481,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             candidate_grid = enforce_symmetry(candidate_grid)
             candidate_grid = fill_in_small_holes(candidate_grid)
 
-            if "".join(candidate_grid).count("_") < 10:
+            if "".join(candidate_grid).count("_") < 14:
                 new_candidate_grid = candidate_grid.copy()
                 for i, l in enumerate(candidate_grid):
                     for j, c in enumerate(l):
@@ -493,6 +493,8 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
                         if (
                             "".join(fill_in_small_holes(sample)).count(C_WALL)
                             >= MAX_WALLS
+                            or grid_contains_englosed_spaces(sample)
+                            or grid_contains_short_words(sample)
                         ):
                             new_candidate_grid[i] = replace_char_at(l, "@", j)
                 candidate_grid = new_candidate_grid
