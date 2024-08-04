@@ -28,7 +28,7 @@ f_verbose = True
 f_save_best = False
 WOR_JSON = "word_list.json"
 id = int(time.time())
-TOP_JSON = f"results/top_solutions_{id}.json"
+TOP_JSON = f"top_runs/top_solutions_{id}.json"
 
 ROWLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
@@ -502,9 +502,6 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             if num_walls > MAX_WALLS:
                 continue
 
-            if grid_contains_short_words(candidate_grid):
-                continue
-
             if grid_contains_englosed_spaces(candidate_grid):
                 continue
 
@@ -526,6 +523,9 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
 
                 if not passes:
                     continue
+
+            if grid_contains_short_words(candidate_grid):
+                continue
 
             working_grids.append(candidate_grid)
 
@@ -714,7 +714,9 @@ if __name__ == "__main__":
         recursive_search(grid, 0)
 
         if not new_solutions:
-            print(T_PINK + "No solution found" + T_NORMAL)
+            print(T_YELLOW + json.dumps(grid, indent=2, ensure_ascii=False) + T_NORMAL)
+
+            print(T_PINK + "^^^No solution found^^^" + T_NORMAL)
             append_json(FAI_JSON, grid)
         else:
             append_json("delete.json", grid)

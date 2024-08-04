@@ -231,12 +231,10 @@ def get_new_grids(
     try:
         words, square_to_word_map = initalize(grid)
     except KeyError as e:
-        if e.args[0] in (1, 2):
-            print("one of the don't know what happened key errors??")
-            print(T_PINK + "\n".join(grid) + T_NORMAL)
-            return []
-        else:
-            raise
+        print("one of the don't know what happened key errors??")
+        print(T_PINK + "\n".join(grid) + T_NORMAL)
+        print(e)
+        exit()
 
     old_vector = [len(w.possibilities) for w in words]
 
