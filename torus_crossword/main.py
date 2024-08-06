@@ -24,7 +24,7 @@ f_flipped = True
 TYPE = "DA"  # TORUS ACROSS
 MAX_WALLS = 42
 
-f_verbose = True
+f_verbose = False
 f_save_best = False
 WOR_JSON = "word_list.json"
 id = int(time.time())
@@ -564,6 +564,36 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
         return "c", col_idx, transposed_col_grids
 
 
+def get_new_grids_p(grid: list[str], level) -> tuple[str, int, list[list[str]]]:
+    """Given a grid, find the best row or column to latch on to."""
+
+    if level % 2 == 1:
+        # find the best row to latch on
+        row_idx, _, best_row_grids = get_best_row(grid)
+        return "r", row_idx, best_row_grids
+    else:
+
+        # transpose to find the best collum
+        col_idx, _, best_col_grids = get_best_row(transpose(grid))
+        transposed_col_grids = [transpose(g) for g in best_col_grids]
+        return "c", col_idx, transposed_col_grids
+
+
+def get_new_grids_q(grid: list[str], level) -> tuple[str, int, list[list[str]]]:
+    """Given a grid, find the best row or column to latch on to."""
+
+    if level % 4 in [0, 1]:
+        # find the best row to latch on
+        row_idx, _, best_row_grids = get_best_row(grid)
+        return "r", row_idx, best_row_grids
+    else:
+
+        # transpose to find the best collum
+        col_idx, _, best_col_grids = get_best_row(transpose(grid))
+        transposed_col_grids = [transpose(g) for g in best_col_grids]
+        return "c", col_idx, transposed_col_grids
+
+
 def print_grid(grid: list[str], h: tuple[str, int, str]):
     BACKGROUND = T_NORMAL
 
@@ -643,7 +673,8 @@ def recursive_search(grid, level=0):
                 recursive_search(new_grid, level + 1)
 
     else:
-        row_or_col, start, new_grids = get_new_grids(grid)
+        # row_or_col, start, new_grids = get_new_grids(grid)
+        row_or_col, start, new_grids = get_new_grids_p(grid, level)
 
         if not new_grids:
             if f_verbose:
