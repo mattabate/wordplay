@@ -5,7 +5,7 @@ from fast_search import get_word_locations, ROWLEN
 from main import load_json, T_PINK, T_NORMAL, T_YELLOW
 import matplotlib.pyplot as plt
 
-SOLS_PATH = "15x15_grid_solutions_AD_42.json"
+SOLS_PATH = "solutions/15x15_grid_solutions_DA_42_flipped.json"
 SCORES_PATH = "crossword_words.json"
 
 
