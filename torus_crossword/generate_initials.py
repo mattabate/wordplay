@@ -8,7 +8,7 @@ import tqdm
 # NOTE: instead we need to do somethign where "the letter a in this position implies the letter x in this position."
 id = int(time.time())
 
-f_flipped = True
+f_flipped = False
 f_verbose = False
 
 if not f_flipped:
