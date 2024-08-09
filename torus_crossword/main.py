@@ -567,7 +567,7 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
 def get_new_grids_p(grid: list[str], level) -> tuple[str, int, list[list[str]]]:
     """Given a grid, find the best row or column to latch on to."""
 
-    if level % 2 == 0:
+    if level % 2 == 1:
         # find the best row to latch on
         row_idx, _, best_row_grids = get_best_row(grid)
         return "r", row_idx, best_row_grids
@@ -621,9 +621,12 @@ def recursive_search(grid, level=0):
         tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
         tqdm.tqdm.write(T_NORMAL)
 
+        current_solutions = load_json(SOL_JSON)
+        if grid in current_solutions:
+            tqdm.tqdm.write(T_PINK + "Already in solutions" + T_NORMAL)
+            return
         new_solutions.append(grid)
         append_json(SOL_JSON, grid)
-        time.sleep(60)
         return
 
     grid_str = "".join(grid)
@@ -733,6 +736,7 @@ if __name__ == "__main__":
     if f_save_best:
         print("Saving bests to: ", TOP_JSON)
     print()
+    checked = load_json("completed_ics.json")
     for i, star in enumerate(stars_of_interest):
         tqdm.tqdm.write(T_YELLOW + f"Trial {i} / {lsoi}  ({ls} tot)." + T_NORMAL)
         grid = INITIAL_TEMPLATE.copy()
@@ -740,9 +744,24 @@ if __name__ == "__main__":
         fails = load_json(FAI_JSON)
 
         if grid in fails:
-            print(T_BLUE + "Already Failed - Skipping" + T_NORMAL)
+            tqdm.tqdm.write(T_BLUE + "Already Failed - Skipping" + T_NORMAL)
+            continue
+        if grid in checked:
+            tqdm.tqdm.write(T_GREEN + "Already Checked - Skipping" + T_NORMAL)
             continue
 
+        tqdm.tqdm.write(
+            T_YELLOW
+            + "Star: \n"
+            + T_NORMAL
+            + json.dumps(star, indent=2, ensure_ascii=False)
+        )
+        tqdm.tqdm.write(
+            T_YELLOW
+            + "Grid: \n"
+            + T_NORMAL
+            + json.dumps(grid, indent=2, ensure_ascii=False)
+        )
         new_solutions = []
         recursive_search(grid, 0)
 
@@ -753,3 +772,7 @@ if __name__ == "__main__":
             append_json(FAI_JSON, grid)
         else:
             append_json("delete.json", grid)
+            if grid not in load_json("completed_ics.json"):
+                append_json("completed_ics.json", grid)
+            if star not in load_json("stars_that_made_grids.json"):
+                append_json("stars_that_made_grids.json", star)
