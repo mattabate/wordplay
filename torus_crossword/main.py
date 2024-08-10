@@ -148,6 +148,10 @@ def grid_filled(grid: list[str]) -> bool:
     return True
 
 
+def count_letters_in_line(line: str) -> int:
+    return len([c for c in line if c.isalpha()])
+
+
 def count_letters(grid: list[str]) -> int:
     return GRIDCELLS - sum([l.count("_") + l.count("@") + l.count("█") for l in grid])
 

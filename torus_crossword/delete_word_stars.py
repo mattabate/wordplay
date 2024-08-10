@@ -10,7 +10,7 @@ file = "star_sols_flipped.json"
 with open(file, "r") as f:
     star_sols = json.load(f)
 
-word = "RYANONEAL"
+word = "ERINMORAN"
 
 print(len(star_sols))
 new_star_sols = []
