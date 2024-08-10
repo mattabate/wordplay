@@ -702,6 +702,15 @@ def recursive_search(grid, level=0):
                 tqdm.tqdm.write(out2)
                 tqdm.tqdm.write(print_grid(grid, (row_or_col, start, T_GREEN)))
 
+                tqdm.tqdm.write("\n")
+                if row_or_col == "r":
+                    for pp in new_grids:
+                        tqdm.tqdm.write(T_BLUE + pp[start] + T_NORMAL)
+                else:
+                    for pp in new_grids:
+                        tqdm.tqdm.write(T_BLUE + transpose(pp)[start] + T_NORMAL)
+                tqdm.tqdm.write("\n")
+
             if f_save_best:
                 l = count_letters(grid)
                 if l > v_best_score:
