@@ -20,11 +20,11 @@ from lib import (
     T_YELLOW,
 )
 
-f_flipped = True
-TYPE = "DA"  # TORUS ACROSS
+f_flipped = False
+TYPE = "AD"  # TORUS ACROSS
 MAX_WALLS = 42
 
-f_verbose = False
+f_verbose = True
 f_save_best = False
 WOR_JSON = "word_list.json"
 id = int(time.time())
@@ -481,23 +481,23 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             candidate_grid = enforce_symmetry(candidate_grid)
             candidate_grid = fill_in_small_holes(candidate_grid)
 
-            if "".join(candidate_grid).count("_") < 14:
-                new_candidate_grid = candidate_grid.copy()
-                for i, l in enumerate(candidate_grid):
-                    for j, c in enumerate(l):
-                        if c != "_":
-                            continue
-                        sample = candidate_grid.copy()
-                        sample[i] = replace_char_at(l, C_WALL, j)
+            # if "".join(candidate_grid).count("_") < 14:
+            #     new_candidate_grid = candidate_grid.copy()
+            #     for i, l in enumerate(candidate_grid):
+            #         for j, c in enumerate(l):
+            #             if c != "_":
+            #                 continue
+            #             sample = candidate_grid.copy()
+            #             sample[i] = replace_char_at(l, C_WALL, j)
 
-                        if (
-                            "".join(fill_in_small_holes(sample)).count(C_WALL)
-                            >= MAX_WALLS
-                            or grid_contains_englosed_spaces(sample)
-                            or grid_contains_short_words(sample)
-                        ):
-                            new_candidate_grid[i] = replace_char_at(l, "@", j)
-                candidate_grid = new_candidate_grid
+            #             if (
+            #                 "".join(fill_in_small_holes(sample)).count(C_WALL)
+            #                 >= MAX_WALLS
+            #                 or grid_contains_englosed_spaces(sample)
+            #                 or grid_contains_short_words(sample)
+            #             ):
+            #                 new_candidate_grid[i] = replace_char_at(l, "@", j)
+            #     candidate_grid = new_candidate_grid
 
             # NOTE: This ensures not to many walls
             num_walls = "".join(candidate_grid).count(C_WALL)
@@ -718,17 +718,17 @@ if __name__ == "__main__":
     stars = load_json(STA_JSON)
     fails = load_json(FAI_JSON)
 
-    stars_of_interest = []
+    id_stars_of_interest = []
     for i, star in enumerate(stars):
         grid = INITIAL_TEMPLATE.copy()
         grid = add_star(grid, star)
         if grid in fails:
             continue
-        stars_of_interest.append(star)
+        id_stars_of_interest.append((i, star))
 
-    random.shuffle(stars_of_interest)
+    random.shuffle(id_stars_of_interest)
     ls = len(stars)
-    lsoi = len(stars_of_interest)
+    lsoi = len(id_stars_of_interest)
     print()
     print(T_YELLOW + f"Starting Again: " + T_GREEN + f"{time.asctime()}" + T_NORMAL)
     print(T_YELLOW + "Saving Solutions to: " + T_GREEN + SOL_JSON + T_NORMAL)
@@ -737,8 +737,10 @@ if __name__ == "__main__":
         print("Saving bests to: ", TOP_JSON)
     print()
     checked = load_json("completed_ics.json")
-    for i, star in enumerate(stars_of_interest):
-        tqdm.tqdm.write(T_YELLOW + f"Trial {i} / {lsoi}  ({ls} tot)." + T_NORMAL)
+    for t, s in enumerate(id_stars_of_interest):
+        init_id, star = s
+        tqdm.tqdm.write(T_YELLOW + f"Trial {t} / {lsoi}  ({ls} tot)" + T_NORMAL)
+        tqdm.tqdm.write(T_YELLOW + f"Star id: " + T_NORMAL + f"{init_id}")
         grid = INITIAL_TEMPLATE.copy()
         grid = add_star(grid, star)
         fails = load_json(FAI_JSON)
@@ -750,25 +752,25 @@ if __name__ == "__main__":
             tqdm.tqdm.write(T_GREEN + "Already Checked - Skipping" + T_NORMAL)
             continue
 
-        tqdm.tqdm.write(
-            T_YELLOW
-            + "Star: \n"
-            + T_NORMAL
-            + json.dumps(star, indent=2, ensure_ascii=False)
-        )
-        tqdm.tqdm.write(
-            T_YELLOW
-            + "Grid: \n"
-            + T_NORMAL
-            + json.dumps(grid, indent=2, ensure_ascii=False)
-        )
+        # tqdm.tqdm.write(
+        #     T_YELLOW
+        #     + "Star: \n"
+        #     + T_NORMAL
+        #     + json.dumps(star, indent=2, ensure_ascii=False)
+        # )
+        # tqdm.tqdm.write(
+        #     T_YELLOW
+        #     + "Grid: \n"
+        #     + T_NORMAL
+        #     + json.dumps(grid, indent=2, ensure_ascii=False)
+        # )
         new_solutions = []
         recursive_search(grid, 0)
 
         if not new_solutions:
-            print(T_YELLOW + json.dumps(grid, indent=2, ensure_ascii=False) + T_NORMAL)
+            # print(T_YELLOW + json.dumps(grid, indent=2, ensure_ascii=False) + T_NORMAL)
 
-            print(T_PINK + "^^^No solution found^^^" + T_NORMAL)
+            print(T_PINK + "No solution found." + T_NORMAL)
             append_json(FAI_JSON, grid)
         else:
             append_json("delete.json", grid)
