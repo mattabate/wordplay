@@ -67,6 +67,10 @@ class Sqaure:
         self.possible_chars = set(l for l in "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 
+def transpose(grid: list[str]) -> list[str]:
+    return ["".join(row) for row in zip(*grid)]
+
+
 def replace_char_at(string, char, index):
     """Replace a character at a specific index in a string.
 

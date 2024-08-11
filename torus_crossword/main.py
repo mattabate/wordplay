@@ -19,12 +19,13 @@ from lib import (
     T_PINK,
     T_YELLOW,
 )
+import lib
 
 f_flipped = True
 TYPE = "DA"  # TORUS ACROSS
 MAX_WALLS = 42
 
-f_verbose = True
+f_verbose = False
 f_save_best = False
 WOR_JSON = "word_list.json"
 id = int(time.time())
@@ -282,9 +283,9 @@ def fill_small_holes_line(line: str) -> str:
 def fill_in_small_holes(grid: list[str]) -> list[str]:
     """Return a grid with holes filled like █_█ -> "███" or "█@__" -> "█@@@"."""
     new_grid = [fill_small_holes_line(l) for l in grid]
-    tr = transpose(new_grid)  # compute transpose matrix
+    tr = lib.transpose(new_grid)  # compute transpose matrix
     new_grid = [fill_small_holes_line(l) for l in tr]
-    return transpose(new_grid)
+    return lib.transpose(new_grid)
 
 
 def enforce_symmetry(grid: list[str]) -> list[str]:
@@ -307,7 +308,7 @@ def grid_contains_short_words(grid: list[str]) -> bool:
         if check_line_for_short_words(line):
             return True
 
-    for line in transpose(grid):
+    for line in lib.transpose(grid):
         if check_line_for_short_words(line):
             return True
     return False
@@ -393,6 +394,9 @@ def grid_contains_englosed_spaces(grid: list[str]) -> bool:
             return True
 
         if C_WALL == grid[4][3] == grid[5][4] == grid[6][4] == grid[8][3]:
+            return True
+
+        if C_WALL == grid[3][4] == grid[3][8] == grid[4][5] == grid[4][6] == grid[4][7]:
             return True
 
         if C_WALL == grid[4][2]:
@@ -522,7 +526,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
                         passes = False
                         break
 
-                for line in transpose(grid):
+                for line in lib.transpose(grid):
                     if C_WALL not in line:
                         passes = False
                         break
@@ -547,24 +551,20 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
     return K_INDEX, K_BEST_SCORE, K_BEST_GRIDS
 
 
-def transpose(grid: list[str]) -> list[str]:
-    return ["".join(row) for row in zip(*grid)]
-
-
 def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
     """Given a grid, find the best row or column to latch on to."""
 
     # find the best row to latch on
     row_idx, best_row_score, best_row_grids = get_best_row(grid)
     # transpose to find the best collum
-    col_idx, best_col_score, best_col_grids = get_best_row(transpose(grid))
+    col_idx, best_col_score, best_col_grids = get_best_row(lib.transpose(grid))
 
     # TODO: SOMETHING WRONG HERE???
     if best_row_score <= best_col_score:
         return "r", row_idx, best_row_grids
     else:
         # transform back all of the column grids
-        transposed_col_grids = [transpose(g) for g in best_col_grids]
+        transposed_col_grids = [lib.transpose(g) for g in best_col_grids]
         return "c", col_idx, transposed_col_grids
 
 
@@ -578,8 +578,8 @@ def get_new_grids_p(grid: list[str], level) -> tuple[str, int, list[list[str]]]:
     else:
 
         # transpose to find the best collum
-        col_idx, _, best_col_grids = get_best_row(transpose(grid))
-        transposed_col_grids = [transpose(g) for g in best_col_grids]
+        col_idx, _, best_col_grids = get_best_row(lib.transpose(grid))
+        transposed_col_grids = [lib.transpose(g) for g in best_col_grids]
         return "c", col_idx, transposed_col_grids
 
 
@@ -593,8 +593,8 @@ def get_new_grids_q(grid: list[str], level) -> tuple[str, int, list[list[str]]]:
     else:
 
         # transpose to find the best collum
-        col_idx, _, best_col_grids = get_best_row(transpose(grid))
-        transposed_col_grids = [transpose(g) for g in best_col_grids]
+        col_idx, _, best_col_grids = get_best_row(lib.transpose(grid))
+        transposed_col_grids = [lib.transpose(g) for g in best_col_grids]
         return "c", col_idx, transposed_col_grids
 
 
@@ -643,7 +643,7 @@ def recursive_search(grid, level=0):
                 tqdm.tqdm.write(print_grid(grid, ("r", i, T_BLUE)))
                 return
 
-        for i, line in enumerate(transpose(grid)):
+        for i, line in enumerate(lib.transpose(grid)):
             if C_WALL not in line:
                 tqdm.tqdm.write(
                     f"\nGrid has max walls but COL {i} has no black squares."
@@ -695,6 +695,27 @@ def recursive_search(grid, level=0):
 
             return
 
+        if row_or_col == "r":
+            lines = [g[start] for g in new_grids]
+            # reorder longest first
+            lines = sorted(lines, key=count_letters_in_line, reverse=True)
+            new_new_grids = []
+            for l in lines:
+                sample = new_grids[0].copy()
+                sample[start] = l
+                new_new_grids.append(sample)
+            new_grids = new_new_grids
+        else:
+            lines = [lib.transpose(g)[start] for g in new_grids]
+            # reorder longest first
+            lines = sorted(lines, key=count_letters_in_line, reverse=True)
+            new_new_grids = []
+            sample = lib.transpose(new_grids[0]).copy()
+            for l in lines:
+                sample[start] = l
+                new_new_grids.append(lib.transpose(sample))
+            new_grids = new_new_grids
+
         with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
             if f_verbose:
                 len_new_grids = len(new_grids)
@@ -712,7 +733,7 @@ def recursive_search(grid, level=0):
                         tqdm.tqdm.write(T_BLUE + pp[start] + T_NORMAL)
                 else:
                     for pp in new_grids:
-                        tqdm.tqdm.write(T_BLUE + transpose(pp)[start] + T_NORMAL)
+                        tqdm.tqdm.write(T_BLUE + lib.transpose(pp)[start] + T_NORMAL)
                 tqdm.tqdm.write("\n")
 
             if f_save_best:

@@ -4,6 +4,7 @@ from lib import Direction
 from fast_search import get_word_locations, ROWLEN
 from main import load_json, T_PINK, T_NORMAL, T_YELLOW
 import matplotlib.pyplot as plt
+import tqdm
 
 SOLS_PATH = "solutions/15x15_grid_solutions_AD_42.json"
 SCORES_PATH = "crossword_words.json"
@@ -42,13 +43,13 @@ with open(SCORES_PATH) as f:
 
 
 def score_words(grid: list[str]):
-    words = get_word_locations(grid=s, direction=Direction.ACROSS) + get_word_locations(
-        grid=grid, direction=Direction.DOWN
-    )
+    words = get_word_locations(
+        grid=grid, direction=Direction.ACROSS
+    ) + get_word_locations(grid=grid, direction=Direction.DOWN)
     # if contains duplicates, remove them
     if len(words) != len(set(words)):
         sols = load_json(SOLS_PATH)
-        sols.remove(s)
+        sols.remove(grid)
         with open(SOLS_PATH, "w") as f:
             json.dump(sols, f, indent=2, ensure_ascii=False)
         return
@@ -59,9 +60,9 @@ def score_words(grid: list[str]):
         string_word = ""
         for i in range(w.length):
             if w.direction == Direction.ACROSS:
-                string_word += s[w.start[0]][(w.start[1] + i) % ROWLEN]
+                string_word += grid[w.start[0]][(w.start[1] + i) % ROWLEN]
             else:
-                string_word += s[(w.start[0] + i) % ROWLEN][w.start[1]]
+                string_word += grid[(w.start[0] + i) % ROWLEN][w.start[1]]
 
         word_strings.append(string_word)
         for wr, sc in score_list:
@@ -80,7 +81,8 @@ best_s = []
 best_w = []
 
 av_scores = []
-for s in solutions:
+print(T_YELLOW + "SCORING GRIDS" + T_NORMAL)
+for s in tqdm.tqdm(solutions):
     word_strings, scores = score_words(s)
 
     num_words = len(word_strings)
