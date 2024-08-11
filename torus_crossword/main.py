@@ -20,8 +20,8 @@ from lib import (
     T_YELLOW,
 )
 
-f_flipped = False
-TYPE = "AD"  # TORUS ACROSS
+f_flipped = True
+TYPE = "DA"  # TORUS ACROSS
 MAX_WALLS = 42
 
 f_verbose = True
