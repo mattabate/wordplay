@@ -21,8 +21,8 @@ from lib import (
 )
 import lib
 
-f_flipped = True
-TYPE = "DA"  # TORUS ACROSS
+f_flipped = False
+TYPE = "AD"  # TORUS ACROSS
 MAX_WALLS = 42
 
 f_verbose = False
