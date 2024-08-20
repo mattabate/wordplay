@@ -1,6 +1,7 @@
 """15x15 grids use _ █ and @, this script places the words"""
 
 import json
+import lib
 import re
 import tqdm
 import time
@@ -19,13 +20,12 @@ from lib import (
     T_PINK,
     T_YELLOW,
 )
-import lib
 
 f_flipped = False
 TYPE = "AD"  # TORUS ACROSS
 MAX_WALLS = 42
 
-f_verbose = False
+f_verbose = True
 f_save_best = False
 WOR_JSON = "word_list.json"
 id = int(time.time())
@@ -489,24 +489,6 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             candidate_grid = enforce_symmetry(candidate_grid)
             candidate_grid = fill_in_small_holes(candidate_grid)
 
-            # if "".join(candidate_grid).count("_") < 14:
-            #     new_candidate_grid = candidate_grid.copy()
-            #     for i, l in enumerate(candidate_grid):
-            #         for j, c in enumerate(l):
-            #             if c != "_":
-            #                 continue
-            #             sample = candidate_grid.copy()
-            #             sample[i] = replace_char_at(l, C_WALL, j)
-
-            #             if (
-            #                 "".join(fill_in_small_holes(sample)).count(C_WALL)
-            #                 >= MAX_WALLS
-            #                 or grid_contains_englosed_spaces(sample)
-            #                 or grid_contains_short_words(sample)
-            #             ):
-            #                 new_candidate_grid[i] = replace_char_at(l, "@", j)
-            #     candidate_grid = new_candidate_grid
-
             # NOTE: This ensures not to many walls
             num_walls = "".join(candidate_grid).count(C_WALL)
             if num_walls > MAX_WALLS:
@@ -698,23 +680,22 @@ def recursive_search(grid, level=0):
         if row_or_col == "r":
             lines = [g[start] for g in new_grids]
             # reorder longest first
-            lines = sorted(lines, key=count_letters_in_line, reverse=True)
-            new_new_grids = []
-            for l in lines:
-                sample = new_grids[0].copy()
-                sample[start] = l
-                new_new_grids.append(sample)
-            new_grids = new_new_grids
+            ind_w_line_sorted = sorted(
+                enumerate(lines),
+                key=lambda x: count_letters_in_line(x[1]),
+                reverse=True,
+            )
+
+            new_grids = [new_grids[i].copy() for i, _ in ind_w_line_sorted]
         else:
             lines = [lib.transpose(g)[start] for g in new_grids]
-            # reorder longest first
-            lines = sorted(lines, key=count_letters_in_line, reverse=True)
-            new_new_grids = []
-            sample = lib.transpose(new_grids[0]).copy()
-            for l in lines:
-                sample[start] = l
-                new_new_grids.append(lib.transpose(sample))
-            new_grids = new_new_grids
+
+            ind_w_line_sorted = sorted(
+                enumerate(lines),
+                key=lambda x: count_letters_in_line(x[1]),
+                reverse=True,
+            )
+            new_grids = [new_grids[i].copy() for i, _ in ind_w_line_sorted]
 
         with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
             if f_verbose:
