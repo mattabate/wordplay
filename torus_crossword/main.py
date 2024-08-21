@@ -737,7 +737,7 @@ if __name__ == "__main__":
     for i, star in enumerate(stars):
         grid = INITIAL_TEMPLATE.copy()
         grid = add_star(grid, star)
-        if grid in fails:
+        if "".join(grid) in fails:
             continue
         id_stars_of_interest.append((i, star))
 
@@ -760,7 +760,7 @@ if __name__ == "__main__":
         grid = add_star(grid, star)
         fails = load_json(FAI_JSON)
 
-        if grid in fails:
+        if "".join(grid) in fails:
             tqdm.tqdm.write(T_BLUE + "Already Failed - Skipping" + T_NORMAL)
             continue
         if grid in checked:
@@ -786,7 +786,7 @@ if __name__ == "__main__":
             # print(T_YELLOW + json.dumps(grid, indent=2, ensure_ascii=False) + T_NORMAL)
 
             print(T_PINK + "No solution found." + T_NORMAL)
-            append_json(FAI_JSON, grid)
+            append_json(FAI_JSON, "".join(grid))
         else:
             append_json("delete.json", grid)
             if grid not in load_json("completed_ics.json"):
