@@ -22,7 +22,7 @@ from lib import (
 )
 
 f_flipped = False
-TYPE = "DA"  # TORUS ACROSS
+TYPE = "AD"  # TORUS ACROSS
 MAX_WALLS = 42
 
 f_verbose = True
