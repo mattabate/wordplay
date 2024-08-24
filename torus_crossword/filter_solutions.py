@@ -4,7 +4,7 @@ from fast_search import get_word_locations, ROWLEN
 from main import load_json, T_PINK, T_NORMAL, T_YELLOW
 import tqdm
 
-SOLS_PATH = "solutions/15x15_grid_solutions_DA_42_flipped.json"
+SOLS_PATH = "solutions/15x15_grid_solutions_DA_42.json"
 WORDALLOWED = "word_list.json"
 
 with open(WORDALLOWED) as f:
