@@ -1,5 +1,5 @@
 # Define the sleep duration in seconds
-SLEEP_DURATION=660
+SLEEP_DURATION=500
 
 trap 'echo "Exiting..."; kill $PID; exit 0;' SIGINT
 
