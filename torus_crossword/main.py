@@ -1,5 +1,6 @@
 """15x15 grids use _ █ and @, this script places the words"""
 
+from datetime import datetime
 import json
 import lib
 import re
@@ -131,15 +132,16 @@ WORDS_TO_USE = WORDLIST
 
 def add_star(grid, star):
     START = (10, 9)
-    for i, line in enumerate(star):
-        for j, l in enumerate(line):
-            if l == "█":
-                continue
-            r = (START[0] + i) % ROWLEN
-            c = (START[1] + j) % ROWLEN
-            grid[r] = replace_char_at(grid[r], l, c)
+    grid = [list(row) for row in grid]
 
-    return grid
+    for i, line in enumerate(star):
+        r = (START[0] + i) % ROWLEN
+        for j, l in enumerate(line):
+            if l != "█":
+                c = (START[1] + j) % ROWLEN
+                grid[r][c] = l
+
+    return ["".join(row) for row in grid]
 
 
 def grid_filled(grid: list[str]) -> bool:
@@ -730,16 +732,35 @@ def recursive_search(grid, level=0):
 
 
 if __name__ == "__main__":
+
     stars = load_json(STA_JSON)
     fails = load_json(FAI_JSON)
 
     id_stars_of_interest = []
+    t0 = datetime.now()
+    grid = INITIAL_TEMPLATE.copy()
+
+    ####
+    # DETERMINE STARS TO SEARCH
+    fails_set = set(fails)
+    joined_grids_cache = {}
+    id_stars_of_interest = []
     for i, star in enumerate(stars):
-        grid = INITIAL_TEMPLATE.copy()
-        grid = add_star(grid, star)
-        if "".join(grid) in fails:
+        original_grid = [row[:] for row in grid]  # Make a copy of the original grid
+        grid = add_star(grid, star)  # Modify the grid
+
+        # Cache the joined grid
+        grid_key = tuple(grid)  # Tuples can be hashed, lists cannot
+        if grid_key not in joined_grids_cache:
+            joined_grids_cache[grid_key] = "".join(grid)
+        joined_grid = joined_grids_cache[grid_key]
+
+        if joined_grid in fails_set:
+            grid = original_grid
             continue
-        id_stars_of_interest.append((i, star))
+        id_stars_of_interest.append((i, star))  # This ends up unique
+        grid = original_grid
+    #####
 
     random.shuffle(id_stars_of_interest)
     ls = len(stars)
