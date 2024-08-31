@@ -71,7 +71,7 @@ def transpose(grid: list[str]) -> list[str]:
     return ["".join(row) for row in zip(*grid)]
 
 
-def replace_char_at(string, char, index):
+def replace_char_in_string(string, char, index):
     """Replace a character at a specific index in a string.
 
     Args:
@@ -89,6 +89,13 @@ def replace_char_at(string, char, index):
         return string  # Return the original string if index is out of bounds
 
     return string[:index] + char + string[index + 1 :]
+
+
+def replace_char_in_grid(grid: list[str], loc: tuple[int, int], c: str) -> list[str]:
+    """Replace the character at the given location in the grid."""
+    row = grid[loc[0]]
+    grid[loc[0]] = f"{row[:loc[1]]}{c}{row[loc[1]+1:]}"
+    return grid
 
 
 def load_json(json_name):

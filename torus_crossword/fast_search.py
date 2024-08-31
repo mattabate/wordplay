@@ -2,14 +2,13 @@
 
 import json
 import tqdm
-from lib import Direction, Sqaure, Word
+from lib import Direction, Sqaure, Word, replace_char_in_grid
 import time
 import itertools
 
 # NOTE: instead we need to do somethign where "the letter a in this position implies the letter x in this position."
 
 
-# clear that grid for me
 # INITIAL_TEMPLATE = [
 #     "@@@█@@@█@@@@@@@",
 #     "@@@█@@@█@@@@@@@",
@@ -155,11 +154,10 @@ def update_word_possibilities(
     words: list[Word], square_to_word_map: dict[tuple[int, int], Sqaure]
 ) -> list[Word]:
     for w in words:
-        new_possibilities = []
         x_start, y_start = w.start
+        new_possibilities = ""
         match w.direction:
             case Direction.ACROSS:
-                new_possibilities = ""
                 for p in w.possibilities:
                     for i, c in enumerate(p):
                         if (
@@ -172,7 +170,6 @@ def update_word_possibilities(
                     else:
                         new_possibilities += "," + p
             case Direction.DOWN:
-                new_possibilities = ""
                 for p in w.possibilities:
                     for i, c in enumerate(p):
                         if (
@@ -188,13 +185,6 @@ def update_word_possibilities(
         w.possibilities = new_possibilities.split(",")[1:]
 
     return words
-
-
-def replace_char_at(grid: list[str], loc: tuple[int, int], c: str) -> list[str]:
-    """Replace the character at the given location in the grid."""
-    row = grid[loc[0]]
-    grid[loc[0]] = f"{row[:loc[1]]}{c}{row[loc[1]+1:]}"
-    return grid
 
 
 def initalize(grid):
@@ -228,13 +218,7 @@ def get_new_grids(
     grid: list[str],
 ) -> list[list[str]]:
 
-    try:
-        words, square_to_word_map = initalize(grid)
-    except KeyError as e:
-        print("one of the don't know what happened key errors??")
-        print(T_PINK + "\n".join(grid) + T_NORMAL)
-        print(e)
-        exit()
+    words, square_to_word_map = initalize(grid)
 
     old_vector = [len(w.possibilities) for w in words]
 
@@ -255,14 +239,15 @@ def get_new_grids(
             return []
 
     # get square with min possibilities, not including 1
-    min_possibilities = 26
+    min_possibilities = 27
     min_square = None
-
     filled_grid = grid.copy()
     for s, v in square_to_word_map.items():
         if len(v.possible_chars) == 1:
             # NOTE: fill in all squares with only one possibility
-            filled_grid = replace_char_at(filled_grid, s, list(v.possible_chars)[0])
+            filled_grid = replace_char_in_grid(
+                filled_grid, s, list(v.possible_chars)[0]
+            )
             continue
 
         # NOTE: find the square with the fewest possibilities otherwise
@@ -276,7 +261,7 @@ def get_new_grids(
 
     # TODO: make min square to influence
     output = [
-        replace_char_at(filled_grid.copy(), min_square, p)
+        replace_char_in_grid(filled_grid.copy(), min_square, p)
         for p in square_to_word_map[min_square].possible_chars
     ]
     return output

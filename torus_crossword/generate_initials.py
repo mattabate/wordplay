@@ -1,12 +1,21 @@
 """optimizes script aimed just at the corners"""
 
 import json
-from lib import Direction, Sqaure, Word, WORDLIST_BY_LEN, load_json, append_json
 import time
 import tqdm
+from lib import (
+    Direction,
+    Sqaure,
+    Word,
+    WORDLIST_BY_LEN,
+    load_json,
+    append_json,
+    transpose,
+    replace_char_in_grid,
+)
+
 
 # NOTE: instead we need to do somethign where "the letter a in this position implies the letter x in this position."
-id = int(time.time())
 
 f_flipped = False
 f_verbose = False
@@ -72,26 +81,10 @@ v_best_grids = []
 solutions = []
 
 
-def transpose(grid):
-    return ["".join(x) for x in zip(*grid)]
-
-
-# def find_first_letter(input_string):
-#     for i, char in enumerate(input_string):
-#         if char != C_WALL:
-#             return i
-#     return -1
 def find_first_letter(input_string):
     l = len(input_string)
     non_c_wall_index = l - len(input_string.lstrip(C_WALL))
     return non_c_wall_index if non_c_wall_index != l else -1
-
-
-def find_last_letter(input_string):
-    for i, char in enumerate(input_string[::-1]):
-        if char != C_WALL:
-            return len(input_string) - i - 1
-    return
 
 
 def get_word_locations(grid: list[list[str]], direction: Direction) -> list[Word]:
@@ -228,14 +221,12 @@ def get_new_grids(
     old_vector = [len(w.possibilities) for w in words]
 
     while True:
-
         words = update_word_possibilities(words, square_to_word_map)
         new_vector = [len(w.possibilities) for w in words]
         if old_vector == new_vector:
             # when the number of possibilities can no longer be reduced
             break
         old_vector = new_vector
-        # BUG: square_to_word_map have both across and down : (29, 5) (50, 2)
         square_to_word_map = update_square_possibilities(square_to_word_map, words)
 
         # if the square has no possibilities, return no grids
@@ -252,7 +243,9 @@ def get_new_grids(
     for s, v in square_to_word_map.items():
         if len(v.possible_chars) == 1:
             # NOTE: fill in all squares with only one possibility
-            filled_grid = replace_char_at(filled_grid, s, list(v.possible_chars)[0])
+            filled_grid = replace_char_in_grid(
+                filled_grid, s, list(v.possible_chars)[0]
+            )
             continue
 
         # NOTE: find the square with the fewest possibilities otherwise
@@ -266,22 +259,10 @@ def get_new_grids(
 
     # TODO: make min square to influence
     output = [
-        replace_char_at(filled_grid.copy(), min_square, p)
+        replace_char_in_grid(filled_grid.copy(), min_square, p)
         for p in square_to_word_map[min_square].possible_chars
     ]
     return output
-
-
-# DONE
-def replace_char_at(grid: list[str], loc: tuple[int, int], c: str) -> list[str]:
-    """Replace the character at the given location in the grid."""
-    row = grid[loc[0]]
-    grid[loc[0]] = f"{row[:loc[1]]}{c}{row[loc[1]+1:]}"
-    return grid
-
-
-def count_letters(grid: list[str]) -> int:
-    return GRIDCELLS - sum(line.count("@") + line.count("█") for line in grid)
 
 
 def grid_filled(grid: list[str]) -> bool:

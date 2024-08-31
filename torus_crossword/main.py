@@ -12,7 +12,7 @@ import os
 from fast_search import get_new_grids as get_new_grids_main
 from lib import (
     C_WALL,
-    replace_char_at,
+    replace_char_in_string,
     load_json,
     append_json,
     T_BLUE,
@@ -98,17 +98,17 @@ if TYPE == "AA":
 elif TYPE == "AD":
     col7 = "HNUT█_____█DOUG"
     for i in range(ROWLEN):
-        INITIAL_TEMPLATE[i] = replace_char_at(INITIAL_TEMPLATE[i], col7[i], 7)
+        INITIAL_TEMPLATE[i] = replace_char_in_string(INITIAL_TEMPLATE[i], col7[i], 7)
     INITIAL_TEMPLATE[7] = "____█TORUS█____"
 elif TYPE == "DA":
     INITIAL_TEMPLATE[7] = "HNUT█_____█DOUG"
     col7 = "____█TORUS█____"
     for i in range(ROWLEN):
-        INITIAL_TEMPLATE[i] = replace_char_at(INITIAL_TEMPLATE[i], col7[i], 7)
+        INITIAL_TEMPLATE[i] = replace_char_in_string(INITIAL_TEMPLATE[i], col7[i], 7)
 elif TYPE == "DD":
     col7 = "HUNT█TORUS█DOUG"
     for i in range(ROWLEN):
-        INITIAL_TEMPLATE[i] = replace_char_at(INITIAL_TEMPLATE[i], col7[i], 7)
+        INITIAL_TEMPLATE[i] = replace_char_in_string(INITIAL_TEMPLATE[i], col7[i], 7)
 
 # bests
 new_solutions = []  # tracks initial conditions solutions
@@ -298,9 +298,9 @@ def enforce_symmetry(grid: list[str]) -> list[str]:
             continue
 
         if c == C_WALL:
-            long_string = replace_char_at(long_string, C_WALL, rvs_idx)
+            long_string = replace_char_in_string(long_string, C_WALL, rvs_idx)
         elif c != "_":
-            long_string = replace_char_at(long_string, "@", rvs_idx)
+            long_string = replace_char_in_string(long_string, "@", rvs_idx)
 
     return [long_string[j : j + ROWLEN] for j in range(0, GRIDCELLS, ROWLEN)]
 
@@ -592,7 +592,7 @@ def print_grid(grid: list[str], h: tuple[str, int, str]):
         print_grid[h[1]] = h_color + print_grid[h[1]] + BACKGROUND
     else:
         for i in range(ROWLEN):
-            print_grid[i] = replace_char_at(
+            print_grid[i] = replace_char_in_string(
                 print_grid[i], h_color + print_grid[i][h[1]] + BACKGROUND, h[1]
             )
 
