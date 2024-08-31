@@ -1,5 +1,7 @@
 import json
 
+word = "HINDEMITH"
+
 
 def transpose(grid: list[str]) -> list[str]:
     return ["".join(row) for row in zip(*grid)]
@@ -8,8 +10,6 @@ def transpose(grid: list[str]) -> list[str]:
 for file in ["star_sols.json", "star_sols_flipped.json"]:
     with open(file, "r") as f:
         star_sols = json.load(f)
-
-    word = "HINDEMITH"
 
     initial_num = len(star_sols)
     new_star_sols = []
