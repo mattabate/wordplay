@@ -81,9 +81,10 @@ def transpose(grid):
 #         if char != C_WALL:
 #             return i
 #     return -1
-def find_first_letter(input_string, C_WALL="_"):
-    non_c_wall_index = len(input_string) - len(input_string.lstrip(C_WALL))
-    return non_c_wall_index if non_c_wall_index != len(input_string) else -1
+def find_first_letter(input_string):
+    l = len(input_string)
+    non_c_wall_index = l - len(input_string.lstrip(C_WALL))
+    return non_c_wall_index if non_c_wall_index != l else -1
 
 
 def find_last_letter(input_string):

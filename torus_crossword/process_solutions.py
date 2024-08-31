@@ -6,7 +6,7 @@ from main import load_json, T_PINK, T_NORMAL, T_YELLOW
 import matplotlib.pyplot as plt
 import tqdm
 
-SOLS_PATH = "solutions/15x15_grid_solutions_DA_42.json"
+SOLS_PATH = "solutions/15x15_grid_solutions_AD_42.json"
 SCORES_PATH = "crossword_words.json"
 
 

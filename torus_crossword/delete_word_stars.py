@@ -10,7 +10,7 @@ file = "star_sols.json"
 with open(file, "r") as f:
     star_sols = json.load(f)
 
-word = "SLATEBLUE"
+word = "STONEAXES"
 
 initial_num = len(star_sols)
 new_star_sols = []
