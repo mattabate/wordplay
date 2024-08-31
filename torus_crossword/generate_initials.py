@@ -76,11 +76,14 @@ def transpose(grid):
     return ["".join(x) for x in zip(*grid)]
 
 
-def find_first_letter(input_string):
-    for i, char in enumerate(input_string):
-        if char != C_WALL:
-            return i
-    return -1
+# def find_first_letter(input_string):
+#     for i, char in enumerate(input_string):
+#         if char != C_WALL:
+#             return i
+#     return -1
+def find_first_letter(input_string, C_WALL="_"):
+    non_c_wall_index = len(input_string) - len(input_string.lstrip(C_WALL))
+    return non_c_wall_index if non_c_wall_index != len(input_string) else -1
 
 
 def find_last_letter(input_string):
