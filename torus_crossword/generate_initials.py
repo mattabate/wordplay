@@ -78,7 +78,6 @@ T_PINK = "\033[95m"
 
 v_best_score = 0
 v_best_grids = []
-solutions = []
 
 
 def find_first_letter(input_string):
@@ -275,7 +274,6 @@ def grid_filled(grid: list[str]) -> bool:
 def recursive_search(grid, level=0):
     global v_best_score
     global v_best_grids
-    global solutions
 
     if f_verbose:
         print(json.dumps(grid, indent=2, ensure_ascii=False))
@@ -293,12 +291,9 @@ def recursive_search(grid, level=0):
 
         print("Solution found")  # Green text indicating success
 
-        with open(SOL_JSON, "r") as f:
-            solutions = json.load(f)
+        solutions = load_json(SOL_JSON)
         if grid not in solutions:
-            solutions.append(grid)
-            with open(SOL_JSON, "w") as f:
-                json.dump(solutions, f, indent=2, ensure_ascii=False)
+            append_json(SOL_JSON, grid)
         return
 
     new_grids = get_new_grids(grid)
@@ -327,35 +322,18 @@ if __name__ == "__main__":
     t0 = time.time()
 
     for i, seed in enumerate(words_9_letter):
-        current_time = round(time.time() - t0)
-        time_remaining = round(current_time / (i + 1) * (len_wln - i))
-        current_time = time.strftime("%H:%M:%S", time.gmtime(current_time))
-        time_remaining = time.strftime("%H:%M:%S", time.gmtime(time_remaining))
-        print(
-            f"{i}/{len_wln}",
-            "Seed word:",
-            seed,
-            "current time:",
-            current_time,
-            "time remaining:",
-            time_remaining,
-        )
+        print(f"{i}/{len_wln}", "Seed word:", seed)
+        already_checked = load_json(CHE_JSON)
+        if seed in already_checked:
+            print(T_GREEN + "Already checked" + T_NORMAL)
+            continue
         grid = INITIAL_TEMPLATE.copy()
         if not f_flipped:
             grid[3] = seed + "███"
         else:
             grid[3] = "███" + seed
 
-        already_checked = load_json(CHE_JSON)
-        if grid in already_checked:
-            print(T_GREEN + "Already checked" + T_NORMAL)
-            continue
-
         for seed2 in tqdm.tqdm(words_9_letter):
-            current_time = round(time.time() - t0)
-            time_remaining = round(current_time / (i + 1) * (len_wln - i))
-            current_time = time.strftime("%H:%M:%S", time.gmtime(current_time))
-            time_remaining = time.strftime("%H:%M:%S", time.gmtime(time_remaining))
             if not f_flipped:
                 grid[4] = seed2 + "███"
             else:
