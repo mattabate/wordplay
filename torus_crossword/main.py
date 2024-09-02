@@ -18,6 +18,7 @@ from lib import (
     replace_char_in_string,
     load_json,
     append_json,
+    write_json,
     string_to_star,
     T_BLUE,
     T_GREEN,
@@ -42,11 +43,9 @@ if not f_flipped:
     FAI_JSON = f"failures/15x15_stars_failures_{TYPE}_{MAX_WALLS}.json"
     SOL_JSON = f"solutions/15x15_grid_solutions_{TYPE}_{MAX_WALLS}.json"
     if not os.path.exists(FAI_JSON):
-        with open(FAI_JSON, "w") as f:
-            json.dump([], f)
+        write_json(FAI_JSON, [])
     if not os.path.exists(SOL_JSON):
-        with open(SOL_JSON, "w") as f:
-            json.dump([], f)
+        write_json(SOL_JSON, [])
 
     INITIAL_TEMPLATE = [
         "______█____█___",
@@ -70,11 +69,9 @@ else:
     FAI_JSON = f"failures/15x15_stars_failures_{TYPE}_{MAX_WALLS}_flipped.json"
     SOL_JSON = f"solutions/15x15_grid_solutions_{TYPE}_{MAX_WALLS}_flipped.json"
     if not os.path.exists(FAI_JSON):
-        with open(FAI_JSON, "w") as f:
-            json.dump([], f)
+        write_json(FAI_JSON, [])
     if not os.path.exists(SOL_JSON):
-        with open(SOL_JSON, "w") as f:
-            json.dump([], f)
+        write_json(SOL_JSON, [])
 
     INITIAL_TEMPLATE = [
         "___█____█______",
@@ -658,8 +655,7 @@ def recursive_search(grid, level=0):
                     v_best_score = l
                     v_best_grids.append({"level": level, "score": l, "grid": grid})
 
-                    with open(TOP_JSON, "w") as f:
-                        json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
+                    write_json(TOP_JSON, v_best_grids)
             for new_grid in t:
                 recursive_search(new_grid, level + 1)
 
@@ -725,8 +721,7 @@ def recursive_search(grid, level=0):
                     v_best_score = l
                     v_best_grids.append({"level": level, "score": l, "grid": grid})
 
-                    with open(TOP_JSON, "w") as f:
-                        json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
+                    write_json(TOP_JSON, v_best_grids)
             for new_grid in t:
                 recursive_search(new_grid, level + 1)
 

@@ -6,7 +6,7 @@
 import json
 import os
 import tqdm
-from lib import C_WALL, load_json, transpose, string_to_star
+from lib import C_WALL, load_json, transpose, string_to_star, write_json
 
 TYPE = "AD"  # TORUS ACROSS
 MAX_WALLS = 42
@@ -19,6 +19,7 @@ fails_set = set(fail_strs)
 
 good_star_strs = [s for s in sol_strs if s not in fails_set]
 
+print("num_good", len(good_star_strs))
 all_words = set()
 for s in good_star_strs:
     star = string_to_star(s)
@@ -27,8 +28,17 @@ for s in good_star_strs:
     COLS_OF_INTEREST = [3, 4, 5, 6, 7, 8]
     for r in ROWS_OF_INTEREST:
         word = star[r].replace(C_WALL, "")
+        if word == "PERCALES":
+            print("found percales row")
+            exit()
         all_words.add(word)
 
-print(len(all_words))
-with open("delete.json", "w") as file:
-    json.dump(list(all_words), file, indent=4, ensure_ascii=False)
+    for c in COLS_OF_INTEREST:
+        word = "".join([star[r][c] for r in range(10)]).replace(C_WALL, "")
+        if word == "PERCALES":
+            print("found percales")
+            exit()
+        all_words.add(word)
+
+
+write_json("delete.json", list(all_words))
