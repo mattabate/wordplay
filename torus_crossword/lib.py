@@ -4,8 +4,10 @@ import random
 import fcntl
 
 WOR_JSON = "word_list.json"
-C_WALL = "█"
 
+C_WALL = "█"
+STAR_HEIGHT = 10  # DO NOT CHANGE
+STAR_WIDTH = 12  # DO NOT CHANGE
 
 T_NORMAL = "\033[0m"
 T_BLUE = "\033[94m"
@@ -119,3 +121,16 @@ def append_json(json_name, grid):
             f.truncate()
         finally:
             fcntl.flock(f, fcntl.LOCK_UN)
+
+
+def string_to_star(s: str) -> list[str]:
+    """
+    Reshape a string (of len 120) into a list of strings (of len 12).
+
+    Args:
+        s (str): The string to reshape (string version of star)
+
+    Returns:
+        list[str]: The reshaped string (grid version of star)
+    """
+    return [s[i * STAR_WIDTH : (i + 1) * STAR_WIDTH] for i in range(STAR_HEIGHT)]

@@ -20,6 +20,7 @@ from lib import (
     T_NORMAL,
     T_PINK,
     T_YELLOW,
+    string_to_star,
 )
 
 f_flipped = False
@@ -733,7 +734,8 @@ def recursive_search(grid, level=0):
 
 if __name__ == "__main__":
 
-    stars = load_json(STA_JSON)
+    stars_strings = load_json(STA_JSON)
+
     fails = load_json(FAI_JSON)
 
     id_stars_of_interest = []
@@ -745,7 +747,8 @@ if __name__ == "__main__":
     fails_set = set(fails)
     joined_grids_cache = {}
     id_stars_of_interest = []
-    for i, star in enumerate(stars):
+    for i, s in enumerate(stars_strings):
+        star = string_to_star(s)
         original_grid = [row[:] for row in grid]  # Make a copy of the original grid
         grid = add_star(grid, star)  # Modify the grid
 
@@ -763,7 +766,7 @@ if __name__ == "__main__":
     #####
 
     random.shuffle(id_stars_of_interest)
-    ls = len(stars)
+    ls = len(stars_strings)
     lsoi = len(id_stars_of_interest)
     print()
     print(T_YELLOW + f"Starting Again: " + T_GREEN + f"{time.asctime()}" + T_NORMAL)
@@ -788,18 +791,6 @@ if __name__ == "__main__":
             tqdm.tqdm.write(T_GREEN + "Already Checked - Skipping" + T_NORMAL)
             continue
 
-        # tqdm.tqdm.write(
-        #     T_YELLOW
-        #     + "Star: \n"
-        #     + T_NORMAL
-        #     + json.dumps(star, indent=2, ensure_ascii=False)
-        # )
-        # tqdm.tqdm.write(
-        #     T_YELLOW
-        #     + "Grid: \n"
-        #     + T_NORMAL
-        #     + json.dumps(grid, indent=2, ensure_ascii=False)
-        # )
         new_solutions = []
         recursive_search(grid, 0)
 

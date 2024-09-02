@@ -293,7 +293,7 @@ def recursive_search(grid, level=0):
 
         solutions = load_json(SOL_JSON)
         if grid not in solutions:
-            append_json(SOL_JSON, grid)
+            append_json(SOL_JSON, "".join(grid))
         return
 
     new_grids = get_new_grids(grid)

@@ -23,7 +23,7 @@ def get_unique_entries(entries):
         tuple_entry = tuple(entry)
         unique_entries_set.add(tuple_entry)
     # Convert tuples back to lists
-    unique_entries = [list(t) for t in unique_entries_set]
+    unique_entries = ["".join(list(t)) for t in unique_entries_set]
     return unique_entries
 
 
