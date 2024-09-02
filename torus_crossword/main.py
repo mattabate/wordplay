@@ -12,15 +12,18 @@ import os
 from fast_search import get_new_grids as get_new_grids_main
 from lib import (
     C_WALL,
+    ROWLEN,
+    GRIDCELLS,
+    STAR_START,
     replace_char_in_string,
     load_json,
     append_json,
+    string_to_star,
     T_BLUE,
     T_GREEN,
     T_NORMAL,
     T_PINK,
     T_YELLOW,
-    string_to_star,
 )
 
 f_flipped = False
@@ -33,13 +36,10 @@ WOR_JSON = "word_list.json"
 id = int(time.time())
 TOP_JSON = f"top_runs/top_solutions_{id}.json"
 
-ROWLEN = 15
-GRIDCELLS = ROWLEN * ROWLEN
-
 
 if not f_flipped:
     STA_JSON = "star_sols.json"
-    FAI_JSON = f"failures/15x15_grid_failures_{TYPE}_{MAX_WALLS}.json"
+    FAI_JSON = f"failures/15x15_stars_failures_{TYPE}_{MAX_WALLS}.json"
     SOL_JSON = f"solutions/15x15_grid_solutions_{TYPE}_{MAX_WALLS}.json"
     if not os.path.exists(FAI_JSON):
         with open(FAI_JSON, "w") as f:
@@ -67,7 +67,7 @@ if not f_flipped:
     ]
 else:
     STA_JSON = "star_sols_flipped.json"
-    FAI_JSON = f"failures/15x15_grid_failures_{TYPE}_{MAX_WALLS}_flipped.json"
+    FAI_JSON = f"failures/15x15_stars_failures_{TYPE}_{MAX_WALLS}_flipped.json"
     SOL_JSON = f"solutions/15x15_grid_solutions_{TYPE}_{MAX_WALLS}_flipped.json"
     if not os.path.exists(FAI_JSON):
         with open(FAI_JSON, "w") as f:
@@ -132,14 +132,13 @@ WORDS_TO_USE = WORDLIST
 
 
 def add_star(grid, star):
-    START = (10, 9)
     grid = [list(row) for row in grid]
 
     for i, line in enumerate(star):
-        r = (START[0] + i) % ROWLEN
+        r = (STAR_START[0] + i) % ROWLEN
         for j, l in enumerate(line):
             if l != "█":
-                c = (START[1] + j) % ROWLEN
+                c = (STAR_START[1] + j) % ROWLEN
                 grid[r][c] = l
 
     return ["".join(row) for row in grid]
@@ -735,7 +734,7 @@ def recursive_search(grid, level=0):
 if __name__ == "__main__":
 
     stars_strings = load_json(STA_JSON)
-    fails = load_json(FAI_JSON)
+    fail_stars = load_json(FAI_JSON)
 
     id_stars_of_interest = []
     t0 = datetime.now()
@@ -743,25 +742,13 @@ if __name__ == "__main__":
 
     ####
     # DETERMINE STARS TO SEARCH
-    fails_set = set(fails)
     joined_grids_cache = {}
-    id_stars_of_interest = []
-    for i, s in enumerate(stars_strings):
-        star = string_to_star(s)
-        original_grid = [row[:] for row in grid]  # Make a copy of the original grid
-        grid = add_star(grid, star)  # Modify the grid
 
-        # Cache the joined grid
-        grid_key = tuple(grid)  # Tuples can be hashed, lists cannot
-        if grid_key not in joined_grids_cache:
-            joined_grids_cache[grid_key] = "".join(grid)
-        joined_grid = joined_grids_cache[grid_key]
+    fail_stars_set = set(fail_stars)
+    id_stars_of_interest = [
+        (i, s) for i, s in enumerate(stars_strings) if s not in fail_stars_set
+    ]
 
-        if joined_grid in fails_set:
-            grid = original_grid
-            continue
-        id_stars_of_interest.append((i, star))  # This ends up unique
-        grid = original_grid
     #####
 
     random.shuffle(id_stars_of_interest)
@@ -776,14 +763,15 @@ if __name__ == "__main__":
     print()
     checked = load_json("completed_ics.json")
     for t, s in enumerate(id_stars_of_interest):
-        init_id, star = s
+        init_id, star_str = s
         tqdm.tqdm.write(T_YELLOW + f"Trial {t} / {lsoi}  ({ls} tot)" + T_NORMAL)
         tqdm.tqdm.write(T_YELLOW + f"Star id: " + T_NORMAL + f"{init_id}")
         grid = INITIAL_TEMPLATE.copy()
-        grid = add_star(grid, star)
-        fails = load_json(FAI_JSON)
 
-        if "".join(grid) in fails:
+        grid = add_star(grid, string_to_star(star_str))
+        fail_stars_str = load_json(FAI_JSON)
+
+        if star_str in fail_stars_str:
             tqdm.tqdm.write(T_BLUE + "Already Failed - Skipping" + T_NORMAL)
             continue
         if grid in checked:
@@ -797,10 +785,10 @@ if __name__ == "__main__":
             # print(T_YELLOW + json.dumps(grid, indent=2, ensure_ascii=False) + T_NORMAL)
 
             print(T_PINK + "No solution found." + T_NORMAL)
-            append_json(FAI_JSON, "".join(grid))
+            append_json(FAI_JSON, star_str)
         else:
             append_json("delete.json", grid)
             if grid not in load_json("completed_ics.json"):
                 append_json("completed_ics.json", grid)
-            if star not in load_json("stars_that_made_grids.json"):
-                append_json("stars_that_made_grids.json", star)
+            if star_str not in load_json("stars_that_made_grids.json"):
+                append_json("stars_that_made_grids.json", star_str)

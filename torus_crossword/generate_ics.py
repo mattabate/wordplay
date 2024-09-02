@@ -1,3 +1,0 @@
-"""
-    convert falures to stars
-"""

@@ -6,8 +6,12 @@ import fcntl
 WOR_JSON = "word_list.json"
 
 C_WALL = "█"
+
+ROWLEN = 15
+GRIDCELLS = ROWLEN * ROWLEN
 STAR_HEIGHT = 10  # DO NOT CHANGE
 STAR_WIDTH = 12  # DO NOT CHANGE
+STAR_START = (10, 9)  # DO NOT CHANGE
 
 T_NORMAL = "\033[0m"
 T_BLUE = "\033[94m"
