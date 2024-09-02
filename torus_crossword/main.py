@@ -735,7 +735,6 @@ def recursive_search(grid, level=0):
 if __name__ == "__main__":
 
     stars_strings = load_json(STA_JSON)
-
     fails = load_json(FAI_JSON)
 
     id_stars_of_interest = []

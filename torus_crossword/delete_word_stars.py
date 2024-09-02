@@ -3,6 +3,8 @@ from lib import load_json, transpose
 
 word = "CANDYCOAT"
 
+LOVEBEADS
+
 
 for file in ["star_sols.json", "star_sols_flipped.json"]:
 
