@@ -4,6 +4,7 @@ import json
 import time
 import tqdm
 from lib import (
+    C_WALL,
     Direction,
     Sqaure,
     Word,
@@ -58,8 +59,6 @@ COLS_OF_INTEREST = [3, 4, 5, 6, 7, 8]
 ROWLEN = len(INITIAL_TEMPLATE[0])
 COLLEN = len(INITIAL_TEMPLATE)
 GRIDCELLS = ROWLEN * COLLEN
-
-C_WALL = "█"
 
 letter_locs = [
     (r, c)

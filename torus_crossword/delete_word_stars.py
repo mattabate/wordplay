@@ -1,9 +1,9 @@
 import json
-from lib import load_json, transpose
+from lib import load_json, transpose, write_json
 
-word = "CANDYCOAT"
+word = "LOVEBEADS"
 
-LOVEBEADS
+words = load_json("word_list.json")
 
 
 for file in ["star_sols.json", "star_sols_flipped.json"]:
@@ -30,6 +30,9 @@ for file in ["star_sols.json", "star_sols_flipped.json"]:
 
     final_num = len(new_star_sols)
     print("number removed ", initial_num - final_num)
+    write_json(file, new_star_sols)
 
-    with open(file, "w") as f:
-        json.dump(new_star_sols, f, indent=2, ensure_ascii=False)
+# remove the word from the word list
+words = set(words)
+words.remove(word)
+write_json("word_list.json", list(words))

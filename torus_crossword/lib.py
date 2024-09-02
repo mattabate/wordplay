@@ -114,6 +114,15 @@ def load_json(json_name):
     return out
 
 
+def write_json(json_name, data):
+    with open(json_name, "w") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
+
+
 def append_json(json_name, grid):
     with open(json_name, "r+") as f:
         fcntl.flock(f, fcntl.LOCK_EX)
