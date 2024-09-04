@@ -3,9 +3,6 @@
     but not in fails and then it is going to take hose and get the number of wor
 """
 
-import json
-import os
-import tqdm
 from lib import C_WALL, load_json, transpose, string_to_star, write_json
 
 TYPE = "AD"  # TORUS ACROSS

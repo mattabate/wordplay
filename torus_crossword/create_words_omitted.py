@@ -1,6 +1,6 @@
 import json
 import tqdm
-from lib import T_YELLOW, T_NORMAL
+from lib import T_YELLOW, T_NORMAL, load_json, write_json
 
 MASTER_WL_JSON = "crossword_words.json"
 WORDS_CONSIDERED = "word_list.json"
@@ -11,14 +11,11 @@ SAV_FILE = "words_omitted.json"
 MIN_SOCRE = 30
 ###                             ###
 
-
-with open(MASTER_WL_JSON, "r") as f:
-    scored_words = json.load(f)
+scored_words = load_json(MASTER_WL_JSON)
 
 print(T_YELLOW + "Len Wordlist:" + T_NORMAL, len(scored_words))
 
-with open(WORDS_CONSIDERED, "r") as f:
-    current_list = json.load(f)
+current_list = load_json(WORDS_CONSIDERED)
 
 admissible = []
 for word, score in scored_words:
@@ -35,5 +32,4 @@ words_omitted = [
 print(T_YELLOW + "Number of Candidaes:" + T_NORMAL, len(current_list))
 print(T_YELLOW + "Num Omitted:" + T_NORMAL, len(words_omitted))
 
-with open(SAV_FILE, "w") as f:
-    json.dump(words_omitted, f, indent=2)
+write_json(SAV_FILE, words_omitted)

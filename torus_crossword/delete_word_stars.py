@@ -2,7 +2,7 @@
 
 from lib import load_json, transpose, write_json, string_to_star
 
-word = "MANSARDS"
+word = "MYDOGSKIP"
 
 words = load_json("word_list.json")
 
@@ -37,5 +37,6 @@ for file in ["star_sols.json", "star_sols_flipped.json"]:
 # remove the word from the word list
 words = set(words)
 if word in words:
+    print("removing " + word + " from word list")
     words.remove(word)
     write_json("word_list.json", list(words))
