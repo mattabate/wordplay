@@ -3,76 +3,48 @@
 import json
 import time
 import tqdm
+from config import C_WALL
+from torus.json import append_json, load_json
+from config import (
+    STAR_WIDTH,
+    STARS_FOUND_JSON,
+    STARS_FOUND_FLIPPED_JSON,
+    STARS_CHECKED_JSON,
+    STARS_CHECKED_FLIPPED_JSON,
+    STAR_TEMPLATE,
+    STAR_FLIPPED_TEMPLATE,
+    STAR_ROWS_OF_INTEREST,
+    STAR_COLS_OF_INTEREST,
+)
 from lib import (
-    C_WALL,
     Direction,
     Sqaure,
     Word,
     WORDLIST_BY_LEN,
-    load_json,
-    append_json,
     transpose,
     replace_char_in_grid,
+    T_NORMAL,
+    T_GREEN,
 )
-
-
-# NOTE: instead we need to do somethign where "the letter a in this position implies the letter x in this position."
 
 f_flipped = False
 f_verbose = False
 
 if not f_flipped:
-    SOL_JSON = f"star_sols.json"
-    CHE_JSON = f"stars_checked.json"
-    INITIAL_TEMPLATE = [
-        "██████@@@███",
-        "██████@@@███",
-        "@@@@@@@@@███",
-        "@@@@@@@@@███",
-        "@@@@@@@@@███",
-        "███@@@@@@@@@",
-        "███@@@@@@@@@",
-        "███@@@@@@@@@",
-        "███@@@██████",
-        "███@@@██████",
-    ]
-
+    SOL_JSON = STARS_FOUND_JSON
+    CHE_JSON = STARS_CHECKED_JSON
+    TEMPLATE = STAR_TEMPLATE
 else:
-    SOL_JSON = f"star_sols_flipped.json"
-    CHE_JSON = f"stars_checked_flipped.json"
-    INITIAL_TEMPLATE = [
-        "███@@@██████",
-        "███@@@██████",
-        "███@@@@@@@@@",
-        "███@@@@@@@@@",
-        "███@@@@@@@@@",
-        "@@@@@@@@@███",
-        "@@@@@@@@@███",
-        "@@@@@@@@@███",
-        "██████@@@███",
-        "██████@@@███",
-    ]
-
-ROWS_OF_INTEREST = [2, 3, 4, 5, 6, 7]
-COLS_OF_INTEREST = [3, 4, 5, 6, 7, 8]
-
-ROWLEN = len(INITIAL_TEMPLATE[0])
-COLLEN = len(INITIAL_TEMPLATE)
-GRIDCELLS = ROWLEN * COLLEN
+    SOL_JSON = STARS_FOUND_FLIPPED_JSON
+    CHE_JSON = STARS_CHECKED_FLIPPED_JSON
+    TEMPLATE = STAR_FLIPPED_TEMPLATE
 
 letter_locs = [
     (r, c)
-    for r in range(len(INITIAL_TEMPLATE))
-    for c in range(len(INITIAL_TEMPLATE[0]))
-    if INITIAL_TEMPLATE[r][c] != C_WALL
+    for r in range(len(TEMPLATE))
+    for c in range(len(TEMPLATE[0]))
+    if TEMPLATE[r][c] != C_WALL
 ]
-
-
-T_NORMAL = "\033[0m"
-T_BLUE = "\033[94m"
-T_YELLOW = "\033[93m"
-T_GREEN = "\033[92m"
-T_PINK = "\033[95m"
 
 
 v_best_score = 0
@@ -88,7 +60,7 @@ def find_first_letter(input_string):
 def get_word_locations(grid: list[list[str]], direction: Direction) -> list[Word]:
     words = []
     if direction == Direction.ACROSS:
-        for r in ROWS_OF_INTEREST:
+        for r in STAR_ROWS_OF_INTEREST:
             if not "@" in grid[r]:
                 continue
             words.append(
@@ -100,7 +72,7 @@ def get_word_locations(grid: list[list[str]], direction: Direction) -> list[Word
             )
     else:
         it_t = transpose(grid)
-        for c in COLS_OF_INTEREST:
+        for c in STAR_COLS_OF_INTEREST:
             if "@" in it_t[c]:
                 if not "@" in it_t[c]:
                     continue
@@ -255,7 +227,6 @@ def get_new_grids(
     if not min_square:
         return [filled_grid]
 
-    # TODO: make min square to influence
     output = [
         replace_char_in_grid(filled_grid.copy(), min_square, p)
         for p in square_to_word_map[min_square].possible_chars
@@ -278,13 +249,15 @@ def recursive_search(grid, level=0):
         print(json.dumps(grid, indent=2, ensure_ascii=False))
     if grid_filled(grid):
         # check to make sure rows of interest are valie words
-        for r in ROWS_OF_INTEREST:
+        for r in STAR_ROWS_OF_INTEREST:
             candidate = grid[r].replace("█", "")
             if candidate not in WORDLIST_BY_LEN[len(candidate)]:
                 return
 
-        for c in COLS_OF_INTEREST:
-            candidate = "".join([grid[r][c] for r in range(COLLEN)]).replace("█", "")
+        for c in STAR_COLS_OF_INTEREST:
+            candidate = "".join([grid[r][c] for r in range(STAR_WIDTH)]).replace(
+                "█", ""
+            )
             if candidate not in WORDLIST_BY_LEN[len(candidate)]:
                 return
 
@@ -305,14 +278,14 @@ def recursive_search(grid, level=0):
 
 
 if __name__ == "__main__":
-    words = get_word_locations(INITIAL_TEMPLATE, Direction.ACROSS) + get_word_locations(
-        INITIAL_TEMPLATE, Direction.DOWN
+    words = get_word_locations(TEMPLATE, Direction.ACROSS) + get_word_locations(
+        TEMPLATE, Direction.DOWN
     )
 
     print("number of answers", len(words))
     print(
         "number of black squares",
-        "".join(INITIAL_TEMPLATE).count(C_WALL),
+        "".join(TEMPLATE).count(C_WALL),
         T_NORMAL,
     )
 
@@ -326,7 +299,7 @@ if __name__ == "__main__":
         if seed in already_checked:
             print(T_GREEN + "Already checked" + T_NORMAL)
             continue
-        grid = INITIAL_TEMPLATE.copy()
+        grid = TEMPLATE.copy()
         if not f_flipped:
             grid[3] = seed + "███"
         else:

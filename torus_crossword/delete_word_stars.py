@@ -1,13 +1,15 @@
 """Given a bad word, remove it from all stars and the word_list"""
 
-from lib import load_json, transpose, write_json, string_to_star
+from config import WOR_JSON, STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON
+from torus.json import load_json, write_json
+from lib import transpose, string_to_star
 
-word = "MYDOGSKIP"
+word = "SHOOTSAT"
 
-words = load_json("word_list.json")
+words = load_json(WOR_JSON)
 
 
-for file in ["star_sols.json", "star_sols_flipped.json"]:
+for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
 
     star_sols = load_json(file)
 
@@ -39,4 +41,4 @@ words = set(words)
 if word in words:
     print("removing " + word + " from word list")
     words.remove(word)
-    write_json("word_list.json", list(words))
+    write_json(WOR_JSON, list(words))

@@ -2,30 +2,12 @@
 
 import json
 import tqdm
+from torus.json import append_json, load_json, write_json
 from lib import Direction, Sqaure, Word, replace_char_in_grid
 import time
 import itertools
 
 # NOTE: instead we need to do somethign where "the letter a in this position implies the letter x in this position."
-
-
-# INITIAL_TEMPLATE = [
-#     "@@@█@@@█@@@@@@@",
-#     "@@@█@@@█@@@@@@@",
-#     "@@@█@@@█@@@@@@@",
-#     "@@@@@@@█@@@████",
-#     "███@@@@@@@█@@@@",
-#     "@@@@@@█@@@█@@@@",
-#     "@@@@@█@@@@█@@@@",
-#     "@@@@█TORUS█@@@@",
-#     "@@@@█@@@@█@@@@@",
-#     "@@@@█@@@█@@@@@@",
-#     "@@@@█@@@@@@@███",
-#     "████@@@█@@@@@@@",
-#     "@@@@@@@█@@@█@@@",
-#     "@@@@@@@█@@@█@@@",
-#     "@@@@@@@█@@@█@@@",
-# ]
 
 INITIAL_TEMPLATE = [
     "NAROCK█@@@@█ARE",
@@ -292,8 +274,7 @@ def recursive_search(grid, level=0):
         tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
         tqdm.tqdm.write(T_NORMAL)
         solutions.append({"level": level, "grid": grid})
-        with open(SOL_JSON, "w") as f:
-            json.dump(solutions, f, indent=2, ensure_ascii=False)
+        write_json(SOL_JSON, solutions)
 
         if len(solutions) > 10:
             print(T_GREEN, "Found 10 solutions", T_NORMAL)
@@ -313,9 +294,7 @@ def recursive_search(grid, level=0):
         if l > v_best_score:
             v_best_score = l
             v_best_grids.append({"level": level, "score": l, "grid": grid})
-
-            with open(BES_JSON, "w") as f:
-                json.dump(v_best_grids, f, indent=2, ensure_ascii=False)
+            write_json(BES_JSON, v_best_grids)
 
         for new_grid in t:
             recursive_search(new_grid.copy(), level + 1)
@@ -323,8 +302,8 @@ def recursive_search(grid, level=0):
 
 if __name__ == "__main__":
     grid = INITIAL_TEMPLATE.copy()
-    with open(FAI_JSON, "r") as f:
-        fails = json.load(f)
+
+    fails = load_json(FAI_JSON)
 
     words = get_word_locations(grid, Direction.ACROSS) + get_word_locations(
         grid, Direction.DOWN
@@ -342,7 +321,6 @@ if __name__ == "__main__":
         print("No solution found")
 
         fails.append(INITIAL_TEMPLATE)
-        with open(FAI_JSON, "w") as f:
-            json.dump(fails, f, indent=2, ensure_ascii=False)
+        write_json(FAI_JSON, fails)
     else:
         print(T_GREEN, f"Found {len(solutions)} solutions", T_NORMAL)

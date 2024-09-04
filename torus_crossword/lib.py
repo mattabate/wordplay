@@ -1,17 +1,7 @@
 from enum import Enum
-import json
 import random
-import fcntl
-
-WOR_JSON = "word_list.json"
-
-C_WALL = "█"
-
-ROWLEN = 15
-GRIDCELLS = ROWLEN * ROWLEN
-STAR_HEIGHT = 10  # DO NOT CHANGE
-STAR_WIDTH = 12  # DO NOT CHANGE
-STAR_START = (10, 9)  # DO NOT CHANGE
+from config import WOR_JSON, STAR_HEIGHT, STAR_WIDTH
+from torus.json import load_json
 
 T_NORMAL = "\033[0m"
 T_BLUE = "\033[94m"
@@ -20,13 +10,10 @@ T_GREEN = "\033[92m"
 T_PINK = "\033[95m"
 
 
-with open(WOR_JSON) as f:
-    WORDLIST = json.load(f)
+WORDLIST = load_json(WOR_JSON)
 
-WORDLIST_WALLED = [C_WALL + w + C_WALL for w in WORDLIST]
 
 random.shuffle(WORDLIST)
-random.shuffle(WORDLIST_WALLED)
 
 WORDLIST_BY_LEN = {}
 for w in WORDLIST:
@@ -34,13 +21,6 @@ for w in WORDLIST:
     if l not in WORDLIST_BY_LEN:
         WORDLIST_BY_LEN[l] = []
     WORDLIST_BY_LEN[l].append(w)
-
-WORDLIST_WALLED_BY_LEN = {}
-for w in WORDLIST_WALLED:
-    l = len(w)
-    if l not in WORDLIST_WALLED_BY_LEN:
-        WORDLIST_WALLED_BY_LEN[l] = []
-    WORDLIST_WALLED_BY_LEN[l].append(w)
 
 
 class Direction(Enum):
@@ -102,38 +82,6 @@ def replace_char_in_grid(grid: list[str], loc: tuple[int, int], c: str) -> list[
     row = grid[loc[0]]
     grid[loc[0]] = f"{row[:loc[1]]}{c}{row[loc[1]+1:]}"
     return grid
-
-
-def load_json(json_name):
-    with open(json_name, "r+") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
-        try:
-            out = json.load(f)
-        finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
-    return out
-
-
-def write_json(json_name, data):
-    with open(json_name, "w") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
-        try:
-            json.dump(data, f, indent=4, ensure_ascii=False)
-        finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
-
-
-def append_json(json_name, grid):
-    with open(json_name, "r+") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
-        try:
-            data = json.load(f)
-            data.append(grid)
-            f.seek(0)
-            json.dump(data, f, indent=4, ensure_ascii=False)
-            f.truncate()
-        finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
 
 
 def string_to_star(s: str) -> list[str]:

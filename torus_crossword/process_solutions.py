@@ -2,7 +2,10 @@ import json
 import numpy as np
 from lib import Direction
 from fast_search import get_word_locations, ROWLEN
-from main import load_json, T_PINK, T_NORMAL, T_YELLOW
+
+from torus.json import load_json, write_json
+
+from main import T_PINK, T_NORMAL, T_YELLOW
 import matplotlib.pyplot as plt
 import tqdm
 
@@ -11,8 +14,7 @@ SCORES_PATH = "crossword_words.json"
 
 
 def reduce_to_unique_solutions():
-    with open(SOLS_PATH) as f:
-        solutions = json.load(f)
+    solutions = load_json(SOLS_PATH)
 
     unique_solutions = []
     for s in solutions:
@@ -30,16 +32,14 @@ def reduce_to_unique_solutions():
             T_PINK + f"Removing {len(solutions) - len(unique_solutions)} grids" + T_PINK
         )
         print()
+        write_json(SOLS_PATH, unique_solutions)
 
-        with open(SOLS_PATH, "w") as f:
-            json.dump(unique_solutions, f, indent=2, ensure_ascii=False)
     return unique_solutions
 
 
 solutions = reduce_to_unique_solutions()
 
-with open(SCORES_PATH) as f:
-    score_list = json.load(f)
+score_list = load_json(SCORES_PATH)
 
 
 def score_words(grid: list[str]):
@@ -50,8 +50,7 @@ def score_words(grid: list[str]):
     if len(words) != len(set(words)):
         sols = load_json(SOLS_PATH)
         sols.remove(grid)
-        with open(SOLS_PATH, "w") as f:
-            json.dump(sols, f, indent=2, ensure_ascii=False)
+        write_json(SOLS_PATH, sols)
         return
 
     word_strings = []

@@ -1,9 +1,10 @@
-import json
 import tqdm
-from lib import T_YELLOW, T_NORMAL, load_json, write_json
+from config import WOR_JSON
+from torus.json import load_json, write_json
+from lib import T_YELLOW, T_NORMAL
 
 MASTER_WL_JSON = "crossword_words.json"
-WORDS_CONSIDERED = "word_list.json"
+
 SAV_FILE = "words_omitted.json"
 
 
@@ -15,7 +16,7 @@ scored_words = load_json(MASTER_WL_JSON)
 
 print(T_YELLOW + "Len Wordlist:" + T_NORMAL, len(scored_words))
 
-current_list = load_json(WORDS_CONSIDERED)
+current_list = load_json(WOR_JSON)
 
 admissible = []
 for word, score in scored_words:

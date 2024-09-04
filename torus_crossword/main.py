@@ -2,7 +2,6 @@
 
 from datetime import datetime
 import json
-import lib
 import re
 import tqdm
 import time
@@ -10,15 +9,22 @@ import random
 import os
 
 from fast_search import get_new_grids as get_new_grids_main
-from lib import (
-    C_WALL,
+
+from config import (
+    WOR_JSON,
+    STARS_FOUND_JSON,
+    STARS_FOUND_FLIPPED_JSON,
     ROWLEN,
     GRIDCELLS,
     STAR_START,
+    C_WALL,
+)
+
+from torus.json import append_json, load_json, write_json
+
+from lib import (
+    transpose,
     replace_char_in_string,
-    load_json,
-    append_json,
-    write_json,
     string_to_star,
     T_BLUE,
     T_GREEN,
@@ -27,25 +33,19 @@ from lib import (
     T_YELLOW,
 )
 
+
 f_flipped = False
 TYPE = "AD"  # TORUS ACROSS
 MAX_WALLS = 42
 
 f_verbose = True
 f_save_best = False
-WOR_JSON = "word_list.json"
 id = int(time.time())
-TOP_JSON = f"top_runs/top_solutions_{id}.json"
-
 
 if not f_flipped:
-    STA_JSON = "star_sols.json"
+    STA_JSON = STARS_FOUND_JSON
     FAI_JSON = f"failures/15x15_stars_failures_{TYPE}_{MAX_WALLS}.json"
     SOL_JSON = f"solutions/15x15_grid_solutions_{TYPE}_{MAX_WALLS}.json"
-    if not os.path.exists(FAI_JSON):
-        write_json(FAI_JSON, [])
-    if not os.path.exists(SOL_JSON):
-        write_json(SOL_JSON, [])
 
     INITIAL_TEMPLATE = [
         "______█_@@_█___",
@@ -65,13 +65,9 @@ if not f_flipped:
         "___█_@@_█______",
     ]
 else:
-    STA_JSON = "star_sols_flipped.json"
+    STA_JSON = STARS_FOUND_FLIPPED_JSON
     FAI_JSON = f"failures/15x15_stars_failures_{TYPE}_{MAX_WALLS}_flipped.json"
     SOL_JSON = f"solutions/15x15_grid_solutions_{TYPE}_{MAX_WALLS}_flipped.json"
-    if not os.path.exists(FAI_JSON):
-        write_json(FAI_JSON, [])
-    if not os.path.exists(SOL_JSON):
-        write_json(SOL_JSON, [])
 
     INITIAL_TEMPLATE = [
         "___█____█______",
@@ -90,6 +86,11 @@ else:
         "______█____█___",
         "______█____█___",
     ]
+
+if not os.path.exists(FAI_JSON):
+    write_json(FAI_JSON, [])
+if not os.path.exists(SOL_JSON):
+    write_json(SOL_JSON, [])
 
 if TYPE == "AA":
     INITIAL_TEMPLATE[7] = "HUNT█TORUS█DOUG"
@@ -113,8 +114,7 @@ new_solutions = []  # tracks initial conditions solutions
 v_best_grids = []
 v_best_score = 0
 
-with open(WOR_JSON) as f:
-    WORDLIST = json.load(f)
+WORDLIST = load_json(WOR_JSON)
 
 for i, w in enumerate(WORDLIST):
     WORDLIST[i] = C_WALL + w + C_WALL
@@ -282,9 +282,9 @@ def fill_small_holes_line(line: str) -> str:
 def fill_in_small_holes(grid: list[str]) -> list[str]:
     """Return a grid with holes filled like █_█ -> "███" or "█@__" -> "█@@@"."""
     new_grid = [fill_small_holes_line(l) for l in grid]
-    tr = lib.transpose(new_grid)  # compute transpose matrix
+    tr = transpose(new_grid)  # compute transpose matrix
     new_grid = [fill_small_holes_line(l) for l in tr]
-    return lib.transpose(new_grid)
+    return transpose(new_grid)
 
 
 def enforce_symmetry(grid: list[str]) -> list[str]:
@@ -307,7 +307,7 @@ def grid_contains_short_words(grid: list[str]) -> bool:
         if check_line_for_short_words(line):
             return True
 
-    for line in lib.transpose(grid):
+    for line in transpose(grid):
         if check_line_for_short_words(line):
             return True
     return False
@@ -354,35 +354,15 @@ def get_fixtures(line: str) -> list[tuple[int, str]]:
 
 
 def grid_contains_englosed_spaces(grid: list[str]) -> bool:
-    # [
-    #     "______█____█___",
-    #     "______█____█___",
-    #     "______█____█___",
-    #     "███____________",
-    #     "_______________",
-    #     "____________███",
-    #     "_______________",
-    #     "HNUT█TORUS█DOUG",
-    #     "_______________",
-    #     "███____________",
-    #     "_______________",
-    #     "____________███",
-    #     "___█____█______",
-    #     "___█____█______",
-    #     "___█____█______",
-    # ]
-
     if not f_flipped:
         if C_WALL == grid[3][11] == grid[4][11]:
             return True
         if C_WALL == grid[10][3] == grid[11][3]:
             return True
-
         if C_WALL == grid[3][3] == grid[3][4] == grid[3][5]:
             return True
         if C_WALL == grid[11][9] == grid[11][10] == grid[11][11]:
             return True
-
         if C_WALL == grid[0][7] == grid[0][8] == grid[0][9] == grid[0][10]:
             return True
         if C_WALL == grid[3][7] == grid[3][8] == grid[3][9] == grid[3][10]:
@@ -391,36 +371,15 @@ def grid_contains_englosed_spaces(grid: list[str]) -> bool:
             return True
         if C_WALL == grid[14][4] == grid[14][5] == grid[14][6] == grid[14][7]:
             return True
-
         if C_WALL == grid[4][3] == grid[5][4] == grid[6][4] == grid[8][3]:
             return True
-
         if C_WALL == grid[3][4] == grid[3][8] == grid[4][5] == grid[4][6] == grid[4][7]:
             return True
-
         if C_WALL == grid[4][2]:
             return True
         if C_WALL == grid[8][2]:
             return True
     elif f_flipped:
-        # INITIAL_TEMPLATE = [
-        #     "___█____█______",
-        #     "___█____█______",
-        #     "___█____█______",
-        #     "____________███",
-        #     "_______________",
-        #     "███____________",
-        #     "_______________",
-        #     "_______________",
-        #     "_______________",
-        #     "____________███",
-        #     "_______________",
-        #     "███____________",
-        #     "______█____█___",
-        #     "______█____█___",
-        #     "______█____█___",
-        # ]
-
         if C_WALL == grid[3][3] == grid[4][3]:
             return True
         if C_WALL == grid[3][9] == grid[3][10] == grid[3][11]:
@@ -507,7 +466,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
                         passes = False
                         break
 
-                for line in lib.transpose(grid):
+                for line in transpose(grid):
                     if C_WALL not in line:
                         passes = False
                         break
@@ -538,14 +497,14 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
     # find the best row to latch on
     row_idx, best_row_score, best_row_grids = get_best_row(grid)
     # transpose to find the best collum
-    col_idx, best_col_score, best_col_grids = get_best_row(lib.transpose(grid))
+    col_idx, best_col_score, best_col_grids = get_best_row(transpose(grid))
 
     # TODO: SOMETHING WRONG HERE???
     if best_row_score <= best_col_score:
         return "r", row_idx, best_row_grids
     else:
         # transform back all of the column grids
-        transposed_col_grids = [lib.transpose(g) for g in best_col_grids]
+        transposed_col_grids = [transpose(g) for g in best_col_grids]
         return "c", col_idx, transposed_col_grids
 
 
@@ -559,8 +518,8 @@ def get_new_grids_p(grid: list[str], level) -> tuple[str, int, list[list[str]]]:
     else:
 
         # transpose to find the best collum
-        col_idx, _, best_col_grids = get_best_row(lib.transpose(grid))
-        transposed_col_grids = [lib.transpose(g) for g in best_col_grids]
+        col_idx, _, best_col_grids = get_best_row(transpose(grid))
+        transposed_col_grids = [transpose(g) for g in best_col_grids]
         return "c", col_idx, transposed_col_grids
 
 
@@ -574,8 +533,8 @@ def get_new_grids_q(grid: list[str], level) -> tuple[str, int, list[list[str]]]:
     else:
 
         # transpose to find the best collum
-        col_idx, _, best_col_grids = get_best_row(lib.transpose(grid))
-        transposed_col_grids = [lib.transpose(g) for g in best_col_grids]
+        col_idx, _, best_col_grids = get_best_row(transpose(grid))
+        transposed_col_grids = [transpose(g) for g in best_col_grids]
         return "c", col_idx, transposed_col_grids
 
 
@@ -624,7 +583,7 @@ def recursive_search(grid, level=0):
                 tqdm.tqdm.write(print_grid(grid, ("r", i, T_BLUE)))
                 return
 
-        for i, line in enumerate(lib.transpose(grid)):
+        for i, line in enumerate(transpose(grid)):
             if C_WALL not in line:
                 tqdm.tqdm.write(
                     f"\nGrid has max walls but COL {i} has no black squares."
@@ -649,13 +608,6 @@ def recursive_search(grid, level=0):
                 )
                 tqdm.tqdm.write(T_GREEN + "\n".join(grid) + T_NORMAL)
 
-            if f_save_best:
-                l = count_letters(grid)
-                if l > v_best_score:
-                    v_best_score = l
-                    v_best_grids.append({"level": level, "score": l, "grid": grid})
-
-                    write_json(TOP_JSON, v_best_grids)
             for new_grid in t:
                 recursive_search(new_grid, level + 1)
 
@@ -686,7 +638,7 @@ def recursive_search(grid, level=0):
 
             new_grids = [new_grids[i].copy() for i, _ in ind_w_line_sorted]
         else:
-            lines = [lib.transpose(g)[start] for g in new_grids]
+            lines = [transpose(g)[start] for g in new_grids]
 
             ind_w_line_sorted = sorted(
                 enumerate(lines),
@@ -712,16 +664,9 @@ def recursive_search(grid, level=0):
                         tqdm.tqdm.write(T_BLUE + pp[start] + T_NORMAL)
                 else:
                     for pp in new_grids:
-                        tqdm.tqdm.write(T_BLUE + lib.transpose(pp)[start] + T_NORMAL)
+                        tqdm.tqdm.write(T_BLUE + transpose(pp)[start] + T_NORMAL)
                 tqdm.tqdm.write("\n")
 
-            if f_save_best:
-                l = count_letters(grid)
-                if l > v_best_score:
-                    v_best_score = l
-                    v_best_grids.append({"level": level, "score": l, "grid": grid})
-
-                    write_json(TOP_JSON, v_best_grids)
             for new_grid in t:
                 recursive_search(new_grid, level + 1)
 
@@ -753,8 +698,6 @@ if __name__ == "__main__":
     print(T_YELLOW + f"Starting Again: " + T_GREEN + f"{time.asctime()}" + T_NORMAL)
     print(T_YELLOW + "Saving Solutions to: " + T_GREEN + SOL_JSON + T_NORMAL)
     print(T_YELLOW + "Saving Failures to: " + T_GREEN + FAI_JSON + T_NORMAL)
-    if f_save_best:
-        print("Saving bests to: ", TOP_JSON)
     print()
     checked = load_json("completed_ics.json")
     for t, s in enumerate(id_stars_of_interest):
@@ -777,8 +720,6 @@ if __name__ == "__main__":
         recursive_search(grid, 0)
 
         if not new_solutions:
-            # print(T_YELLOW + json.dumps(grid, indent=2, ensure_ascii=False) + T_NORMAL)
-
             print(T_PINK + "No solution found." + T_NORMAL)
             append_json(FAI_JSON, star_str)
         else:

@@ -1,17 +1,16 @@
 import json
 from lib import Direction
 from fast_search import get_word_locations, ROWLEN
-from main import load_json
 import tqdm
+from config import WOR_JSON
+from torus.json import load_json, write_json
 
 TYPE = "AD"
 NUM = 42
 SOLS_PATH = f"solutions/15x15_grid_solutions_{TYPE}_{NUM}.json"
 PASS_PATH = f"bad_solutions/15x15_grid_solutions_{TYPE}_{NUM}_bad.json"
-WDLS_PATH = "word_list.json"
 
-with open(WDLS_PATH) as f:
-    WORDLIST = json.load(f)
+WORDLIST = load_json(WOR_JSON)
 
 
 def score_words(grid: list[str]):
@@ -22,8 +21,7 @@ def score_words(grid: list[str]):
     if len(words) != len(set(words)):
         sols = load_json(SOLS_PATH)
         sols.remove(grid)
-        with open(SOLS_PATH, "w") as f:
-            json.dump(sols, f, indent=2, ensure_ascii=False)
+        write_json(SOLS_PATH, sols)
         return
 
     word_strings = []
@@ -40,11 +38,8 @@ def score_words(grid: list[str]):
     return word_strings
 
 
-with open(SOLS_PATH) as f:
-    solutions = json.load(f)
-
-with open(PASS_PATH) as f:
-    passed = json.load(f)
+solutions = load_json(SOLS_PATH)
+passed = load_json(PASS_PATH)
 
 print("number solutions ever:", len(solutions) + len(passed))
 print("number solutions considered:", len(solutions))
@@ -62,10 +57,5 @@ for s in tqdm.tqdm(solutions):
 
 print("number solutions allowed:", len(allowed_grids))
 
-with open(PASS_PATH, "w") as f:
-    json.dump(passed, f, indent=2, ensure_ascii=False)
-with open(SOLS_PATH, "w") as f:
-    json.dump(allowed_grids, f, indent=2, ensure_ascii=False)
-# print first 10
-# for i in range(10):
-#     print(json.dumps(allowed_grids[i], indent=2, ensure_ascii=False))
+write_json(PASS_PATH, passed)
+write_json(SOLS_PATH, allowed_grids)
