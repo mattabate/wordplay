@@ -7,6 +7,7 @@ import tqdm
 import time
 import random
 import os
+from collections import deque
 
 from fast_search import get_new_grids as get_new_grids_main
 
@@ -42,7 +43,7 @@ f_flipped = False
 TYPE = "AD"  # TORUS ACROSS
 MAX_WALLS = 42
 
-f_verbose = False
+f_verbose = True
 
 FAI_JSON = get_failures_json(TYPE, MAX_WALLS, flipped=f_flipped)
 SOL_JSON = get_solutions_json(TYPE, MAX_WALLS, flipped=f_flipped)
@@ -318,51 +319,51 @@ def get_fixtures(line: str) -> list[tuple[int, str]]:
     return fixtures
 
 
-def grid_contains_englosed_spaces(grid: list[str]) -> bool:
-    if not f_flipped:
-        if C_WALL == grid[3][11] == grid[4][11]:
-            return True
-        if C_WALL == grid[10][3] == grid[11][3]:
-            return True
-        if C_WALL == grid[3][3] == grid[3][4] == grid[3][5]:
-            return True
-        if C_WALL == grid[11][9] == grid[11][10] == grid[11][11]:
-            return True
-        if C_WALL == grid[0][7] == grid[0][8] == grid[0][9] == grid[0][10]:
-            return True
-        if C_WALL == grid[3][7] == grid[3][8] == grid[3][9] == grid[3][10]:
-            return True
-        if C_WALL == grid[11][4] == grid[11][5] == grid[11][6] == grid[11][7]:
-            return True
-        if C_WALL == grid[14][4] == grid[14][5] == grid[14][6] == grid[14][7]:
-            return True
-        if C_WALL == grid[4][3] == grid[5][4] == grid[6][4] == grid[8][3]:
-            return True
-        if C_WALL == grid[3][4] == grid[3][8] == grid[4][5] == grid[4][6] == grid[4][7]:
-            return True
-        if C_WALL == grid[4][2]:
-            return True
-        if C_WALL == grid[8][2]:
-            return True
-    elif f_flipped:
-        if C_WALL == grid[3][3] == grid[4][3]:
-            return True
-        if C_WALL == grid[3][9] == grid[3][10] == grid[3][11]:
-            return True
-        if C_WALL == grid[10][11] == grid[11][11]:
-            return True
-        if C_WALL == grid[11][3] == grid[11][4] == grid[11][5]:
-            return True
-        if C_WALL == grid[0][4] == grid[0][5] == grid[0][6] == grid[0][7]:
-            return True
-        if C_WALL == grid[3][4] == grid[3][5] == grid[3][6] == grid[3][7]:
-            return True
-        if C_WALL == grid[11][7] == grid[11][8] == grid[11][9] == grid[11][10]:
-            return True
-        if C_WALL == grid[14][7] == grid[14][8] == grid[14][9] == grid[14][10]:
-            return True
+def grid_contains_englosed_spaces(grid):
+    rows = len(grid)
+    cols = len(grid[0])
+    visited = [[False] * cols for _ in range(rows)]
 
-    return False
+    # Directions for moving up, down, left, right
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    # Find the starting point for a non-wall character
+    start = None
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] != "█":
+                start = (r, c)
+                break
+        if start:
+            break
+
+    if not start:
+        return False  # No white squares
+
+    # BFS to check connectivity
+    queue = deque([start])
+    visited[start[0]][start[1]] = True
+    count = 1  # Number of visited white squares
+
+    while queue:
+        r, c = queue.popleft()
+        for dr, dc in directions:
+            nr, nc = r + dr, c + dc
+            if (
+                0 <= nr < rows
+                and 0 <= nc < cols
+                and not visited[nr][nc]
+                and grid[nr][nc] != "█"
+            ):
+                visited[nr][nc] = True
+                queue.append((nr, nc))
+                count += 1
+
+    # Count all non-wall squares
+    total_non_wall = sum(row.count("█") for row in grid)
+    total_non_wall = rows * cols - total_non_wall  # Total non-wall characters
+
+    return count != total_non_wall
 
 
 def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
