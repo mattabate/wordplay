@@ -1,7 +1,8 @@
 # the wordlist contains all words in consideration for the search
 # the format is a list of strings, about 100k total
-WOR_JSON = "word_list.json"
+WOR_JSON = "wordlist/word_list.json"
 
+SCORED_WORDS_JSON = "wordlist/scored_words.json"
 
 # initial conditions for the search are refered to as stars
 # stars come in two flavors: normal and flipped
@@ -37,18 +38,41 @@ STAR_TEMPLATE = [
     "███@@@██████",
     "███@@@██████",
 ]
-STAR_FLIPPED_TEMPLATE = [
-    "███@@@██████",
-    "███@@@██████",
-    "███@@@@@@@@@",
-    "███@@@@@@@@@",
-    "███@@@@@@@@@",
-    "@@@@@@@@@███",
-    "@@@@@@@@@███",
-    "@@@@@@@@@███",
-    "██████@@@███",
-    "██████@@@███",
-]
+
+STAR_FLIPPED_TEMPLATE = [s[::-1] for s in STAR_TEMPLATE]
 
 STAR_ROWS_OF_INTEREST = [2, 3, 4, 5, 6, 7]
 STAR_COLS_OF_INTEREST = [3, 4, 5, 6, 7, 8]
+
+
+def get_failures_json(type: str, max_walls: int, flipped: bool = False) -> str:
+    if flipped:
+        return f"failures/15x15_stars_failures_{type}_{max_walls}_flipped.json"
+    return f"failures/15x15_stars_failures_{type}_{max_walls}.json"
+
+
+def get_solutions_json(type: str, max_walls: int, flipped: bool = False) -> str:
+    if flipped:
+        return f"solutions/15x15_grid_solutions_{type}_{max_walls}_flipped.json"
+    return f"solutions/15x15_grid_solutions_{type}_{max_walls}.json"
+
+
+GRID_TEMPLATE = [
+    "______█_@@_█___",
+    "______█_@@_█___",
+    "______█_@@_█___",
+    "███__@_________",
+    "___________@___",
+    "____________███",
+    "@@@____________",
+    "_______________",
+    "____________@@@",
+    "███____________",
+    "___@___________",
+    "_________@__███",
+    "___█_@@_█______",
+    "___█_@@_█______",
+    "___█_@@_█______",
+]
+
+GRID_TEMPLATE_FLIPPED = [s[::-1] for s in GRID_TEMPLATE]

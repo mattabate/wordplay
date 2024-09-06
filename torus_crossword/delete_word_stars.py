@@ -4,7 +4,7 @@ from config import WOR_JSON, STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON
 from torus.json import load_json, write_json
 from lib import transpose, string_to_star
 
-word = "SHOOTSAT"
+word = "HOLYFIELD"
 
 words = load_json(WOR_JSON)
 
@@ -21,13 +21,12 @@ for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
 
         fails = False
         for line in star:
+            # HACK: note that this can remove a word that is part of another word - terrible
             if word in line:
-                # print("found " + word)
                 break
         else:
             for line in transpose(star):
                 if word in line:
-                    # print("found " + word)
                     break
             else:
                 new_star_sols.append(star_str)

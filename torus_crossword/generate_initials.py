@@ -6,7 +6,7 @@ import tqdm
 from config import C_WALL
 from torus.json import append_json, load_json
 from config import (
-    STAR_WIDTH,
+    STAR_HEIGHT,
     STARS_FOUND_JSON,
     STARS_FOUND_FLIPPED_JSON,
     STARS_CHECKED_JSON,
@@ -255,7 +255,7 @@ def recursive_search(grid, level=0):
                 return
 
         for c in STAR_COLS_OF_INTEREST:
-            candidate = "".join([grid[r][c] for r in range(STAR_WIDTH)]).replace(
+            candidate = "".join([grid[r][c] for r in range(STAR_HEIGHT)]).replace(
                 "█", ""
             )
             if candidate not in WORDLIST_BY_LEN[len(candidate)]:

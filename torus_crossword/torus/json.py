@@ -34,14 +34,16 @@ def append_json(json_name, grid):
             fcntl.flock(f, fcntl.LOCK_UN)
 
 
-def remove_duplicates(json_name):
+def remove_duplicates(json_name, verbose=False):
     with open(json_name, "r+") as f:
         fcntl.flock(f, fcntl.LOCK_EX)
         try:
             data = json.load(f)
-            data = list(set(data))
+            new_data = list(set(data))
             f.seek(0)
-            json.dump(data, f, indent=4, ensure_ascii=False)
+            json.dump(new_data, f, indent=4, ensure_ascii=False)
             f.truncate()
         finally:
             fcntl.flock(f, fcntl.LOCK_UN)
+    if verbose:
+        print(f"Removed {len(data) - len(new_data)} duplicates")

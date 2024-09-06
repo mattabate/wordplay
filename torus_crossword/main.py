@@ -18,6 +18,10 @@ from config import (
     GRIDCELLS,
     STAR_START,
     C_WALL,
+    GRID_TEMPLATE,
+    GRID_TEMPLATE_FLIPPED,
+    get_failures_json,
+    get_solutions_json,
 )
 
 from torus.json import append_json, load_json, write_json
@@ -38,54 +42,18 @@ f_flipped = False
 TYPE = "AD"  # TORUS ACROSS
 MAX_WALLS = 42
 
-f_verbose = True
-f_save_best = False
-id = int(time.time())
+f_verbose = False
+
+FAI_JSON = get_failures_json(TYPE, MAX_WALLS, flipped=f_flipped)
+SOL_JSON = get_solutions_json(TYPE, MAX_WALLS, flipped=f_flipped)
 
 if not f_flipped:
     STA_JSON = STARS_FOUND_JSON
-    FAI_JSON = f"failures/15x15_stars_failures_{TYPE}_{MAX_WALLS}.json"
-    SOL_JSON = f"solutions/15x15_grid_solutions_{TYPE}_{MAX_WALLS}.json"
 
-    INITIAL_TEMPLATE = [
-        "______█_@@_█___",
-        "______█_@@_█___",
-        "______█_@@_█___",
-        "███__@_________",
-        "___________@___",
-        "____________███",
-        "@@@____________",
-        "_______________",
-        "____________@@@",
-        "███____________",
-        "___@___________",
-        "_________@__███",
-        "___█_@@_█______",
-        "___█_@@_█______",
-        "___█_@@_█______",
-    ]
+    INITIAL_TEMPLATE = GRID_TEMPLATE
 else:
     STA_JSON = STARS_FOUND_FLIPPED_JSON
-    FAI_JSON = f"failures/15x15_stars_failures_{TYPE}_{MAX_WALLS}_flipped.json"
-    SOL_JSON = f"solutions/15x15_grid_solutions_{TYPE}_{MAX_WALLS}_flipped.json"
-
-    INITIAL_TEMPLATE = [
-        "___█____█______",
-        "___█____█______",
-        "___█____█______",
-        "____________███",
-        "_______________",
-        "███____________",
-        "_______________",
-        "_______________",
-        "_______________",
-        "____________███",
-        "_______________",
-        "███____________",
-        "______█____█___",
-        "______█____█___",
-        "______█____█___",
-    ]
+    INITIAL_TEMPLATE = GRID_TEMPLATE_FLIPPED
 
 if not os.path.exists(FAI_JSON):
     write_json(FAI_JSON, [])
@@ -169,9 +137,6 @@ def can_letter_go_there(suggestion: str, current_entry: str) -> bool:
     if current_entry in [suggestion, "_"] or (
         suggestion != C_WALL and current_entry == "@"
     ):
-        # if entries the same
-        # if that ljikmocation is _ in the line, or if line entry is "@"
-        # and the suggested letter is not letter
         return True
     return False
 
@@ -508,36 +473,6 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
         return "c", col_idx, transposed_col_grids
 
 
-def get_new_grids_p(grid: list[str], level) -> tuple[str, int, list[list[str]]]:
-    """Given a grid, find the best row or column to latch on to."""
-
-    if level % 2 == 1:
-        # find the best row to latch on
-        row_idx, _, best_row_grids = get_best_row(grid)
-        return "r", row_idx, best_row_grids
-    else:
-
-        # transpose to find the best collum
-        col_idx, _, best_col_grids = get_best_row(transpose(grid))
-        transposed_col_grids = [transpose(g) for g in best_col_grids]
-        return "c", col_idx, transposed_col_grids
-
-
-def get_new_grids_q(grid: list[str], level) -> tuple[str, int, list[list[str]]]:
-    """Given a grid, find the best row or column to latch on to."""
-
-    if level % 4 in [0, 1]:
-        # find the best row to latch on
-        row_idx, _, best_row_grids = get_best_row(grid)
-        return "r", row_idx, best_row_grids
-    else:
-
-        # transpose to find the best collum
-        col_idx, _, best_col_grids = get_best_row(transpose(grid))
-        transposed_col_grids = [transpose(g) for g in best_col_grids]
-        return "c", col_idx, transposed_col_grids
-
-
 def print_grid(grid: list[str], h: tuple[str, int, str]):
     BACKGROUND = T_NORMAL
 
@@ -630,22 +565,16 @@ def recursive_search(grid, level=0):
         if row_or_col == "r":
             lines = [g[start] for g in new_grids]
             # reorder longest first
-            ind_w_line_sorted = sorted(
-                enumerate(lines),
-                key=lambda x: count_letters_in_line(x[1]),
-                reverse=True,
-            )
-
-            new_grids = [new_grids[i].copy() for i, _ in ind_w_line_sorted]
         else:
             lines = [transpose(g)[start] for g in new_grids]
 
-            ind_w_line_sorted = sorted(
-                enumerate(lines),
-                key=lambda x: count_letters_in_line(x[1]),
-                reverse=True,
-            )
-            new_grids = [new_grids[i].copy() for i, _ in ind_w_line_sorted]
+        # reorder longest first
+        ind_w_line_sorted = sorted(
+            enumerate(lines),
+            key=lambda x: count_letters_in_line(x[1]),
+            reverse=True,
+        )
+        new_grids = [new_grids[i].copy() for i, _ in ind_w_line_sorted]
 
         with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
             if f_verbose:
@@ -699,7 +628,6 @@ if __name__ == "__main__":
     print(T_YELLOW + "Saving Solutions to: " + T_GREEN + SOL_JSON + T_NORMAL)
     print(T_YELLOW + "Saving Failures to: " + T_GREEN + FAI_JSON + T_NORMAL)
     print()
-    checked = load_json("completed_ics.json")
     for t, s in enumerate(id_stars_of_interest):
         init_id, star_str = s
         tqdm.tqdm.write(T_YELLOW + f"Trial {t} / {lsoi}  ({ls} tot)" + T_NORMAL)
@@ -712,9 +640,6 @@ if __name__ == "__main__":
         if star_str in fail_stars_str:
             tqdm.tqdm.write(T_BLUE + "Already Failed - Skipping" + T_NORMAL)
             continue
-        if grid in checked:
-            tqdm.tqdm.write(T_GREEN + "Already Checked - Skipping" + T_NORMAL)
-            continue
 
         new_solutions = []
         recursive_search(grid, 0)
@@ -723,8 +648,5 @@ if __name__ == "__main__":
             print(T_PINK + "No solution found." + T_NORMAL)
             append_json(FAI_JSON, star_str)
         else:
-            append_json("delete.json", grid)
-            if grid not in load_json("completed_ics.json"):
-                append_json("completed_ics.json", grid)
-            if star_str not in load_json("stars_that_made_grids.json"):
-                append_json("stars_that_made_grids.json", star_str)
+            print(T_YELLOW + "TOTALLY COMPLETED GOOD GRID" + T_NORMAL)
+            print(T_PINK + star_str + T_NORMAL)
