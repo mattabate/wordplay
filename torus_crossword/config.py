@@ -1,8 +1,9 @@
 # the wordlist contains all words in consideration for the search
 # the format is a list of strings, about 100k total
 WOR_JSON = "wordlist/word_list.json"
-
 SCORED_WORDS_JSON = "wordlist/scored_words.json"
+ACTIVE_WORDS_JSON = "wordlist/words_in_active_grids.json"
+
 
 # initial conditions for the search are refered to as stars
 # stars come in two flavors: normal and flipped
@@ -18,6 +19,12 @@ ROWLEN = 15
 COLLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
 C_WALL = "█"
+
+# Config for maip.py 15x15 search
+# Note editing may cause big problems
+IC_TYPE = "AD"
+MAX_WAL = 42
+SEARCH_W_FLIPPED = False
 
 # location of start of the star
 # note that stars wrap around the grid, touching all corners
@@ -55,6 +62,12 @@ def get_solutions_json(type: str, max_walls: int, flipped: bool = False) -> str:
     if flipped:
         return f"solutions/15x15_grid_solutions_{type}_{max_walls}_flipped.json"
     return f"solutions/15x15_grid_solutions_{type}_{max_walls}.json"
+
+
+def get_bad_solutions_json(type: str, max_walls: int, flipped: bool = False) -> str:
+    if flipped:
+        return f"bad_solutions/15x15_grid_solutions_{type}_{max_walls}_bad_flipped.json"
+    return f"bad_solutions/15x15_grid_solutions_{type}_{max_walls}_bad.json"
 
 
 GRID_TEMPLATE = [

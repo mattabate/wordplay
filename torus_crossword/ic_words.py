@@ -1,6 +1,6 @@
 """
-    this script is going to find every star that is in sols
-    but not in fails and then it is going to take hose and get the number of wor
+    this script is going to find every star that is in star_sols but not in fails
+    then it finds all the contained words
 """
 
 from config import C_WALL
@@ -13,6 +13,8 @@ from config import (
     STARS_FOUND_FLIPPED_JSON,
     get_failures_json,
     SCORED_WORDS_JSON,
+    IC_TYPE,
+    MAX_WAL,
 )
 
 
@@ -30,9 +32,7 @@ def get_words_in_star(star):
 
 
 if __name__ == "__main__":
-    TYPE = "AD"  # TORUS ACROSS
-    MAX_WALLS = 42
-    FAI_JSON = get_failures_json(TYPE, MAX_WALLS)
+    FAI_JSON = get_failures_json(IC_TYPE, MAX_WAL)
 
     sol_strs = load_json(STARS_FOUND_JSON) + load_json(STARS_FOUND_FLIPPED_JSON)
 

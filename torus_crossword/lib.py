@@ -1,6 +1,6 @@
 from enum import Enum
 import random
-from config import WOR_JSON, STAR_HEIGHT, STAR_WIDTH
+from config import WOR_JSON, STAR_HEIGHT, STAR_WIDTH, ROWLEN
 from torus.json import load_json
 
 T_NORMAL = "\033[0m"
@@ -11,7 +11,6 @@ T_PINK = "\033[95m"
 
 
 WORDLIST = load_json(WOR_JSON)
-
 
 random.shuffle(WORDLIST)
 
@@ -41,7 +40,6 @@ class Word:
         self.possibilities = WORDLIST_BY_LEN[length]
 
 
-# this is so stupid - it should have a touple position with a position in both words
 class Sqaure:
     across: Word
     down: Word
@@ -95,3 +93,28 @@ def string_to_star(s: str) -> list[str]:
         list[str]: The reshaped string (grid version of star)
     """
     return [s[i * STAR_WIDTH : (i + 1) * STAR_WIDTH] for i in range(STAR_HEIGHT)]
+
+
+def add_theme_words(template: list[str], type: str):
+    """
+    Add theme words to the initial 15x15 grid.
+    """
+    if type == "AA":
+        template[7] = "HUNT█TORUS█DOUG"
+    elif type == "AD":
+        col7 = "HNUT█_____█DOUG"
+        for i in range(ROWLEN):
+            template[i] = replace_char_in_string(template[i], col7[i], 7)
+        template[7] = "____█TORUS█____"
+    elif type == "DA":
+        template[7] = "HNUT█_____█DOUG"
+        col7 = "____█TORUS█____"
+        for i in range(ROWLEN):
+            template[i] = replace_char_in_string(template[i], col7[i], 7)
+    elif type == "DD":
+        col7 = "HUNT█TORUS█DOUG"
+        for i in range(ROWLEN):
+            template[i] = replace_char_in_string(template[i], col7[i], 7)
+    else:
+        raise ValueError(f"Invalid IC_TYPE: {type}")
+    return template

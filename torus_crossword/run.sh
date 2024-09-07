@@ -1,5 +1,5 @@
 # Define the sleep duration in seconds
-SLEEP_DURATION=70
+SLEEP_DURATION=120
 
 trap 'echo "Exiting..."; kill $PID; exit 0;' SIGINT
 
@@ -11,17 +11,11 @@ if [ $SLEEP_DURATION -le 0 ]; then
     exit 0
 else
     while true; do
-        # Start the python script in the background
         poetry run python3 main.py &
-        # Capture the process ID of the script
         PID=$!
-        # Print amount of time as string "timestep <SLEEP_DURATION>"
         echo "timestep $SLEEP_DURATION"
-        # Sleep for SLEEP_DURATION seconds
         sleep $SLEEP_DURATION
-        # Kill the process
         kill $PID
-        # Optional: Wait a moment before restarting the script
         sleep 1
     done
 fi

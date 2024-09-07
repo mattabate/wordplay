@@ -23,6 +23,10 @@ from config import (
     GRID_TEMPLATE_FLIPPED,
     get_failures_json,
     get_solutions_json,
+    IC_TYPE,
+    MAX_WAL,
+    SEARCH_W_FLIPPED,
+    ACTIVE_WORDS_JSON,
 )
 
 from torus.json import append_json, load_json, write_json
@@ -36,21 +40,17 @@ from lib import (
     T_NORMAL,
     T_PINK,
     T_YELLOW,
+    add_theme_words,
 )
 
-
-f_flipped = False
-TYPE = "AD"  # TORUS ACROSS
-MAX_WALLS = 42
-
 f_verbose = True
+f_save_words_used = False
 
-FAI_JSON = get_failures_json(TYPE, MAX_WALLS, flipped=f_flipped)
-SOL_JSON = get_solutions_json(TYPE, MAX_WALLS, flipped=f_flipped)
+FAI_JSON = get_failures_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
+SOL_JSON = get_solutions_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
 
-if not f_flipped:
+if not SEARCH_W_FLIPPED:
     STA_JSON = STARS_FOUND_JSON
-
     INITIAL_TEMPLATE = GRID_TEMPLATE
 else:
     STA_JSON = STARS_FOUND_FLIPPED_JSON
@@ -61,22 +61,8 @@ if not os.path.exists(FAI_JSON):
 if not os.path.exists(SOL_JSON):
     write_json(SOL_JSON, [])
 
-if TYPE == "AA":
-    INITIAL_TEMPLATE[7] = "HUNT█TORUS█DOUG"
-elif TYPE == "AD":
-    col7 = "HNUT█_____█DOUG"
-    for i in range(ROWLEN):
-        INITIAL_TEMPLATE[i] = replace_char_in_string(INITIAL_TEMPLATE[i], col7[i], 7)
-    INITIAL_TEMPLATE[7] = "____█TORUS█____"
-elif TYPE == "DA":
-    INITIAL_TEMPLATE[7] = "HNUT█_____█DOUG"
-    col7 = "____█TORUS█____"
-    for i in range(ROWLEN):
-        INITIAL_TEMPLATE[i] = replace_char_in_string(INITIAL_TEMPLATE[i], col7[i], 7)
-elif TYPE == "DD":
-    col7 = "HUNT█TORUS█DOUG"
-    for i in range(ROWLEN):
-        INITIAL_TEMPLATE[i] = replace_char_in_string(INITIAL_TEMPLATE[i], col7[i], 7)
+
+INITIAL_TEMPLATE = add_theme_words(INITIAL_TEMPLATE, IC_TYPE)
 
 # bests
 new_solutions = []  # tracks initial conditions solutions
@@ -415,13 +401,13 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
 
             # NOTE: This ensures not to many walls
             num_walls = "".join(candidate_grid).count(C_WALL)
-            if num_walls > MAX_WALLS:
+            if num_walls > MAX_WAL:
                 continue
 
             if grid_contains_englosed_spaces(candidate_grid):
                 continue
 
-            if num_walls == MAX_WALLS:
+            if num_walls == MAX_WAL:
                 for j in range(ROWLEN):
                     if C_WALL in candidate_grid[j]:
                         candidate_grid[j] = candidate_grid[j].replace("_", "@")
@@ -475,20 +461,19 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
 
 
 def print_grid(grid: list[str], h: tuple[str, int, str]):
-    BACKGROUND = T_NORMAL
 
-    print_grid = grid.copy()
+    grid_copy = grid.copy()
 
     h_color = h[2]
     if h[0] == "r":
-        print_grid[h[1]] = h_color + print_grid[h[1]] + BACKGROUND
+        grid_copy[h[1]] = h_color + grid_copy[h[1]] + T_NORMAL
     else:
         for i in range(ROWLEN):
-            print_grid[i] = replace_char_in_string(
-                print_grid[i], h_color + print_grid[i][h[1]] + BACKGROUND, h[1]
+            grid_copy[i] = replace_char_in_string(
+                grid_copy[i], h_color + grid_copy[i][h[1]] + T_NORMAL, h[1]
             )
 
-    return "\n".join(print_grid) + T_NORMAL
+    return "\n".join(grid_copy) + T_NORMAL
 
 
 def recursive_search(grid, level=0):
@@ -510,7 +495,7 @@ def recursive_search(grid, level=0):
         return
 
     grid_str = "".join(grid)
-    if grid_str.count(C_WALL) >= MAX_WALLS and grid_str.count("_") == 0:
+    if grid_str.count(C_WALL) >= MAX_WAL and grid_str.count("_") == 0:
         for i, line in enumerate(grid):
             if C_WALL not in line:
                 tqdm.tqdm.write(
@@ -587,14 +572,33 @@ def recursive_search(grid, level=0):
                 )
                 tqdm.tqdm.write(out2)
                 tqdm.tqdm.write(print_grid(grid, (row_or_col, start, T_GREEN)))
-
                 tqdm.tqdm.write("\n")
+
+            if f_save_words_used:
+                words_seen = set(load_json(ACTIVE_WORDS_JSON))
                 if row_or_col == "r":
                     for pp in new_grids:
-                        tqdm.tqdm.write(T_BLUE + pp[start] + T_NORMAL)
+                        row = pp[start]
+                        tqdm.tqdm.write(T_BLUE + row + T_NORMAL)
+                        words_seen |= set(
+                            [
+                                l
+                                for l in (row + row).split(C_WALL)[1:-1]
+                                if l and "@" not in l and "_" not in l
+                            ]
+                        )
                 else:
                     for pp in new_grids:
-                        tqdm.tqdm.write(T_BLUE + transpose(pp)[start] + T_NORMAL)
+                        row = transpose(pp)[start]
+                        tqdm.tqdm.write(T_BLUE + row + T_NORMAL)
+                        words_seen |= set(
+                            [
+                                l
+                                for l in (row + row).split(C_WALL)[1:-1]
+                                if l and "@" not in l and "_" not in l
+                            ]
+                        )
+                write_json(ACTIVE_WORDS_JSON, list(words_seen))
                 tqdm.tqdm.write("\n")
 
             for new_grid in t:

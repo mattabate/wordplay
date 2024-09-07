@@ -1,16 +1,19 @@
-import json
 from lib import Direction
 from fast_search import get_word_locations, ROWLEN
 import tqdm
-from config import WOR_JSON
+from config import (
+    WOR_JSON,
+    IC_TYPE,
+    MAX_WAL,
+    C_WALL,
+    get_solutions_json,
+    get_bad_solutions_json,
+)
 from torus.json import load_json, write_json
 
-TYPE = "AD"
-NUM = 42
-SOLS_PATH = f"solutions/15x15_grid_solutions_{TYPE}_{NUM}.json"
-PASS_PATH = f"bad_solutions/15x15_grid_solutions_{TYPE}_{NUM}_bad.json"
-
 WORDLIST = load_json(WOR_JSON)
+SOLS_PATH = get_solutions_json(IC_TYPE, MAX_WAL)
+PASS_PATH = get_bad_solutions_json(IC_TYPE, MAX_WAL)
 
 
 def score_words(grid: list[str]):
@@ -38,24 +41,24 @@ def score_words(grid: list[str]):
     return word_strings
 
 
-solutions = load_json(SOLS_PATH)
-passed = load_json(PASS_PATH)
+if __name__ == "__main__":
+    solutions = load_json(SOLS_PATH)
+    passed = load_json(PASS_PATH)
 
-print("number solutions ever:", len(solutions) + len(passed))
-print("number solutions considered:", len(solutions))
-allowed_grids = []
+    print("number solutions ever:", len(solutions) + len(passed))
+    print("number solutions considered:", len(solutions))
+    allowed_grids = []
 
+    for s in tqdm.tqdm(solutions):
+        words = score_words(s)
+        for w in words:
+            if w not in WORDLIST:
+                passed.append(s)
+                break
+        else:
+            allowed_grids.append(s)
 
-for s in tqdm.tqdm(solutions):
-    words = score_words(s)
-    for w in words:
-        if w not in WORDLIST:
-            passed.append(s)
-            break
-    else:
-        allowed_grids.append(s)
+    print("number solutions allowed:", len(allowed_grids))
 
-print("number solutions allowed:", len(allowed_grids))
-
-write_json(PASS_PATH, passed)
-write_json(SOLS_PATH, allowed_grids)
+    write_json(PASS_PATH, passed)
+    write_json(SOLS_PATH, allowed_grids)
