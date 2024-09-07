@@ -4,15 +4,13 @@ from config import WOR_JSON, STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON
 from torus.json import load_json, write_json
 from lib import transpose, string_to_star
 
-word = "BEINERROR"
+word = "SIDCAESAR"
 
 words = load_json(WOR_JSON)
 
 
 for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
-
     star_sols = load_json(file)
-
     initial_num = len(star_sols)
     new_star_sols = []
 
@@ -32,7 +30,7 @@ for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
                 new_star_sols.append(star_str)
 
     final_num = len(new_star_sols)
-    print("number removed ", initial_num - final_num)
+    print("number ics removed ", initial_num - final_num)
     write_json(file, new_star_sols)
 
 # remove the word from the word list

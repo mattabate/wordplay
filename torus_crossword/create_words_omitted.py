@@ -1,11 +1,9 @@
 import tqdm
-from config import WOR_JSON
+from config import WOR_JSON, WORDS_OMITTED_JSON
 from torus.json import load_json, write_json
 from lib import T_YELLOW, T_NORMAL
 
-MASTER_WL_JSON = "crossword_words.json"
-
-SAV_FILE = "words_omitted.json"
+MASTER_WL_JSON = "wordlist/scored_words.json"
 
 
 ### DO NOT EDIT BELOW THIS LINE ###
@@ -33,4 +31,4 @@ words_omitted = [
 print(T_YELLOW + "Number of Candidaes:" + T_NORMAL, len(current_list))
 print(T_YELLOW + "Num Omitted:" + T_NORMAL, len(words_omitted))
 
-write_json(SAV_FILE, words_omitted)
+write_json(WORDS_OMITTED_JSON, words_omitted)

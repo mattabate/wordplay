@@ -48,6 +48,11 @@ f_save_words_used = False
 
 FAI_JSON = get_failures_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
 SOL_JSON = get_solutions_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
+if not os.path.exists(FAI_JSON):
+    write_json(FAI_JSON, [])
+if not os.path.exists(SOL_JSON):
+    write_json(SOL_JSON, [])
+
 
 if not SEARCH_W_FLIPPED:
     STA_JSON = STARS_FOUND_JSON
@@ -56,13 +61,6 @@ else:
     STA_JSON = STARS_FOUND_FLIPPED_JSON
     INITIAL_TEMPLATE = GRID_TEMPLATE_FLIPPED
 
-if not os.path.exists(FAI_JSON):
-    write_json(FAI_JSON, [])
-if not os.path.exists(SOL_JSON):
-    write_json(SOL_JSON, [])
-
-
-INITIAL_TEMPLATE = add_theme_words(INITIAL_TEMPLATE, IC_TYPE)
 
 # bests
 new_solutions = []  # tracks initial conditions solutions
@@ -73,14 +71,7 @@ WORDLIST = load_json(WOR_JSON)
 
 for i, w in enumerate(WORDLIST):
     WORDLIST[i] = C_WALL + w + C_WALL
-
-SORTED_WORDLIST = sorted(WORDLIST, key=len)  # short words first
-SORTED_WORDLIST_L = sorted(SORTED_WORDLIST, key=len, reverse=True)  # long words first
-
-import random
-
 random.shuffle(WORDLIST)
-WORDS_TO_USE = WORDLIST
 
 
 def add_star(grid, star):
@@ -165,7 +156,7 @@ def get_new_lines(fixtures: list[tuple[str, int, str]], line: str) -> list[str]:
         num_possible_words = 0
         lc = len(cont)
         pattern = cont.replace("@", f"[^{C_WALL}]")
-        for candidate_word in WORDS_TO_USE:
+        for candidate_word in WORDLIST:
             lw = len(candidate_word)
             if lw > max_len or lw < lc:
                 continue
@@ -612,6 +603,7 @@ if __name__ == "__main__":
 
     id_stars_of_interest = []
     t0 = datetime.now()
+    INITIAL_TEMPLATE = add_theme_words(INITIAL_TEMPLATE, IC_TYPE)
     grid = INITIAL_TEMPLATE.copy()
 
     ####

@@ -3,6 +3,7 @@
 WOR_JSON = "wordlist/word_list.json"
 SCORED_WORDS_JSON = "wordlist/scored_words.json"
 ACTIVE_WORDS_JSON = "wordlist/words_in_active_grids.json"
+WORDS_OMITTED_JSON = "wordlist/words_omitted.json"
 
 
 # initial conditions for the search are refered to as stars
