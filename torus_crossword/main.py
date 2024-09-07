@@ -43,7 +43,7 @@ from lib import (
     add_theme_words,
 )
 
-f_verbose = True
+f_verbose = False
 f_save_words_used = False
 
 FAI_JSON = get_failures_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)

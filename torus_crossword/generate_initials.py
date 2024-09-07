@@ -27,7 +27,7 @@ from lib import (
     T_GREEN,
 )
 
-f_flipped = False
+f_flipped = True
 f_verbose = False
 
 if not f_flipped:
@@ -283,11 +283,7 @@ if __name__ == "__main__":
     )
 
     print("number of answers", len(words))
-    print(
-        "number of black squares",
-        "".join(TEMPLATE).count(C_WALL),
-        T_NORMAL,
-    )
+    print("direction:", "flipped" if f_flipped else "NOT flipped")
 
     words_9_letter = WORDLIST_BY_LEN[9]
     len_wln = len(words_9_letter)

@@ -2,6 +2,7 @@ import os
 
 from torus.json import load_json, write_json
 from lib import T_BLUE, T_GREEN, T_NORMAL, T_YELLOW
+from config import get_failures_json
 
 for TYPE in ["AA", "AD", "DA", "DD"]:
     print(f"{T_BLUE}Pruning Type: {TYPE}{T_NORMAL}")
@@ -28,12 +29,12 @@ for TYPE in ["AA", "AD", "DA", "DD"]:
     len_numbers = len(numbers)
     for i in range(len_numbers - 1):
         highest_number = numbers[i]
-        file1 = f"failures/15x15_stars_failures_{TYPE}_{highest_number}.json"
+        file1 = get_failures_json(type=TYPE, max_walls=highest_number, flipped=False)
         higher_data: list[list[str]] = load_json(file1)
 
         for j in range(i + 1, len_numbers):
             lower_number = numbers[j]
-            file2 = f"failures/15x15_stars_failures_{TYPE}_{lower_number}.json"
+            file2 = get_failures_json(type=TYPE, max_walls=lower_number, flipped=False)
             lower_data: list[list[str]] = load_json(file2)
 
             for grid in higher_data:
@@ -72,12 +73,12 @@ for TYPE in ["AA", "AD", "DA", "DD"]:
     len_numbers = len(numbers)
     for i in range(len_numbers - 1):
         highest_number = numbers[i]
-        file1 = f"failures/15x15_stars_failures_{TYPE}_{highest_number}_flipped.json"
+        file1 = get_failures_json(type=TYPE, max_walls=highest_number, flipped=True)
         higher_data = load_json(file1)
 
         for j in range(i + 1, len_numbers):
             lower_number = numbers[j]
-            file2 = f"failures/15x15_stars_failures_{TYPE}_{lower_number}_flipped.json"
+            file2 = get_failures_json(type=TYPE, max_walls=lower_number, flipped=True)
             lower_data: list[list[str]] = load_json(file2)
 
             for grid in higher_data:
