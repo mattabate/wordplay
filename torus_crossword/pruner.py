@@ -1,9 +1,48 @@
-import os
+"""
+What do i want this to do in the future?
+- for every star in every failure file, if that star is not in the solutions file, delete
+"""
 
+import os
+import tqdm
 from torus.json import load_json, write_json
 from lib import T_BLUE, T_GREEN, T_NORMAL, T_YELLOW
-from config import get_failures_json
+from config import get_failures_json, STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON
 
+
+def snoots():
+    """
+    if a star is in the failures file (it has been disqualified),
+    but not in the solutions file (it is not considered),
+    delete it"""
+    star_sols = load_json(STARS_FOUND_JSON)
+    star_sols_flipped = load_json(STARS_FOUND_FLIPPED_JSON)
+
+    # get all files in failures/
+    files = os.listdir("failures/")
+    for file in files:
+        file = "failures/" + file
+        if file.endswith("_flipped.json"):
+            doots = star_sols_flipped.copy()
+        else:
+            doots = star_sols.copy()
+
+        stars_failed = load_json(file)
+        new_stars_failed = []
+        for star in tqdm.tqdm(stars_failed):
+            if star in doots:
+                new_stars_failed.append(star)
+
+        print(file)
+        print("oringal", len(stars_failed))
+        print("new", len(new_stars_failed))
+        print()
+        write_json(file, new_stars_failed)
+
+
+snoots()
+
+exit()
 for TYPE in ["AA", "AD", "DA", "DD"]:
     print(f"{T_BLUE}Pruning Type: {TYPE}{T_NORMAL}")
     print(f"{T_YELLOW}Starting normal: {T_NORMAL}")
