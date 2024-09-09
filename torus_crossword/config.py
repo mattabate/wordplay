@@ -21,11 +21,43 @@ COLLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
 C_WALL = "█"
 
+###############################################
+# main.py config
+# searches for completed 15x15 grid given initial conditions
+###############################################
+
 # Config for maip.py 15x15 search
 # Note editing may cause big problems
-IC_TYPE = "AD"
+IC_TYPE = "DA"
 MAX_WAL = 42
-SEARCH_W_FLIPPED = False
+SEARCH_W_FLIPPED = True
+f_verbose = False
+f_save_words_used = False
+
+GRID_TEMPLATE = [
+    "______█_@@_█___",
+    "______█_@@_█___",
+    "______█_@@_█___",
+    "███__@_________",
+    "___________@___",
+    "____________███",
+    "@@@____________",
+    "_______________",
+    "____________@@@",
+    "███____________",
+    "___@___________",
+    "_________@__███",
+    "___█_@@_█______",
+    "___█_@@_█______",
+    "___█_@@_█______",
+]
+
+GRID_TEMPLATE_FLIPPED = [s[::-1] for s in GRID_TEMPLATE]
+
+###############################################
+# generate_initials.py config
+# searches for completed 10x12 initial conditions
+###############################################
 
 # location of start of the star
 # note that stars wrap around the grid, touching all corners
@@ -69,24 +101,3 @@ def get_bad_solutions_json(type: str, max_walls: int, flipped: bool = False) -> 
     if flipped:
         return f"bad_solutions/15x15_grid_solutions_{type}_{max_walls}_bad_flipped.json"
     return f"bad_solutions/15x15_grid_solutions_{type}_{max_walls}_bad.json"
-
-
-GRID_TEMPLATE = [
-    "______█_@@_█___",
-    "______█_@@_█___",
-    "______█_@@_█___",
-    "███__@_________",
-    "___________@___",
-    "____________███",
-    "@@@____________",
-    "_______________",
-    "____________@@@",
-    "███____________",
-    "___@___________",
-    "_________@__███",
-    "___█_@@_█______",
-    "___█_@@_█______",
-    "___█_@@_█______",
-]
-
-GRID_TEMPLATE_FLIPPED = [s[::-1] for s in GRID_TEMPLATE]

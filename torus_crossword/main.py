@@ -1,10 +1,10 @@
 """15x15 grids use _ █ and @, this script places the words"""
 
 from datetime import datetime
+import pytz
 import json
 import re
 import tqdm
-import time
 import random
 import os
 from collections import deque
@@ -27,6 +27,8 @@ from config import (
     MAX_WAL,
     SEARCH_W_FLIPPED,
     ACTIVE_WORDS_JSON,
+    f_verbose,
+    f_save_words_used,
 )
 
 from torus.json import append_json, load_json, write_json
@@ -43,8 +45,6 @@ from lib import (
     add_theme_words,
 )
 
-f_verbose = False
-f_save_words_used = False
 
 FAI_JSON = get_failures_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
 SOL_JSON = get_solutions_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
@@ -620,10 +620,16 @@ if __name__ == "__main__":
     random.shuffle(id_stars_of_interest)
     ls = len(stars_strings)
     lsoi = len(id_stars_of_interest)
+
+    # Get the current UTC time, then convert it to US Eastern
+    eastern = pytz.timezone("US/Eastern")
+    eastern_now = datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(eastern)
+    datetime_string_am_pm = eastern_now.strftime("%Y-%m-%d %I:%M:%S %p")
+
     print()
-    print(T_YELLOW + f"Starting Again: " + T_GREEN + f"{time.asctime()}" + T_NORMAL)
     print(T_YELLOW + "Saving Solutions to: " + T_GREEN + SOL_JSON + T_NORMAL)
     print(T_YELLOW + "Saving Failures to: " + T_GREEN + FAI_JSON + T_NORMAL)
+    print(T_YELLOW + "Current time: " + T_GREEN + f"{datetime_string_am_pm}" + T_NORMAL)
     print()
     for t, s in enumerate(id_stars_of_interest):
         init_id, star_str = s
