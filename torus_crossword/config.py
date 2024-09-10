@@ -31,7 +31,7 @@ C_WALL = "█"
 IC_TYPE = "DA"  # da = flipped
 MAX_WAL = 42
 SEARCH_W_FLIPPED = True
-f_verbose = False
+f_verbose = True
 f_save_words_used = False
 
 GRID_TEMPLATE = [
@@ -64,7 +64,7 @@ GRID_TEMPLATE_FLIPPED = [
     "@@@_________@@@",
     "@@@_________@@@",
     "@@@_________@@@",
-    "@@@_________@@@",
+    "@@@_________███",
     "@@@________@@@@",
     "███__@_________",
     "______█@@@@█___",
