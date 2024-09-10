@@ -222,11 +222,54 @@ def fill_small_holes_line(line: str) -> str:
     )
 
 
+import re
+
+
+def add_letter_placeholders_line(line: str) -> str:
+    """Add placeholders for letters in the line."""
+    double = line + line
+
+    matches = re.finditer(r"█[A-Z@][A-Z@_][A-Z@_]", double)
+    for match in matches:
+        if line[(match.end() - 2) % ROWLEN] == "_":
+            line = replace_char_in_string(line, "@", (match.end() - 2) % ROWLEN)
+        if line[(match.end() - 1) % ROWLEN] == "_":
+            line = replace_char_in_string(line, "@", (match.end() - 1) % ROWLEN)
+    double = line + line
+
+    matches = re.finditer(r"█_[A-Z@]_", double)
+    for match in matches:
+        line = replace_char_in_string(line, "@", (match.end() - 1) % ROWLEN)
+    double = line + line
+
+    matches = re.finditer(r"[A-Z@_][A-Z@_][A-Z@]█", double)
+    for match in matches:
+        if line[(match.start()) % ROWLEN] == "_":
+            line = replace_char_in_string(line, "@", match.start() % ROWLEN)
+        if line[(match.start() + 1) % ROWLEN] == "_":
+            line = replace_char_in_string(line, "@", (match.start() + 1) % ROWLEN)
+    double = line + line
+
+    matches = re.finditer(r"_[A-Z@]_█", double)
+    for match in matches:
+        line = replace_char_in_string(line, "@", match.start() % ROWLEN)
+
+    return line
+
+
 def fill_in_small_holes(grid: list[str]) -> list[str]:
     """Return a grid with holes filled like █_█ -> "███" or "█@__" -> "█@@@"."""
     new_grid = [fill_small_holes_line(l) for l in grid]
     tr = transpose(new_grid)  # compute transpose matrix
     new_grid = [fill_small_holes_line(l) for l in tr]
+    return transpose(new_grid)
+
+
+def add_letter_placeholders(grid: list[str]) -> list[str]:
+    """Add placeholders for letters in the grid."""
+    new_grid = [add_letter_placeholders_line(l) for l in grid]
+    tr = transpose(new_grid)  # compute transpose matrix
+    new_grid = [add_letter_placeholders_line(l) for l in tr]
     return transpose(new_grid)
 
 
@@ -389,6 +432,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
 
             candidate_grid = enforce_symmetry(candidate_grid)
             candidate_grid = fill_in_small_holes(candidate_grid)
+            candidate_grid = add_letter_placeholders(candidate_grid)
 
             # NOTE: This ensures not to many walls
             num_walls = "".join(candidate_grid).count(C_WALL)
