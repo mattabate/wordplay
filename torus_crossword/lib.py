@@ -52,6 +52,7 @@ class Sqaure:
 
 
 def transpose(grid: list[str]) -> list[str]:
+    """transpose a 15x15 character grid, represented as a list of strings"""
     return ["".join(row) for row in zip(*grid)]
 
 
