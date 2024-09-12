@@ -195,7 +195,7 @@ def is_line_filled(line: str) -> bool:
 
 def latches_in_line(line: str) -> bool:
     """Return true if line contains latches"""
-    return not any(c not in ["█", "_"] for c in line)
+    return any(c not in ["█", "_"] for c in line)
 
 
 def fill_small_holes_line(line: str) -> str:
@@ -396,7 +396,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
 
         # for each line
         line = grid[row]
-        if is_line_filled(line) or latches_in_line(line):
+        if is_line_filled(line) or not latches_in_line(line):
             continue
 
         # TODO: reduce time of get fixtures, but using one line to tell other
@@ -466,7 +466,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
 
             working_grids.append(candidate_grid)
 
-            m += 1
+            m += 1  # number of candidate lines
             if m > K_BEST_SCORE:
                 break
         else:
@@ -487,7 +487,7 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
     col_idx, best_col_score, best_col_grids = get_best_row(transpose(grid))
 
     # TODO: SOMETHING WRONG HERE???
-    if best_row_score <= best_col_score:
+    if best_row_score < best_col_score:
         return "r", row_idx, best_row_grids
     else:
         # transform back all of the column grids
@@ -590,12 +590,13 @@ def recursive_search(grid, level=0):
             lines = [transpose(g)[start] for g in new_grids]
 
         # reorder longest first
-        ind_w_line_sorted = sorted(
-            enumerate(lines),
-            key=lambda x: count_letters_in_line(x[1]),
-            reverse=True,
-        )
-        new_grids = [new_grids[i].copy() for i, _ in ind_w_line_sorted]
+        if False:
+            ind_w_line_sorted = sorted(
+                enumerate(lines),
+                key=lambda x: count_letters_in_line(x[1]),
+                reverse=True,
+            )
+            new_grids = [new_grids[i].copy() for i, _ in ind_w_line_sorted]
 
         with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
             if f_verbose:

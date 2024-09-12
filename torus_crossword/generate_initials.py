@@ -15,6 +15,8 @@ from config import (
     STAR_FLIPPED_TEMPLATE,
     STAR_ROWS_OF_INTEREST,
     STAR_COLS_OF_INTEREST,
+    STAR_SEARCH_W_FLIPPED,
+    STAR_SEARCH_VERBOSE,
 )
 from lib import (
     Direction,
@@ -27,8 +29,8 @@ from lib import (
     T_GREEN,
 )
 
-f_flipped = True
-f_verbose = False
+f_flipped = STAR_SEARCH_W_FLIPPED
+f_verbose = STAR_SEARCH_VERBOSE
 
 if not f_flipped:
     SOL_JSON = STARS_FOUND_JSON
