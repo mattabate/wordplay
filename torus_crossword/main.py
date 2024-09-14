@@ -387,9 +387,18 @@ def grid_contains_englosed_spaces(grid):
 
 
 def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
+    """Given a grid, find the best row to latch on to.
+
+    Returns:
+        int: The index of the best row
+        int: The score of the best row
+        list[list[str]]: The best grids
+    """
+
     K_INDEX = -1
-    K_BEST_SCORE = 1000000000
+    K_BEST_SCORE = 1000000000000
     K_BEST_GRIDS = []
+    score = 0
 
     for row in range(ROWLEN):
         # for every row, compute the latch with the fewest fitting words
@@ -415,7 +424,8 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
         # TODO: DO THIS WITHOUT COMPUTING GRIDS EXPLICITLY
         # now that you have the words that fit, do any lead to a trvially bad grid?
         working_grids: list[list[str]] = []
-        m = 0
+        min_new_grids = 0
+        num_blanks = 0
         for l in candidate_lines:
             candidate_grid = grid.copy()
 
@@ -465,13 +475,25 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
                 continue
 
             working_grids.append(candidate_grid)
+            num_blanks += "".join(candidate_grid).count(
+                "_"
+            )  # minimize number of total blanks
+            min_new_grids += 1  # minimize number of candidate lines
 
-            m += 1  # number of candidate lines
-            if m > K_BEST_SCORE:
+            # the idea us that i need -> 1000 grids with 0 blanks
+            # less preferable then -> 10 grids with 100 blanks
+            # 1000 grids with 0 blanks > 10 grids with 100 blanks
+            # score = num_grids * (num_blanks + 1)
+
+            # score = num_blanks + min_new_grids
+            score = min_new_grids * (num_blanks + 1)
+
+            if score > K_BEST_SCORE:  # minimize score
                 break
+
         else:
             K_INDEX = row
-            K_BEST_SCORE = m
+            K_BEST_SCORE = score
             K_BEST_GRIDS = working_grids
 
     # candidate_grid = [long_string[j:j+ROWLEN] for j in range(0, len(long_string), ROWLEN)]
@@ -487,6 +509,7 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
     col_idx, best_col_score, best_col_grids = get_best_row(transpose(grid))
 
     # TODO: SOMETHING WRONG HERE???
+    # note you want to minimize scre
     if best_row_score < best_col_score:
         return "r", row_idx, best_row_grids
     else:
@@ -530,7 +553,7 @@ def recursive_search(grid, level=0):
         return
 
     grid_str = "".join(grid)
-    if grid_str.count(C_WALL) >= MAX_WAL and grid_str.count("_") == 0:
+    if grid_str.count("_") == 0:
         for i, line in enumerate(grid):
             if C_WALL not in line:
                 tqdm.tqdm.write(
@@ -569,7 +592,6 @@ def recursive_search(grid, level=0):
 
     else:
         row_or_col, start, new_grids = get_new_grids(grid)
-        # row_or_col, start, new_grids = get_new_grids_p(grid, level)
 
         if not new_grids:
             if f_verbose:
@@ -646,7 +668,6 @@ if __name__ == "__main__":
     stars_strings = load_json(STA_JSON)
     fail_stars = load_json(FAI_JSON)
 
-    id_stars_of_interest = []
     t0 = datetime.now()
     INITIAL_TEMPLATE = add_theme_words(INITIAL_TEMPLATE, IC_TYPE)
     grid = INITIAL_TEMPLATE.copy()
@@ -656,6 +677,7 @@ if __name__ == "__main__":
     joined_grids_cache = {}
 
     fail_stars_set = set(fail_stars)
+    id_stars_of_interest = []
     id_stars_of_interest = [
         (i, s) for i, s in enumerate(stars_strings) if s not in fail_stars_set
     ]
