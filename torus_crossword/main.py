@@ -486,8 +486,8 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             # score = num_grids * (num_blanks + 1)
 
             # score = num_blanks + min_new_grids
-            score = min_new_grids * (num_blanks + 1)
-
+            # score = min_new_grids * (num_blanks + 1)
+            score = num_blanks
             if score > K_BEST_SCORE:  # minimize score
                 break
 
