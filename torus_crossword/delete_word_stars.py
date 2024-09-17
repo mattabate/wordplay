@@ -4,7 +4,7 @@ from config import WOR_JSON, STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON
 from torus.json import load_json, write_json
 from lib import transpose, string_to_star
 
-word = "FLYINGNUN"
+word = "THECRIMEA"
 
 words = load_json(WOR_JSON)
 
