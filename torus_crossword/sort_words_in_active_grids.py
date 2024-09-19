@@ -22,16 +22,5 @@ sorted_active_words = sorted(
     reverse=True,  # Set to False if you want ascending order
 )
 
-print(sorted_active_words)
 
-
-exit()
-print(json.dumps(active_words, indent=2))
-# sort active_words by score from scored_words
-active_words = sorted(
-    active_words, key=lambda x: scored_words.index([x, 0]), reverse=True
-)
-print("====")
-print(json.dumps(active_words, indent=2))
-
-# save_json(ACTIVE_WORDS_JSON, active_words)
+write_json(ACTIVE_WORDS_JSON, sorted_active_words)

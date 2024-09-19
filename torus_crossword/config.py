@@ -32,7 +32,7 @@ IC_TYPE = "DA"  # da = flipped
 MAX_WAL = 42
 SEARCH_W_FLIPPED = True
 f_verbose = False
-f_save_words_used = True
+f_save_words_used = False
 
 GRID_TEMPLATE = [
     "______█_@@_█___",
