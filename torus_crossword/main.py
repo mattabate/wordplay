@@ -640,8 +640,9 @@ def recursive_search(grid, level=0):
                 tqdm.tqdm.write(print_grid(grid, (row_or_col, start, T_GREEN)))
                 tqdm.tqdm.write("\n")
 
-            if f_save_words_used:
+            if f_save_words_used and 21 > len(new_grids) > 2:
                 words_seen = set(load_json(ACTIVE_WORDS_JSON))
+                words_seen_inital = words_seen.copy()
                 if row_or_col == "r":
                     for pp in new_grids:
                         row = pp[start]
@@ -664,15 +665,17 @@ def recursive_search(grid, level=0):
                                 if l and "@" not in l and "_" not in l
                             ]
                         )
-                write_json(ACTIVE_WORDS_JSON, list(words_seen))
-                tqdm.tqdm.write("\n")
+                words_approved = set(load_json("wordlist/words_approved.json"))
+                words_seen = words_seen - words_approved
+                if words_seen != words_seen_inital:
+                    write_json(ACTIVE_WORDS_JSON, list(words_seen))
+                    tqdm.tqdm.write("\n")
 
             for new_grid in t:
                 recursive_search(new_grid, level + 1)
 
 
 if __name__ == "__main__":
-
     stars_strings = load_json(STA_JSON)
     fail_stars = load_json(FAI_JSON)
 
@@ -726,5 +729,7 @@ if __name__ == "__main__":
             print(T_PINK + "No solution found." + T_NORMAL)
             append_json(FAI_JSON, star_str)
         else:
-            print(T_YELLOW + "TOTALLY COMPLETED GOOD GRID" + T_NORMAL)
+            for _ in range(20):
+                print(T_YELLOW + "TOTALLY COMPLETED GOOD GRID" + T_NORMAL)
             print(T_PINK + star_str + T_NORMAL)
+            exit()

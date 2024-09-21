@@ -4,7 +4,8 @@ WOR_JSON = "wordlist/word_list.json"
 SCORED_WORDS_JSON = "wordlist/scored_words.json"
 ACTIVE_WORDS_JSON = "wordlist/words_in_active_grids.json"
 WORDS_OMITTED_JSON = "wordlist/words_omitted.json"
-
+WORDS_APPROVED_JSON = "wordlist/words_approved.json"
+WORDS_CONSIDERED_JSON = "wordlist/in_consideration.json"
 
 # initial conditions for the search are refered to as stars
 # stars come in two flavors: normal and flipped
@@ -32,7 +33,8 @@ IC_TYPE = "DA"  # da = flipped
 MAX_WAL = 42
 SEARCH_W_FLIPPED = True
 f_verbose = False
-f_save_words_used = False
+f_save_words_used = True
+SLEEP_DURATION = 120
 
 GRID_TEMPLATE = [
     "______█_@@_█___",

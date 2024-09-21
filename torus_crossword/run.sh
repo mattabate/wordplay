@@ -1,7 +1,6 @@
-# Define the sleep duration in seconds
-SLEEP_DURATION=3000
-
 trap 'echo "Exiting..."; kill $PID; exit 0;' SIGINT
+
+SLEEP_DURATION=$(python3 -c "import config; print(config.SLEEP_DURATION)")
 
 # Check if SLEEP_DURATION is less than or equal to 0
 if [ $SLEEP_DURATION -le 0 ]; then
