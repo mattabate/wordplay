@@ -9,6 +9,7 @@ from config import (
 )
 from torus.json import load_json, write_json
 from lib import transpose, string_to_star
+import tqdm
 
 words_ommitted = load_json(WORDS_OMITTED_JSON)
 
@@ -18,32 +19,37 @@ for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
     initial_num = len(star_sols)
     new_star_sols = list(set(star_sols))
     final_num = len(new_star_sols)
-    print("number ics removed ", initial_num - final_num)
+    print(f"number ics removed  from {file}:", initial_num - final_num)
     write_json(file, new_star_sols)
 
 
-exit()
-
+print("(2) Check for omitted words in stars")
+words_found = set()
 for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
     star_sols = load_json(file)
     initial_num = len(star_sols)
     new_star_sols = []
 
-    for star_str in star_sols:
+    for star_str in tqdm.tqdm(star_sols):
         star = string_to_star(star_str)
 
         fails = False
         for line in star:
             # HACK: assumes no line of star with two words
-            if line.replace(C_WALL, "") in words_ommitted:
+            word_considered = line.replace(C_WALL, "")
+            if len(word_considered) > 4 and word_considered in words_ommitted:
+                words_found.add(word_considered)
                 break
         else:
             for line in transpose(star):
-                if line.replace(C_WALL, "") in words_ommitted:
+                word_considered = line.replace(C_WALL, "")
+                if len(word_considered) > 4 and word_considered in words_ommitted:
+                    words_found.add(word_considered)
                     break
             else:
                 new_star_sols.append(star_str)
 
     final_num = len(new_star_sols)
-    print("number ics removed ", initial_num - final_num)
+    print(f"number ics removed from {file}:", initial_num - final_num)
+    print(f"words found in {file}:", words_found)
     write_json(file, new_star_sols)
