@@ -2,8 +2,8 @@
 
 import json
 import tqdm
-from torus.json import append_json, load_json, write_json
-from lib import Direction, Sqaure, Word, replace_char_in_grid
+from torus.json import load_json, write_json
+from lib import Direction, Sqaure, Word, replace_char_in_grid, transpose
 import time
 import itertools
 
@@ -51,10 +51,6 @@ iterator = itertools.combinations(range(ROWLEN), 2)
 v_best_score = 0
 v_best_grids = []
 solutions = []
-
-
-def transpose(grid: list[str]) -> list[str]:
-    return ["".join(x) for x in zip(*grid)]
 
 
 def get_word_locations(grid: list[str], direction: Direction) -> list[Word]:

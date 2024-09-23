@@ -105,17 +105,20 @@ def add_theme_words(template: list[str], type: str):
     elif type == "AD":
         col7 = "HNUT█_____█DOUG"
         for i in range(ROWLEN):
-            template[i] = replace_char_in_string(template[i], col7[i], 7)
+            if col7[i] != "_":
+                template[i] = replace_char_in_string(template[i], col7[i], 7)
         template[7] = "____█TORUS█____"
     elif type == "DA":
         template[7] = "HNUT█_____█DOUG"
         col7 = "____█TORUS█____"
         for i in range(ROWLEN):
-            template[i] = replace_char_in_string(template[i], col7[i], 7)
+            if col7[i] != "_":
+                template[i] = replace_char_in_string(template[i], col7[i], 7)
     elif type == "DD":
         col7 = "HUNT█TORUS█DOUG"
         for i in range(ROWLEN):
-            template[i] = replace_char_in_string(template[i], col7[i], 7)
+            if col7[i] != "_":
+                template[i] = replace_char_in_string(template[i], col7[i], 7)
     else:
         raise ValueError(f"Invalid IC_TYPE: {type}")
     return template
