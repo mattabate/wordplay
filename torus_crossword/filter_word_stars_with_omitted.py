@@ -20,7 +20,8 @@ for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
     new_star_sols = list(set(star_sols))
     final_num = len(new_star_sols)
     print(f"number ics removed  from {file}:", initial_num - final_num)
-    write_json(file, new_star_sols)
+    if initial_num != final_num:
+        write_json(file, new_star_sols)
 
 
 print("(2) Check for omitted words in stars")
@@ -52,4 +53,5 @@ for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
     final_num = len(new_star_sols)
     print(f"number ics removed from {file}:", initial_num - final_num)
     print(f"words found in {file}:", words_found)
-    write_json(file, new_star_sols)
+    if words_found:
+        write_json(file, new_star_sols)
