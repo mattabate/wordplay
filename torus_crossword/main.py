@@ -29,6 +29,7 @@ from config import (
     ACTIVE_WORDS_JSON,
     f_verbose,
     f_save_words_used,
+    f_save_bounds,
 )
 
 from torus.json import append_json, load_json, write_json
@@ -640,7 +641,10 @@ def recursive_search(grid, level=0):
                 tqdm.tqdm.write(print_grid(grid, (row_or_col, start, T_GREEN)))
                 tqdm.tqdm.write("\n")
 
-            if f_save_words_used and 5 > len(new_grids) > 0:
+            if (
+                f_save_words_used
+                and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]
+            ):
                 words_seen = set(load_json(ACTIVE_WORDS_JSON))
                 words_seen_inital = words_seen.copy()
                 if row_or_col == "r":
