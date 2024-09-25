@@ -488,10 +488,10 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             # 1000 grids with 0 blanks > 10 grids with 100 blanks
             # score = num_grids * (num_blanks + 1)
 
-            # score = num_blanks + min_new_grids
+            score = num_blanks + min_new_grids
             # score = min_new_grids * (num_blanks + 1)
-            score = num_blanks
-            if num_blanks > K_MIN_BLANKS_SEEN:  # minimize score
+            # score = num_blanks
+            if score > K_MIN_BLANKS_SEEN:  # minimize score
                 break
 
         else:
@@ -669,6 +669,7 @@ def recursive_search(grid, level=0):
                                 if l and "@" not in l and "_" not in l
                             ]
                         )
+
                 words_approved = set(load_json("wordlist/words_approved.json"))
                 words_seen = words_seen - words_approved
                 if words_seen != words_seen_inital:
