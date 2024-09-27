@@ -4,13 +4,13 @@ from lib import Direction
 from fast_search import get_word_locations, ROWLEN
 
 from torus.json import load_json, write_json
-
+from config import get_solutions_json, SCORED_WORDS_JSON
 from main import T_PINK, T_NORMAL, T_YELLOW
 import matplotlib.pyplot as plt
 import tqdm
 
-SOLS_PATH = "solutions/15x15_grid_solutions_AD_42.json"
-SCORES_PATH = "crossword_words.json"
+SOLS_PATH = get_solutions_json("DA", 42, True)
+SCORES_PATH = SCORED_WORDS_JSON
 
 
 def reduce_to_unique_solutions():
