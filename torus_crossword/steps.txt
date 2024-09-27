@@ -1,0 +1,7 @@
+ python3 create_words_omitted.py 
+
+ python3 filter_word_stars_with_omitted.py 
+
+ python3 filter_solutions.py 
+
+ python3 process_solutions.py 
