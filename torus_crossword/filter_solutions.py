@@ -67,9 +67,9 @@ if __name__ == "__main__":
                     scored_words_seen[w] = scored_dict[w]
 
     print("number solutions allowed:", len(allowed_grids))
-
     write_json(PASS_PATH, passed)
     write_json(SOLS_PATH, allowed_grids)
+
     print("number of scored words in valid solutiosn:", len(scored_words_seen))
     sorted_data = dict(
         sorted(scored_words_seen.items(), key=lambda item: (-item[1], item[0]))

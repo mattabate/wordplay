@@ -114,7 +114,7 @@ num_best = len(best_s)
 print("NUMBER OF BEST WORD SCORES:", num_best)
 print()
 for i, s in enumerate(best_s):
-    print("\n".join(s))
+    print("\n".join([" ".join(l) for l in s]))
     word_strings, scores = score_words(s)
     print()
 
