@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from lib import T_YELLOW, T_PINK, T_NORMAL
+from lib import T_YELLOW, T_PINK, T_NORMAL, T_GREEN
 from config import (
     WORDS_CONSIDERED_JSON,
     WORDS_APPROVED_JSON,
@@ -22,7 +22,7 @@ headers = {
 
 for word in words_condered:
     url = f"https://crosswordtracker.com/answer/{word.lower()}/"
-    print(f"Word:", T_YELLOW + f"{" ".join(word.upper())}" + T_NORMAL)
+    print(f"Word:", T_GREEN + f"{" ".join(word.upper())}" + T_NORMAL)
 
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
