@@ -10,7 +10,7 @@ from config import (
 from torus.json import load_json, write_json
 
 
-words = load_json(WORDS_CONSIDERED_JSON)
+words_condered = load_json(WORDS_CONSIDERED_JSON)
 
 num_printed = 6
 params = {"search_redirect": "True"}
@@ -20,7 +20,7 @@ headers = {
     # Headers as defined previously
 }
 
-for word in words:
+for word in words_condered:
     url = f"https://crosswordtracker.com/answer/{word.lower()}/"
     print(f"Word:", T_YELLOW + f"{word.upper()}" + T_NORMAL)
 
@@ -57,14 +57,30 @@ for word in words:
         print("Saving as approved")
         words_allowed = load_json(WORDS_APPROVED_JSON)
         words_allowed.append(word)
-        write_json(WORDS_APPROVED_JSON, list(set(words_allowed)))
+        write_json(WORDS_APPROVED_JSON, words_allowed)
+
+        words_condered_new = load_json(WORDS_CONSIDERED_JSON)
+        new = []
+        for ww in words_condered_new:
+            if ww != word:
+                new.append(ww)
+        write_json(WORDS_CONSIDERED_JSON, new)
 
     elif resp.lower() == "o":
         print("Saving as Rejected")
-        words = load_json(WOR_JSON)
-        words = set(words)
-        words.remove(word)
-        write_json(WOR_JSON, list(words))
+        word_list = load_json(WOR_JSON)
+        new = []
+        for ww in word_list:
+            if ww != word:
+                new.append(ww)
+        write_json(WOR_JSON, new)
+
+        words_condered_new = load_json(WORDS_CONSIDERED_JSON)
+        new = []
+        for ww in words_condered_new:
+            if ww != word:
+                new.append(ww)
+        write_json(WORDS_CONSIDERED_JSON, new)
     else:
         print("Invalid Response")
 
