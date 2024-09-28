@@ -56,7 +56,6 @@
     "CENS": 50,
     "COIL": 50,
     "COIN": 50,
-    "CONS": 50,
     "CORAL": 50,
     "CREATE": 50,
     "CRIMERATE": 50,
@@ -574,7 +573,6 @@
     "TORUS": 47,
     "UDO": 47,
     "UIE": 47,
-    "APIN": 46,
     "DVRS": 46,
     "GOYS": 46,
     "KAEL": 46,
@@ -722,7 +720,6 @@
     "NADS": 35,
     "SORBONNE": 35,
     "SPARSELY": 35,
-    "FATA": 34,
     "NARS": 34,
     "NAYA": 34,
     "NYM": 34,
@@ -758,6 +755,5 @@
     "SPUMANTE": 31,
     "UWE": 31,
     "CENO": 30,
-    "DABA": 30,
     "SECA": 30
 }
