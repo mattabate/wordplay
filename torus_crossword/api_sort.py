@@ -22,7 +22,7 @@ headers = {
 
 for word in words_condered:
     url = f"https://crosswordtracker.com/answer/{word.lower()}/"
-    print(f"Word:", T_YELLOW + f"{word.upper()}" + T_NORMAL)
+    print(f"Word:", T_YELLOW + f"{" ".join(word.upper())}" + T_NORMAL)
 
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
