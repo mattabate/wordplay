@@ -11,6 +11,7 @@ optional:
 copy  sorted_words_in_ics.json  to  in_consideration.json
 
 poetry run python3 api_sort.py
+python3 sort_words_in_active_grids.py 
 
 python3 create_words_omitted.py  (and start over)
 ---
