@@ -1,7 +1,21 @@
- python3 create_words_omitted.py 
+python3 create_words_omitted.py 
 
- python3 filter_word_stars_with_omitted.py 
+python3 filter_word_stars_with_omitted.py 
+ - (1) Remove Duplicate Stars
+ - (2) Check for omitted words in stars
+ - (3) collect all across down in stars 
+   save them to all_words_in_ics.json and sorted_words_in_ics.json
 
- python3 filter_solutions.py 
+---
+optional:
+copy  sorted_words_in_ics.json  to  in_consideration.json
 
- python3 process_solutions.py 
+poetry run python3 api_sort.py
+
+python3 create_words_omitted.py  (and start over)
+---
+
+
+python3 filter_solutions.py 
+
+python3 process_solutions.py 
