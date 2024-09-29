@@ -19,3 +19,9 @@ python3 create_words_omitted.py  (and start over)
 python3 filter_solutions.py 
 
 python3 process_solutions.py 
+
+
+---
+
+./runds to save active words
+then copy to in consideration
