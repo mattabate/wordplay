@@ -16,13 +16,19 @@ python3 sort_words_in_active_grids.py
 python3 create_words_omitted.py  (and start over)
 ---
 
+./run.sh 
+if  f_save_words_used = True  then copy to in consideration
+
+
+---
+when you get solutions
 
 python3 filter_solutions.py 
+note this saves unchecked words seen to words_in_valid_solutions.json 
+these can then be copied to in_consideration.json for api_sort.py
+
 
 python3 process_solutions.py 
 
 
 ---
-
-./runds to save active words
-then copy to in consideration

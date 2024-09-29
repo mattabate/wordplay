@@ -1,5 +1,4 @@
 from lib import Direction
-import json
 from fast_search import get_word_locations, ROWLEN
 import tqdm
 from config import (
@@ -9,6 +8,7 @@ from config import (
     SEARCH_W_FLIPPED,
     SCORED_WORDS_JSON,
     WORDS_IN_SOLUTIONS_JSON,
+    WORDS_APPROVED_JSON,
     get_solutions_json,
     get_bad_solutions_json,
 )
@@ -16,7 +16,7 @@ from torus.json import load_json, write_json
 
 WORDLIST = load_json(WOR_JSON)
 SOLS_PATH = get_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
-PASS_PATH = get_bad_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
+BAD_SOLUTIONS = get_bad_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
 
 
 def score_words(grid: list[str]) -> list[str]:
@@ -46,7 +46,7 @@ def score_words(grid: list[str]) -> list[str]:
 
 if __name__ == "__main__":
     solutions = load_json(SOLS_PATH)
-    passed = load_json(PASS_PATH)
+    passed = load_json(BAD_SOLUTIONS)
     scored_words = load_json(SCORED_WORDS_JSON)
     scored_dict = {word_score[0]: word_score[1] for word_score in scored_words}
 
@@ -67,15 +67,27 @@ if __name__ == "__main__":
                     scored_words_seen[w] = scored_dict[w]
 
     print("number solutions allowed:", len(allowed_grids))
-    write_json(PASS_PATH, passed)
-    write_json(SOLS_PATH, allowed_grids)
+    new_p = []
+    for p in passed:
+        if p not in new_p:
+            new_p.append(p)
+    write_json(BAD_SOLUTIONS, new_p)
+    new_a = []
+    for a in allowed_grids:
+        if a not in new_a:
+            new_a.append(a)
+    write_json(SOLS_PATH, new_a)
 
     print("number of scored words in valid solutiosn:", len(scored_words_seen))
-    sorted_data = dict(
-        sorted(scored_words_seen.items(), key=lambda item: (-item[1], item[0]))
+
+    # sort by value and save as list
+    sorted_data = sorted(
+        scored_words_seen.keys(), key=lambda x: scored_words_seen[x], reverse=True
     )
-    with open(WORDS_IN_SOLUTIONS_JSON, "w") as json_file:
-        json.dump(sorted_data, json_file, indent=4)
+
+    words_approved = load_json(WORDS_APPROVED_JSON)
+    sorted_data = [x for x in sorted_data if x not in words_approved]
+    write_json(WORDS_IN_SOLUTIONS_JSON, sorted_data)
 
     print(
         f"JSON file {WORDS_IN_SOLUTIONS_JSON}' has been created with the data sorted by values."
