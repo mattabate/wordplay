@@ -23,6 +23,7 @@ from config import (
     GRID_TEMPLATE_FLIPPED,
     get_failures_json,
     get_solutions_json,
+    get_bad_solutions_json,
     IC_TYPE,
     MAX_WAL,
     SEARCH_W_FLIPPED,
@@ -49,10 +50,13 @@ from lib import (
 
 FAI_JSON = get_failures_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
 SOL_JSON = get_solutions_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
+BAD_SOL_JSON = get_bad_solutions_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
 if not os.path.exists(FAI_JSON):
     write_json(FAI_JSON, [])
 if not os.path.exists(SOL_JSON):
     write_json(SOL_JSON, [])
+if not os.path.exists(BAD_SOL_JSON):
+    write_json(BAD_SOL_JSON, [])
 
 
 if not SEARCH_W_FLIPPED:
@@ -554,7 +558,8 @@ def recursive_search(grid, level=0):
         tqdm.tqdm.write(T_NORMAL)
 
         current_solutions = load_json(SOL_JSON)
-        if grid in current_solutions:
+        current_bad_solutions = load_json(BAD_SOL_JSON)
+        if grid in current_solutions or grid in current_bad_solutions:
             tqdm.tqdm.write(T_PINK + "Already in solutions" + T_NORMAL)
             return
         new_solutions.append(grid)

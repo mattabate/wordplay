@@ -67,8 +67,7 @@ for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
     star_sols = load_json(file)
     for star_str in tqdm.tqdm(star_sols):
         star = string_to_star(star_str)
-        star = transpose(star)
-        for r in STAR_COLS_OF_INTEREST:
+        for r in STAR_ROWS_OF_INTEREST:
             line = star[r]
             word_considered = line.replace(C_WALL, "")
             if word_considered in already_seen:
