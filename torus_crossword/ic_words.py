@@ -59,4 +59,4 @@ if __name__ == "__main__":
         reverse=True,
     )
 
-    write_json("delete.json", sorted_words)
+    write_json("filter_words/scored_words_in_ics.json", sorted_words)
