@@ -75,7 +75,7 @@ for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
             entry = across_words.get(word_considered, 0)
             across_words[word_considered] = entry + 1
 
-write_json("wordlist/all_words_in_ics.json", across_words)
+write_json("filter_words/all_words_in_ics.json", across_words)
 # sort the keys by value (largest to smallest) and then save as list of strings (just key, forget value)
 sorted_words = sorted(across_words, key=across_words.get, reverse=True)
-write_json("wordlist/sorted_words_in_ics.json", sorted_words)
+write_json("filter_words/sorted_words_in_ics.json", sorted_words)

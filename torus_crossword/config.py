@@ -2,10 +2,10 @@
 # the format is a list of strings, about 100k total
 WOR_JSON = "wordlist/word_list.json"
 SCORED_WORDS_JSON = "wordlist/scored_words.json"
-ACTIVE_WORDS_JSON = "wordlist/words_in_active_grids.json"
+ACTIVE_WORDS_JSON = "filter_words/words_in_active_grids.json"
 WORDS_OMITTED_JSON = "wordlist/words_omitted.json"
 WORDS_APPROVED_JSON = "wordlist/words_approved.json"
-WORDS_CONSIDERED_JSON = "wordlist/in_consideration.json"
+WORDS_CONSIDERED_JSON = "filter_words/in_consideration.json"
 WORDS_IN_SOLUTIONS_JSON = "wordlist/words_in_valid_solutions.json"
 
 # initial conditions for the search are refered to as stars
@@ -34,9 +34,9 @@ IC_TYPE = "DA"  # da = flipped
 MAX_WAL = 42
 SEARCH_W_FLIPPED = True
 f_verbose = False
-f_save_words_used = False
-f_save_bounds = [1, 5]
-SLEEP_DURATION = 120
+f_save_words_used = True
+f_save_bounds = [1, 7]
+SLEEP_DURATION = -1
 
 GRID_TEMPLATE = [
     "______█@@@_█___",

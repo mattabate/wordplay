@@ -67,16 +67,8 @@ if __name__ == "__main__":
                     scored_words_seen[w] = scored_dict[w]
 
     print("number solutions allowed:", len(allowed_grids))
-    new_p = []
-    for p in passed:
-        if p not in new_p:
-            new_p.append(p)
-    write_json(BAD_SOLUTIONS, new_p)
-    new_a = []
-    for a in allowed_grids:
-        if a not in new_a:
-            new_a.append(a)
-    write_json(SOLS_PATH, new_a)
+    write_json(BAD_SOLUTIONS, passed)
+    write_json(SOLS_PATH, allowed_grids)
 
     print("number of scored words in valid solutiosn:", len(scored_words_seen))
 
@@ -89,6 +81,7 @@ if __name__ == "__main__":
     sorted_data = [x for x in sorted_data if x not in words_approved]
     write_json(WORDS_IN_SOLUTIONS_JSON, sorted_data)
 
+    print("number of words that still havent been checked:", len(sorted_data))
     print(
         f"JSON file {WORDS_IN_SOLUTIONS_JSON}' has been created with the data sorted by values."
     )
