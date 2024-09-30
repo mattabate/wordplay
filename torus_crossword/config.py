@@ -6,7 +6,7 @@ ACTIVE_WORDS_JSON = "filter_words/words_in_active_grids.json"
 WORDS_OMITTED_JSON = "wordlist/words_omitted.json"
 WORDS_APPROVED_JSON = "wordlist/words_approved.json"
 WORDS_CONSIDERED_JSON = "filter_words/in_consideration.json"
-WORDS_IN_SOLUTIONS_JSON = "wordlist/words_in_valid_solutions.json"
+WORDS_IN_SOLUTIONS_JSON = "filter_words/words_in_valid_solutions.json"
 
 # initial conditions for the search are refered to as stars
 # stars come in two flavors: normal and flipped

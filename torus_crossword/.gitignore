@@ -1,5 +1,7 @@
 *.prof
 
+filter_words/*
+
 nohup.out
 
 __pycache__/
