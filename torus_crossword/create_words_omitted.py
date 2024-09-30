@@ -29,6 +29,9 @@ words_omitted = [
 ]
 
 print(T_YELLOW + "Number of Candidaes:" + T_NORMAL, len(current_list))
-print(T_YELLOW + "Num Omitted:" + T_NORMAL, len(words_omitted))
+num_omitted = len(words_omitted)
+old = len(load_json(WORDS_OMITTED_JSON))
+print(T_YELLOW + "Num Omitted:" + T_NORMAL, num_omitted - old)
+print(T_YELLOW + "Total Omitted:" + T_NORMAL, num_omitted)
 
 write_json(WORDS_OMITTED_JSON, words_omitted)
