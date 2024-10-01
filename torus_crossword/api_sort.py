@@ -53,7 +53,7 @@ for word in words_condered:
     )
     print(T_NORMAL)
 
-    if resp.lower() == "p":
+    if resp.lower() in ["p", "d"]:
         print("Saving as approved")
         words_allowed = load_json(WORDS_APPROVED_JSON)
         words_allowed.append(word)
@@ -66,7 +66,7 @@ for word in words_condered:
                 new.append(ww)
         write_json(WORDS_CONSIDERED_JSON, new)
 
-    elif resp.lower() == "o":
+    elif resp.lower() in ["o", "s"]:
         print("Saving as Rejected")
         word_list = load_json(WOR_JSON)
         new = []
