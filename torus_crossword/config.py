@@ -33,10 +33,10 @@ C_WALL = "█"
 IC_TYPE = "AD"  # da = flipped
 MAX_WAL = 42
 SEARCH_W_FLIPPED = False
-f_verbose = False
-f_save_words_used = False
-f_save_bounds = [1, 50]
-SLEEP_DURATION = 120
+f_verbose = True
+f_save_words_used = True
+f_save_bounds = [1, 5]
+SLEEP_DURATION = -1
 
 GRID_TEMPLATE = [
     "______█@@@_█___",
