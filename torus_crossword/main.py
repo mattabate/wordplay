@@ -655,7 +655,6 @@ def recursive_search(grid, level=0):
                 if row_or_col == "r":
                     for pp in new_grids:
                         row = pp[start]
-                        tqdm.tqdm.write(T_BLUE + row + T_NORMAL)
                         words_seen |= set(
                             [
                                 l
@@ -666,7 +665,6 @@ def recursive_search(grid, level=0):
                 else:
                     for pp in new_grids:
                         row = transpose(pp)[start]
-                        tqdm.tqdm.write(T_BLUE + row + T_NORMAL)
                         words_seen |= set(
                             [
                                 l
@@ -678,6 +676,9 @@ def recursive_search(grid, level=0):
                 words_approved = set(load_json("wordlist/words_approved.json"))
                 words_seen = words_seen - words_approved
                 if words_seen != words_seen_inital:
+                    tqdm.tqdm.write(
+                        T_PINK + "\n".join(words_seen - words_seen_inital) + T_NORMAL
+                    )
                     write_json(ACTIVE_WORDS_JSON, list(words_seen))
                     tqdm.tqdm.write("\n")
 
