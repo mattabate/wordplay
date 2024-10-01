@@ -78,7 +78,7 @@ if __name__ == "__main__":
     )
 
     words_approved = load_json(WORDS_APPROVED_JSON)
-    sorted_data = [x for x in sorted_data if x not in words_approved]
+    sorted_data = list(set(sorted_data) - set(words_approved))
     write_json(WORDS_IN_SOLUTIONS_JSON, sorted_data)
 
     print("number of words that still havent been checked:", len(sorted_data))
