@@ -1,4 +1,4 @@
-from lib import Direction
+from lib import Direction, T_YELLOW, T_NORMAL
 from fast_search import get_word_locations, ROWLEN
 import tqdm
 from config import (
@@ -19,16 +19,11 @@ SOLS_PATH = get_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
 BAD_SOLUTIONS = get_bad_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
 
 
-def score_words(grid: list[str]) -> list[str]:
+def get_words_in_filled_grid(grid: list[str]) -> list[str]:
+    """returns a list of words in a filled grid"""
     words = get_word_locations(
         grid=grid, direction=Direction.ACROSS
     ) + get_word_locations(grid=grid, direction=Direction.DOWN)
-    # if contains duplicates, remove them
-    if len(words) != len(set(words)):
-        sols = load_json(SOLS_PATH)
-        sols.remove(grid)
-        write_json(SOLS_PATH, sols)
-        return
 
     word_strings = []
     for w in words:
@@ -45,6 +40,8 @@ def score_words(grid: list[str]) -> list[str]:
 
 
 if __name__ == "__main__":
+
+    print(f"Filtering solutions: {T_YELLOW}{SOLS_PATH}{T_NORMAL}")
     solutions = load_json(SOLS_PATH)
     passed = load_json(BAD_SOLUTIONS)
     scored_words = load_json(SCORED_WORDS_JSON)
@@ -54,11 +51,17 @@ if __name__ == "__main__":
     print("number solutions considered:", len(solutions))
     allowed_grids = []
     scored_words_seen = {}
+    bad_words_seens = set()
     for s in tqdm.tqdm(solutions):
-        words = score_words(s)
+        words = get_words_in_filled_grid(s)
+        if len(words) != len(set(words)):
+            passed.append(s)
+            continue
+
         for w in words:
             if w not in WORDLIST:
                 passed.append(s)
+                bad_words_seens.add(w)
                 break
         else:
             allowed_grids.append(s)
@@ -71,6 +74,7 @@ if __name__ == "__main__":
     write_json(SOLS_PATH, allowed_grids)
 
     print("number of scored words in valid solutiosn:", len(scored_words_seen))
+    print("bad words seen:", list(bad_words_seens))
 
     # sort by value and save as list
     sorted_data = sorted(
