@@ -57,6 +57,12 @@ for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
     print(f"number ics removed from {file}:", initial_num - final_num)
     print(f"words found in {file}:", words_found)
     if words_found:
+        old_bad_stars = load_json("bad_stars.json")
+        for x in set(star_sols) - set(new_star_sols):
+            old_bad_stars.append(x)
+        write_json("bad_stars.json", old_bad_stars)
+
+        # save the remaining stars
         write_json(file, new_star_sols)
 
 
