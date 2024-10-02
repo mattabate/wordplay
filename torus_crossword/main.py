@@ -492,9 +492,10 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             # 1000 grids with 0 blanks > 10 grids with 100 blanks
             # score = num_grids * (num_blanks + 1)
 
-            score = num_blanks + min_new_grids
             # score = min_new_grids * (num_blanks + 1)
             # score = num_blanks
+            # score = min_new_grids
+            score = num_blanks + min_new_grids
             if score > K_MIN_BLANKS_SEEN:  # minimize score
                 break
 

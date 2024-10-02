@@ -9,6 +9,9 @@ from config import (
 )
 from torus.json import load_json, write_json
 
+words_omitted = load_json(WORDS_OMITTED_JSON)
+words_appoved = load_json(WORDS_APPROVED_JSON)
+words_seen = set(words_omitted + words_appoved)
 
 words_condered = load_json(WORDS_CONSIDERED_JSON)
 
@@ -23,6 +26,10 @@ headers = {
 for word in words_condered:
     url = f"https://crosswordtracker.com/answer/{word.lower()}/"
     print(f"Word:", T_GREEN + f"{" ".join(word.upper())}" + T_NORMAL)
+    if word in words_seen:
+        print(T_PINK + "> Already seen" + T_NORMAL + "\n")
+
+        continue
 
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
