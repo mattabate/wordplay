@@ -243,25 +243,37 @@ def grid_filled(grid: list[str]) -> bool:
     return True
 
 
+def isolate_word(s) -> str:
+    return s.replace("█", "")
+
+
+def something_1(grid):
+    for r in STAR_ROWS_OF_INTEREST:
+        candidate = isolate_word(grid[r])
+        if candidate not in WORDLIST_BY_LEN[len(candidate)]:
+            return False
+    return True
+
+
+def something_2(grid):
+    for c in STAR_COLS_OF_INTEREST:
+        candidate = isolate_word("".join([grid[r][c] for r in range(STAR_HEIGHT)]))
+        if candidate not in WORDLIST_BY_LEN[len(candidate)]:
+            return False
+    return True
+
+
 def recursive_search(grid, level=0):
     global v_best_score
     global v_best_grids
 
     if f_verbose:
         print(json.dumps(grid, indent=2, ensure_ascii=False))
+
     if grid_filled(grid):
         # check to make sure rows of interest are valie words
-        for r in STAR_ROWS_OF_INTEREST:
-            candidate = grid[r].replace("█", "")
-            if candidate not in WORDLIST_BY_LEN[len(candidate)]:
-                return
-
-        for c in STAR_COLS_OF_INTEREST:
-            candidate = "".join([grid[r][c] for r in range(STAR_HEIGHT)]).replace(
-                "█", ""
-            )
-            if candidate not in WORDLIST_BY_LEN[len(candidate)]:
-                return
+        if (not something_1(grid)) or (not something_2(grid)):
+            return
 
         print("Solution found")  # Green text indicating success
 
@@ -279,6 +291,20 @@ def recursive_search(grid, level=0):
         recursive_search(new_grid.copy(), level + 1)
 
 
+LEN_SUFFIX = 4
+LEN_PREFIX = 3
+
+
+def get_suffix(word, word_len=9):
+    "ASSUMES 9 letter word"
+    return "@" * (word_len - LEN_SUFFIX) + word[(word_len - LEN_SUFFIX) :]
+
+
+def get_prefix(word, word_len=9):
+    "ASSUMES 9 letter word"
+    return word[:LEN_PREFIX] + "@" * (word_len - LEN_PREFIX)
+
+
 if __name__ == "__main__":
     words = get_word_locations(TEMPLATE, Direction.ACROSS) + get_word_locations(
         TEMPLATE, Direction.DOWN
@@ -288,6 +314,9 @@ if __name__ == "__main__":
     print("direction:", "flipped" if f_flipped else "NOT flipped")
 
     words_9_letter = WORDLIST_BY_LEN[9]
+    pref_set = set(get_prefix(w) for w in words_9_letter)
+    suff_set = set(get_suffix(w) for w in words_9_letter)
+
     len_wln = len(words_9_letter)
     t0 = time.time()
 
@@ -298,17 +327,16 @@ if __name__ == "__main__":
             print(T_GREEN + "Already checked" + T_NORMAL)
             continue
         grid = TEMPLATE.copy()
+
         if not f_flipped:
             grid[3] = seed + "███"
+            for seed2 in tqdm.tqdm(pref_set):
+                grid[4] = seed2 + "███"
+                recursive_search(grid, 0)
         else:
             grid[3] = "███" + seed
-
-        for seed2 in tqdm.tqdm(words_9_letter):
-            if not f_flipped:
-                grid[4] = seed2 + "███"
-            else:
+            for seed2 in tqdm.tqdm(suff_set):
                 grid[4] = "███" + seed2
-
-            recursive_search(grid, 0)
+                recursive_search(grid, 0)
 
         append_json(CHE_JSON, seed)
