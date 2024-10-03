@@ -67,6 +67,7 @@ for is_flipped in [False, True]:
         old_bad_stars = load_json(bad_stars_json)
         for x in set(star_sols) - set(new_star_sols):
             old_bad_stars.append(x)
+
         write_json(bad_stars_json, old_bad_stars)
 
         # save the remaining stars

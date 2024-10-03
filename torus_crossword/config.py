@@ -11,11 +11,11 @@ WORDS_IN_SOLUTIONS_JSON = "filter_words/words_in_valid_solutions.json"
 # initial conditions for the search are refered to as stars
 # stars come in two flavors: normal and flipped
 # files where the stars are stored are named star_sols.json and star_sols_flipped.json
-STARS_FOUND_JSON = "star_sols.json"
-STARS_FOUND_FLIPPED_JSON = "star_sols_flipped.json"
+STARS_FOUND_JSON = "ic_data/star_sols.json"
+STARS_FOUND_FLIPPED_JSON = "ic_data/star_sols_flipped.json"
 
-STARS_CHECKED_JSON = "stars_checked.json"
-STARS_CHECKED_FLIPPED_JSON = "stars_checked_flipped.json"
+STARS_CHECKED_JSON = "ic_data/stars_checked.json"
+STARS_CHECKED_FLIPPED_JSON = "ic_data/stars_checked_flipped.json"
 
 # basic properties of the grid
 ROWLEN = 15
@@ -82,8 +82,8 @@ GRID_TEMPLATE_FLIPPED = [
 ###############################################
 STAR_SEARCH_W_FLIPPED = True
 STAR_SEARCH_VERBOSE = False
-BAD_STAR_JSON = "bad_stars.json"
-BAD_STAR_FLIPPED_JSON = "bad_stars_flipped.json"
+BAD_STAR_JSON = "ic_data/bad_stars.json"
+BAD_STAR_FLIPPED_JSON = "ic_data/bad_stars_flipped.json"
 
 # location of start of the star
 # note that stars wrap around the grid, touching all corners

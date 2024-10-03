@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from lib import T_YELLOW, T_PINK, T_NORMAL, T_GREEN
+from lib import T_YELLOW, T_PINK, T_NORMAL, T_GREEN, T_BLUE
 from config import (
     WORDS_CONSIDERED_JSON,
     WORDS_APPROVED_JSON,
@@ -8,6 +8,8 @@ from config import (
     WORDS_OMITTED_JSON,
 )
 from torus.json import load_json, write_json
+import time
+import random
 
 words_omitted = load_json(WORDS_OMITTED_JSON)
 words_appoved = load_json(WORDS_APPROVED_JSON)
@@ -35,6 +37,9 @@ for word in words_condered:
     if response.status_code != 200:
         print(T_PINK + f"No Clues Found for '{word}'" + T_NORMAL)
     else:
+        print(T_BLUE + f"Clues Found for '{word}'" + T_NORMAL + "... Skipping \n")
+        time.sleep(random.random() * 2)
+        continue
         soup = BeautifulSoup(response.text, "lxml")
         clue_container = soup.find(
             "h3", string="Referring crossword puzzle clues"
