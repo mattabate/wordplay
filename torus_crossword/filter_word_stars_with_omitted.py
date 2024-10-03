@@ -1,7 +1,6 @@
 """Given a bad word, remove it from all stars and the word_list"""
 
 from config import (
-    WOR_JSON,
     STARS_FOUND_JSON,
     STARS_FOUND_FLIPPED_JSON,
     WORDS_OMITTED_JSON,
@@ -9,6 +8,8 @@ from config import (
     C_WALL,
     STAR_ROWS_OF_INTEREST,
     STAR_COLS_OF_INTEREST,
+    BAD_STAR_JSON,
+    BAD_STAR_FLIPPED_JSON,
 )
 from torus.json import load_json, write_json
 from lib import transpose, string_to_star
@@ -29,7 +30,13 @@ for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
 
 print("(2) Check for omitted words in stars")
 words_found = set()
-for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
+for is_flipped in [False, True]:
+    if is_flipped:
+        file = STARS_FOUND_FLIPPED_JSON
+        bad_stars_json = BAD_STAR_FLIPPED_JSON
+    else:
+        file = STARS_FOUND_JSON
+        bad_stars_json = BAD_STAR_JSON
     star_sols = load_json(file)
     initial_num = len(star_sols)
     new_star_sols = []
@@ -57,10 +64,10 @@ for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
     print(f"number ics removed from {file}:", initial_num - final_num)
     print(f"words found in {file}:", words_found)
     if words_found:
-        old_bad_stars = load_json("bad_stars.json")
+        old_bad_stars = load_json(bad_stars_json)
         for x in set(star_sols) - set(new_star_sols):
             old_bad_stars.append(x)
-        write_json("bad_stars.json", old_bad_stars)
+        write_json(bad_stars_json, old_bad_stars)
 
         # save the remaining stars
         write_json(file, new_star_sols)

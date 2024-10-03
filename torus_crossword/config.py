@@ -82,6 +82,8 @@ GRID_TEMPLATE_FLIPPED = [
 ###############################################
 STAR_SEARCH_W_FLIPPED = True
 STAR_SEARCH_VERBOSE = False
+BAD_STAR_JSON = "bad_stars.json"
+BAD_STAR_FLIPPED_JSON = "bad_stars_flipped.json"
 
 # location of start of the star
 # note that stars wrap around the grid, touching all corners
