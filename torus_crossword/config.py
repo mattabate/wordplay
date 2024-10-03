@@ -36,7 +36,7 @@ SEARCH_W_FLIPPED = True
 f_verbose = False
 f_save_words_used = False
 f_save_bounds = [1, 40]
-SLEEP_DURATION = 120
+SLEEP_DURATION = -1
 
 GRID_TEMPLATE = [
     "______█@@@_█___",
