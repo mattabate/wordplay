@@ -80,7 +80,7 @@ GRID_TEMPLATE_FLIPPED = [
 # generate_initials.py config
 # searches for completed 10x12 initial conditions
 ###############################################
-STAR_SEARCH_W_FLIPPED = True
+STAR_SEARCH_W_FLIPPED = False
 STAR_SEARCH_VERBOSE = False
 BAD_STAR_JSON = "ic_data/bad_stars.json"
 BAD_STAR_FLIPPED_JSON = "ic_data/bad_stars_flipped.json"
