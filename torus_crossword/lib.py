@@ -39,6 +39,9 @@ class Word:
         self.length = length
         self.possibilities = WORDLIST_BY_LEN[length]
 
+    def copy(self):
+        return Word(self.start, self.direction, self.length)
+
 
 class Sqaure:
     across: Word

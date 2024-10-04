@@ -32,6 +32,7 @@ for word in words_condered:
     print(f"Word:", T_GREEN + f"{" ".join(word.upper())}" + T_NORMAL)
     if word in words_seen:
         print(T_PINK + "> Already seen" + T_NORMAL + "\n")
+        continue
 
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:

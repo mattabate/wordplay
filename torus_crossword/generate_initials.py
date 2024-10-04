@@ -91,15 +91,16 @@ def get_word_locations(grid: list[list[str]], direction: Direction) -> list[Word
 
 def initalize(grid):
     # NOTE: initialize words
-    words = get_word_locations(grid, Direction.ACROSS) + get_word_locations(
-        grid, Direction.DOWN
-    )
+    unfilled_accross_words = get_word_locations(grid, Direction.ACROSS)
+    unfilled_down_words = get_word_locations(grid, Direction.DOWN)
+    words = unfilled_accross_words + unfilled_down_words
 
     # NOTE: initialize square_to_word_map
     square_to_word_map: dict[list[tuple[int, int]], Sqaure] = {}
     for i, j in letter_locs:
         letter = grid[i][j]
         square_to_word_map[(i, j)] = Sqaure(None, None)
+        # initialize square as empty (ABCDEFGHIJKLMNOPQRSTUVWXYZ possible)
         if letter != "@":
             square_to_word_map[(i, j)].possible_chars = {letter}
 
@@ -166,17 +167,19 @@ def update_word_possibilities(
                     else:
                         new_possibilities += "," + p
             case Direction.DOWN:
-                for p in w.possibilities:
-                    for i, c in enumerate(p):
+                for p in w.possibilities:  # for every possible word
+                    for i, c in enumerate(p):  # for every character in the word
                         if (
                             c
                             not in square_to_word_map[
                                 ((x_start + i), y_start)
                             ].possible_chars
-                        ):
+                        ):  # if the character is not in the possible characters for the square
                             break
                     else:
-                        new_possibilities += "," + p
+                        new_possibilities += (
+                            "," + p
+                        )  # if every characters in the word wordks, add the word!
 
         w.possibilities = new_possibilities.split(",")[1:]
 
