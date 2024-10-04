@@ -11,6 +11,8 @@ from torus.json import load_json, write_json
 import time
 import random
 
+without_clues_only = False
+
 words_omitted = load_json(WORDS_OMITTED_JSON)
 words_appoved = load_json(WORDS_APPROVED_JSON)
 words_seen = set(words_omitted + words_appoved)
@@ -31,15 +33,14 @@ for word in words_condered:
     if word in words_seen:
         print(T_PINK + "> Already seen" + T_NORMAL + "\n")
 
-        continue
-
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         print(T_PINK + f"No Clues Found for '{word}'" + T_NORMAL)
     else:
         print(T_BLUE + f"Clues Found for '{word}'" + T_NORMAL + "... Skipping \n")
         time.sleep(random.random() * 2)
-        continue
+        if without_clues_only:
+            continue
         soup = BeautifulSoup(response.text, "lxml")
         clue_container = soup.find(
             "h3", string="Referring crossword puzzle clues"
