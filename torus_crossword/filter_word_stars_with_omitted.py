@@ -104,6 +104,17 @@ for f_flipped in [False, True]:
             entry = across_words.get(word_considered, 0)
             across_words[word_considered] = entry + 1
 
+    for star_str in tqdm.tqdm(in_consideration):
+        star = string_to_star(star_str)
+        star = transpose(star)
+        for r in STAR_COLS_OF_INTEREST:
+            line = star[r]
+            word_considered = line.replace(C_WALL, "")
+            if word_considered in already_seen:
+                continue
+            entry = across_words.get(word_considered, 0)
+            across_words[word_considered] = entry + 1
+
 write_json("filter_words/all_words_in_ics.json", across_words)
 # sort the keys by value (largest to smallest) and then save as list of strings (just key, forget value)
 sorted_words = sorted(across_words, key=across_words.get, reverse=True)
