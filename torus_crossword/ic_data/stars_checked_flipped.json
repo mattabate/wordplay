@@ -709,5 +709,9 @@
     "PAPERTHIN",
     "BORROWERS",
     "ROBINCOOK",
-    "GOSSIPING"
+    "GOSSIPING",
+    "CLOSEDSET",
+    "CHECKSOUT",
+    "NETLOSSES",
+    "CHALKLINE"
 ]
