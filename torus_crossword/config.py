@@ -33,8 +33,8 @@ C_WALL = "█"
 IC_TYPE = "DA"  # da = flipped
 MAX_WAL = 42
 SEARCH_W_FLIPPED = True
-f_verbose = True
-f_save_words_used = True
+f_verbose = False
+f_save_words_used = False
 f_save_bounds = [1, 15]
 SLEEP_DURATION = -1
 
@@ -80,7 +80,7 @@ GRID_TEMPLATE_FLIPPED = [
 # generate_initials.py config
 # searches for completed 10x12 initial conditions
 ###############################################
-STAR_SEARCH_W_FLIPPED = True
+STAR_SEARCH_W_FLIPPED = False
 STAR_SEARCH_VERBOSE = False
 BAD_STAR_JSON = "ic_data/bad_stars.json"
 BAD_STAR_FLIPPED_JSON = "ic_data/bad_stars_flipped.json"

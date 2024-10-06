@@ -294,8 +294,8 @@ def recursive_search(grid, level=0):
         recursive_search(new_grid.copy(), level + 1)
 
 
-LEN_SUFFIX = 4
-LEN_PREFIX = 3
+LEN_SUFFIX = 5
+LEN_PREFIX = 5
 
 
 def get_suffix(word, word_len=9):
