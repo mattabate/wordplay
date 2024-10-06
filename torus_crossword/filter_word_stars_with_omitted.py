@@ -10,6 +10,7 @@ from config import (
     STAR_COLS_OF_INTEREST,
     BAD_STAR_JSON,
     BAD_STAR_FLIPPED_JSON,
+    get_failures_json,
 )
 from torus.json import load_json, write_json
 from lib import transpose, string_to_star
@@ -80,9 +81,20 @@ for is_flipped in [False, True]:
 print("(3) collect all down words in stars")
 already_seen = load_json(WORDS_APPROVED_JSON)
 across_words = dict()
-for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
+for f_flipped in [False, True]:
+    if f_flipped:
+        file = STARS_FOUND_FLIPPED_JSON
+        filed_file = get_failures_json("DA", 42, True)
+    else:
+        file = STARS_FOUND_JSON
+        filed_file = get_failures_json("AD", 42, False)
+
     star_sols = load_json(file)
-    for star_str in tqdm.tqdm(star_sols):
+    already_failed = load_json(filed_file)
+
+    in_consideration = set(star_sols) - set(already_failed)
+
+    for star_str in tqdm.tqdm(in_consideration):
         star = string_to_star(star_str)
         for r in STAR_ROWS_OF_INTEREST:
             line = star[r]
