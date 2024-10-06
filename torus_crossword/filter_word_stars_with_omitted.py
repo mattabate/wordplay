@@ -21,7 +21,10 @@ print("(1) Remove Duplicate Stars")
 for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
     star_sols = load_json(file)
     initial_num = len(star_sols)
-    new_star_sols = list(set(star_sols))
+    new_star_sols = []
+    for s in tqdm.tqdm(star_sols):
+        if s not in new_star_sols:
+            new_star_sols.append(s)
     final_num = len(new_star_sols)
     print(f"number ics removed  from {file}:", initial_num - final_num)
     if initial_num != final_num:
