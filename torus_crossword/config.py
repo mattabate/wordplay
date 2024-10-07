@@ -30,13 +30,13 @@ C_WALL = "█"
 
 # Config for maip.py 15x15 search
 # Note editing may cause big problems
-IC_TYPE = "AD"  # da = flipped
+IC_TYPE = "DA"  # da = flipped
 MAX_WAL = 42
-SEARCH_W_FLIPPED = False
-f_verbose = True
+SEARCH_W_FLIPPED = True
+f_verbose = False
 f_save_words_used = False
-f_save_bounds = [1, 5]
-SLEEP_DURATION = 120
+f_save_bounds = [1, 2]
+SLEEP_DURATION = -1
 
 GRID_TEMPLATE = [
     "______█@@@_█___",
@@ -80,7 +80,7 @@ GRID_TEMPLATE_FLIPPED = [
 # generate_initials.py config
 # searches for completed 10x12 initial conditions
 ###############################################
-STAR_SEARCH_W_FLIPPED = False
+STAR_SEARCH_W_FLIPPED = False  # during coalesce, leave this false
 STAR_SEARCH_VERBOSE = False
 BAD_STAR_JSON = "ic_data/bad_stars.json"
 BAD_STAR_FLIPPED_JSON = "ic_data/bad_stars_flipped.json"
