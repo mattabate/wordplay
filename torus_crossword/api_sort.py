@@ -34,8 +34,12 @@ for word in words_condered:
         print(T_PINK + "> Already seen" + T_NORMAL + "\n")
         continue
 
-    response = requests.get(url, headers=headers, params=params)
-    if response.status_code != 200:
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        code = response.status_code
+    except:
+        code = 1
+    if code != 200:
         print(T_PINK + f"No Clues Found for '{word}'" + T_NORMAL)
     else:
         print(T_BLUE + f"Clues Found for '{word}'" + T_NORMAL + "... Skipping \n")
