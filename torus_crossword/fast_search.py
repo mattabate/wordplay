@@ -28,10 +28,28 @@ INITIAL_TEMPLATE = [
 ]
 
 
+INITIAL_TEMPLATE = [
+    "@@@█@@@@█@@@@@@",
+    "@@@█@@@@█@@@@@@",
+    "@@@█@@@@█@@@@@@",
+    "@@@@@@@@@@@@███",
+    "@@@@@█@@@@█@@@@",
+    "███@@@@@@@@@@@@",
+    "@@@@█@@@@█@@@@@",
+    "@@@@@@@█@@@@@@@",
+    "@@@@@█@@@@█@@@@",
+    "@@@@@@@@@@@@███",
+    "@@@@█@@@@█@@@@@",
+    "███@@@@@@@@@@@@",
+    "@@@@@@█@@@@█@@@",
+    "@@@@@@█@@@@█@@@",
+    "@@@@@@█@@@@█@@@",  # note - double here could come out
+]
+
 id = int(time.time())
-BES_JSON = f"results/bests_{id}.json"
+BES_JSON = f"bests_{id}.json"
 SOL_JSON = f"solutions/solutions_{id}.json"
-FAI_JSON = "fails.json"
+FAI_JSON = "temp_fails.json"
 
 ROWLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
