@@ -449,12 +449,13 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
 
             candidate_grid = enforce_symmetry(candidate_grid)
             candidate_grid = fill_in_small_holes(candidate_grid)
-            candidate_grid = add_letter_placeholders(candidate_grid)
 
             # NOTE: This ensures not to many walls
             num_walls = "".join(candidate_grid).count(C_WALL)
             if num_walls > MAX_WAL:
                 continue
+
+            candidate_grid = add_letter_placeholders(candidate_grid)
 
             if grid_contains_englosed_spaces(candidate_grid):
                 continue
