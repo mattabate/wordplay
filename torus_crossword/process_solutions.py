@@ -4,12 +4,18 @@ from lib import Direction
 from fast_search import get_word_locations, ROWLEN
 
 from torus.json import load_json, write_json
-from config import get_solutions_json, SCORED_WORDS_JSON
+from config import (
+    get_solutions_json,
+    SCORED_WORDS_JSON,
+    SEARCH_W_FLIPPED,
+    IC_TYPE,
+    MAX_WAL,
+)
 from main import T_PINK, T_NORMAL, T_YELLOW
 import matplotlib.pyplot as plt
 import tqdm
 
-SOLS_PATH = get_solutions_json("DA", 42, True)
+SOLS_PATH = get_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
 SCORES_PATH = SCORED_WORDS_JSON
 
 
