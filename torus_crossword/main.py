@@ -214,20 +214,7 @@ def fill_small_holes_line(line: str) -> str:
         line = "███" + line[3:]
     if line.endswith("█__") or line.endswith("██_"):
         line = line[:-3] + "███"
-    return (
-        line.replace("█_█", "███")
-        .replace("█__█", "████")
-        .replace("█@__", "█@@@")
-        .replace("█@@_", "█@@@")
-        .replace("█@_@", "█@@@")
-        .replace("__@█", "@@@█")
-        .replace("@_@█", "@@@█")
-        .replace("_@@█", "@@@█")
-        .replace("█_@_█", "█@@@█")
-    )
-
-
-import re
+    return line.replace("█_█", "███").replace("█__█", "████")
 
 
 def add_letter_placeholders_line(line: str) -> str:
