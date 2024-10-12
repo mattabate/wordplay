@@ -17,6 +17,7 @@ import tqdm
 
 SOLS_PATH = get_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
 SCORES_PATH = SCORED_WORDS_JSON
+score_list = load_json(SCORES_PATH)
 
 
 def reduce_to_unique_solutions():
@@ -41,11 +42,6 @@ def reduce_to_unique_solutions():
         write_json(SOLS_PATH, unique_solutions)
 
     return unique_solutions
-
-
-solutions = reduce_to_unique_solutions()
-
-score_list = load_json(SCORES_PATH)
 
 
 def score_words(grid: list[str]):
@@ -78,6 +74,12 @@ def score_words(grid: list[str]):
     return word_strings, scores
 
 
+print(T_YELLOW + "REMOVE DUPLICATES" + T_NORMAL)
+solutions = reduce_to_unique_solutions()
+
+
+print(T_YELLOW + "SCORING GRIDS" + T_NORMAL)
+
 highest_average_words_score = 0
 fewest_words = 10000
 lowest_variance = 10000
@@ -86,9 +88,11 @@ best_s = []
 best_w = []
 
 av_scores = []
-print(T_YELLOW + "SCORING GRIDS" + T_NORMAL)
 for s in tqdm.tqdm(solutions):
     word_strings, scores = score_words(s)
+    print(word_strings)
+    print(scores)
+    exit()
 
     num_words = len(word_strings)
     average_score = sum(scores) / num_words
@@ -144,7 +148,6 @@ print(
     T_YELLOW + "Worst Words in Best Grids:" + T_NORMAL,
     snoot[:5],
 )
-snoot = zip(word_strings, scores)
 
 # min minus 1 to max plus 1 rounded to 0.1
 bins = np.arange(round(min(av_scores) - 1, 1), round(max(av_scores) + 1, 1), 0.1)

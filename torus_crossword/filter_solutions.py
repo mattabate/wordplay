@@ -43,7 +43,28 @@ if __name__ == "__main__":
 
     print(f"Filtering solutions: {T_YELLOW}{SOLS_PATH}{T_NORMAL}")
     solutions = load_json(SOLS_PATH)
+
+    print(T_YELLOW, "Reducing Solutions to Unique", T_NORMAL)
+    unique_solutions = []
+    for s in tqdm.tqdm(solutions):
+        if s not in unique_solutions:
+            unique_solutions.append(s)
+    print("Number of solutions in json:", len(solutions))
+    solutions = unique_solutions
+    print("Number of unique solutions:", len(solutions))
+    write_json(SOLS_PATH, solutions)
+
     passed = load_json(BAD_SOLUTIONS)
+    unique_bad_solutions = []
+    print("Number of bad solutions in json:", len(passed))
+    for s in tqdm.tqdm(passed):
+        if s not in unique_bad_solutions:
+            unique_bad_solutions.append(s)
+    passed = unique_bad_solutions
+    print("Number of unique bad solutions:", len(passed))
+    write_json(BAD_SOLUTIONS, passed)
+    exit()
+
     scored_words = load_json(SCORED_WORDS_JSON)
     scored_dict = {word_score[0]: word_score[1] for word_score in scored_words}
 
