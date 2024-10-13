@@ -15,7 +15,7 @@ from config import (
 from torus.json import load_json, write_json, remove_duplicates
 
 
-f_reomve_duplicates = False
+f_reomve_duplicates = True
 f_reomve_duplicates_bad = False
 
 WORDLIST = load_json(WOR_JSON)

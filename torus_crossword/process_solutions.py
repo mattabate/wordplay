@@ -145,7 +145,7 @@ snoot = sorted(snoot, key=lambda x: x[1])
 
 print(
     T_YELLOW + "Worst Words in Best Grids:" + T_NORMAL,
-    snoot[:5],
+    snoot[:40],
 )
 
 # min minus 1 to max plus 1 rounded to 0.1
