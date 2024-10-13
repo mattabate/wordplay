@@ -4,7 +4,6 @@ from config import (
     SCORES_DICT_JSON,
     WORDS_CONSIDERED_JSON,
 )
-import json
 from torus.json import load_json, write_json
 
 
