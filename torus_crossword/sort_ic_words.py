@@ -11,10 +11,12 @@ from config import (
     STAR_COLS_OF_INTEREST,
     STARS_FOUND_JSON,
     STARS_FOUND_FLIPPED_JSON,
+    WORDS_APPROVED_JSON,
     get_failures_json,
     SCORES_DICT_JSON,
     IC_TYPE,
     MAX_WAL,
+    SEARCH_W_FLIPPED,
 )
 
 
@@ -32,19 +34,26 @@ def get_words_in_star(star):
 
 
 if __name__ == "__main__":
-    FAI_JSON = get_failures_json(IC_TYPE, MAX_WAL)
+    FAI_JSON = get_failures_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
 
-    sol_strs = load_json(STARS_FOUND_JSON) + load_json(STARS_FOUND_FLIPPED_JSON)
+    if SEARCH_W_FLIPPED:
+        sol_strs = load_json(STARS_FOUND_FLIPPED_JSON)
+    else:
+        sol_strs = load_json(STARS_FOUND_JSON)
 
     fails_set = set(load_json(FAI_JSON))
 
     good_star_strs = [s for s in sol_strs if s not in fails_set]
+
+    words_approved = load_json(WORDS_APPROVED_JSON)
 
     print("number words in all ics", len(good_star_strs))
     all_words = set()
     for s in good_star_strs:
         star = string_to_star(s)
         all_words |= get_words_in_star(star)
+
+    all_words = all_words - set(words_approved)
 
     word_scores = load_json(SCORES_DICT_JSON)
 

@@ -1,23 +1,21 @@
 import tqdm
-from config import WOR_JSON, WORDS_OMITTED_JSON
+from config import WOR_JSON, WORDS_OMITTED_JSON, SCORES_DICT_JSON
 from torus.json import load_json, write_json
 from lib import T_YELLOW, T_NORMAL
-
-MASTER_WL_JSON = "wordlist/scored_words.json"
 
 
 ### DO NOT EDIT BELOW THIS LINE ###
 MIN_SOCRE = 30
 ###                             ###
 
-scored_words = load_json(MASTER_WL_JSON)
+scored_words = load_json(SCORES_DICT_JSON)
 
-print(T_YELLOW + "Len Wordlist:" + T_NORMAL, len(scored_words))
+print(T_YELLOW + "Len Wordlist:" + T_NORMAL, len(scored_words.keys()))
 
 current_list = load_json(WOR_JSON)
 
 admissible = []
-for word, score in scored_words:
+for word, score in scored_words.items():
     word = word.replace("-", "").replace("'", "")
     if 2 < len(word) < 15 and score >= MIN_SOCRE:
         admissible.append(word)

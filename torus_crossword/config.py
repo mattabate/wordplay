@@ -33,7 +33,7 @@ C_WALL = "█"
 
 # IC_TYPE = "AD"
 # SEARCH_W_FLIPPED = False
-# note - WE HAVE GOOD for AD, 42, not flipped
+# note - WE HAVE GOOD for AD, 42, not flipped [but no solutions for 40]
 
 IC_TYPE = "DA"  # da = flipped
 SEARCH_W_FLIPPED = True
@@ -41,11 +41,11 @@ SEARCH_W_FLIPPED = True
 # IC_TYPE = "A"  # A = flipped
 # SEARCH_W_FLIPPED = True
 
-MAX_WAL = 42
-f_verbose = True
+MAX_WAL = 40
+f_verbose = False
 f_save_words_used = False
 f_save_bounds = [1, 3]
-SLEEP_DURATION = 180
+SLEEP_DURATION = 120
 
 GRID_TEMPLATE = [
     "______█@@@_█___",
