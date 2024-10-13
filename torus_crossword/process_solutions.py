@@ -1,12 +1,11 @@
-import json
 import numpy as np
-from lib import Direction
+from lib import Direction, transpose
 from fast_search import get_word_locations, ROWLEN
 
 from torus.json import load_json, write_json
 from config import (
     get_solutions_json,
-    SCORED_WORDS_JSON,
+    SCORES_DICT_JSON,
     SEARCH_W_FLIPPED,
     IC_TYPE,
     MAX_WAL,
@@ -16,8 +15,7 @@ import matplotlib.pyplot as plt
 import tqdm
 
 SOLS_PATH = get_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
-SCORES_PATH = SCORED_WORDS_JSON
-score_list = load_json(SCORES_PATH)
+scored_words_dict = load_json(SCORES_DICT_JSON)
 
 
 def reduce_to_unique_solutions():
@@ -66,7 +64,7 @@ def score_words(grid: list[str]):
                 string_word += grid[(w.start[0] + i) % ROWLEN][w.start[1]]
 
         word_strings.append(string_word)
-        for wr, sc in score_list:
+        for wr, sc in scored_words_dict.items():
             if wr == string_word:
                 scores.append(sc)
                 break
@@ -90,9 +88,6 @@ best_w = []
 av_scores = []
 for s in tqdm.tqdm(solutions):
     word_strings, scores = score_words(s)
-    print(word_strings)
-    print(scores)
-    exit()
 
     num_words = len(word_strings)
     average_score = sum(scores) / num_words
@@ -124,7 +119,11 @@ num_best = len(best_s)
 print("NUMBER OF BEST WORD SCORES:", num_best)
 print()
 for i, s in enumerate(best_s):
-    print("\n".join([" ".join(l) for l in s]))
+
+    if SEARCH_W_FLIPPED:
+        print("\n".join([" ".join(l) for l in s]))
+    else:
+        print("\n".join([" ".join(l) for l in transpose(s)]))
     word_strings, scores = score_words(s)
     print()
 
