@@ -20,21 +20,21 @@ INITIAL_TEMPLATE = [
 ]
 
 INITIAL_TEMPLATE = [
-    "@@@█@@@@█@@@@@@",
-    "@@@█@@@@█@@@@@@",
-    "@@@█@@@@█@@@@@@",
-    "@@@@@@@@@@@@███",
-    "@@@@@@@@@@@@@@@",
-    "███@@@@@@@@@@@@",
-    "@@@@@@@@@@@@@@@",
-    "@@@@█TORUS█@@@@",
-    "@@@@@@@@@@@@@@@",
-    "@@@@@@@@@@@@███",
-    "@@@@@@@@@@@@@@@",
-    "███@@@@@@@@@@@@",
-    "@@@@@@█@@@@█@@@",
-    "@@@@@@█@@@@█@@@",
-    "@@@@@@█@@@@█@@@",
+    "RTCOAT█HEN██SPO",
+    "MEATES█NACL█PER",
+    "ERNIST█UREA█INT",
+    "███COOPT██CRATE",
+    "IET█PPK█ATKINSD",
+    "ENAMI█SACRED███",
+    "RETICS█PLED█DIU",
+    "ERAD█TORUS█BANN",
+    "IOS█CARO█SCENAR",
+    "███SAIDNO█ASCII",
+    "OMETERS█OOP█ERG",
+    "HUTUS██DONEE███",
+    "DER█ALLO█EASTSI",
+    "ENU█RAGU█ONTHEM",
+    "ASS██SAG█UNDERP",
 ]
 
 

@@ -10,41 +10,41 @@ import itertools
 # NOTE: instead we need to do somethign where "the letter a in this position implies the letter x in this position."
 
 INITIAL_TEMPLATE = [
-    "NAROCK█@@@@█ARE",
-    "ETABLE█@@@@█SID",
-    "RESSED█@@@@█UND",
-    "███E@@█@@@@@RAE",
-    "OOMS████LADIESR",
-    "@@@S█@@@@@@@███",
-    "@@@██@@@@@@@@@@",
-    "HNUT█TORUS█DOUG",
-    "@@@@@@@@@@██@@@",
-    "███@@@@@@@█R@@@",
-    "RSH@@@@████E@@@",
-    "ETA@@@@@█@@S███",
-    "TAT█@@@@█PHOTOS",
-    "ART█@@@@█STARCH",
-    "IDE█@@@@█TAKEAR",
+    "RTCOAT█H@@██SPO",
+    "MEATES█N@@@█PER",
+    "ERNIST█U@@@█INT",
+    "███@@@@T██@@ATE",
+    "@@@█@@@█@@@@NSD",
+    "@@@@@█@@@@@@███",
+    "@@@@@@█@@@@█@@@",
+    "@@@@█TORUS█@@@@",
+    "@@@█@@@@█@@@@@@",
+    "███@@@@@@█@@@@@",
+    "OME@@@@█@@@█@@@",
+    "HUT@@██D@@@@███",
+    "DER█@@@O█EASTSI",
+    "ENU█@@@U█ONTHEM",
+    "ASS██@@G█UNDERP",
 ]
 
 
-INITIAL_TEMPLATE = [
-    "@@@█@@@@█@@@@@@",
-    "@@@█@@@@█@@@@@@",
-    "@@@█@@@@█@@@@@@",
-    "@@@@@@@@@@@@███",
-    "@@@@@█@@@@█@@@@",
-    "███@@@@@@@@@@@@",
-    "@@@@█@@@@█@@@@@",
-    "@@@@@@@█@@@@@@@",
-    "@@@@@█@@@@█@@@@",
-    "@@@@@@@@@@@@███",
-    "@@@@█@@@@█@@@@@",
-    "███@@@@@@@@@@@@",
-    "@@@@@@█@@@@█@@@",
-    "@@@@@@█@@@@█@@@",
-    "@@@@@@█@@@@█@@@",  # note - double here could come out
-]
+# INITIAL_TEMPLATE = [
+#     "@@@█@@@@█@@@@@@",
+#     "@@@█@@@@█@@@@@@",
+#     "@@@█@@@@█@@@@@@",
+#     "@@@@@@@@@@@@███",
+#     "@@@@@█@@@@█@@@@",
+#     "███@@@@@@@@@@@@",
+#     "@@@@█@@@@█@@@@@",
+#     "@@@@@@@█@@@@@@@",
+#     "@@@@@█@@@@█@@@@",
+#     "@@@@@@@@@@@@███",
+#     "@@@@█@@@@█@@@@@",
+#     "███@@@@@@@@@@@@",
+#     "@@@@@@█@@@@█@@@",
+#     "@@@@@@█@@@@█@@@",
+#     "@@@@@@█@@@@█@@@",  # note - double here could come out
+# ]
 
 id = int(time.time())
 BES_JSON = f"bests_{id}.json"
@@ -281,18 +281,15 @@ def recursive_search(grid, level=0):
 
     if grid_filled(grid):
         for l in solutions:
-            if l["grid"] == grid:
+            if l == grid:
                 return
 
         tqdm.tqdm.write(T_YELLOW + "Solution found")  # Green text indicating success
         tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
         tqdm.tqdm.write(T_NORMAL)
-        solutions.append({"level": level, "grid": grid})
+        solutions.append(grid)
         write_json(SOL_JSON, solutions)
 
-        if len(solutions) > 10:
-            print(T_GREEN, "Found 10 solutions", T_NORMAL)
-            exit()
         return
 
     new_grids = get_new_grids(grid)
@@ -303,7 +300,7 @@ def recursive_search(grid, level=0):
         )  # Red text indicating failure
         return
 
-    with tqdm.tqdm(new_grids, desc=f"Level {level}") as t:
+    with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
         l = count_letters(grid)
         if l > v_best_score:
             v_best_score = l
@@ -312,6 +309,8 @@ def recursive_search(grid, level=0):
 
         for new_grid in t:
             recursive_search(new_grid.copy(), level + 1)
+
+        t.close()
 
 
 if __name__ == "__main__":

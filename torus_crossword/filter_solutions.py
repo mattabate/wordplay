@@ -6,13 +6,17 @@ from config import (
     IC_TYPE,
     MAX_WAL,
     SEARCH_W_FLIPPED,
-    SCORED_WORDS_JSON,
+    SCORES_DICT_JSON,
     WORDS_IN_SOLUTIONS_JSON,
     WORDS_APPROVED_JSON,
     get_solutions_json,
     get_bad_solutions_json,
 )
-from torus.json import load_json, write_json
+from torus.json import load_json, write_json, remove_duplicates
+
+
+f_reomve_duplicates = True
+f_reomve_duplicates_bad = False
 
 WORDLIST = load_json(WOR_JSON)
 SOLS_PATH = get_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
@@ -40,12 +44,32 @@ def get_words_in_filled_grid(grid: list[str]) -> list[str]:
 
 
 if __name__ == "__main__":
-
     print(f"Filtering solutions: {T_YELLOW}{SOLS_PATH}{T_NORMAL}")
-    solutions = load_json(SOLS_PATH)
-    passed = load_json(BAD_SOLUTIONS)
-    scored_words = load_json(SCORED_WORDS_JSON)
-    scored_dict = {word_score[0]: word_score[1] for word_score in scored_words}
+
+    ############################
+    # Step 1: Remove duplicates
+    ############################
+    print(T_YELLOW, "Reducing Solutions to Unique", T_NORMAL)
+    if f_reomve_duplicates:
+        print("Number of solutions in json:", len(load_json(SOLS_PATH)))
+        remove_duplicates(SOLS_PATH)
+        solutions = load_json(SOLS_PATH)
+        print("Number of unique solutions:", len(solutions))
+    else:
+        solutions = load_json(SOLS_PATH)
+
+    if f_reomve_duplicates_bad:
+        print("Number of bad solutions in json:", len(load_json(BAD_SOLUTIONS)))
+        remove_duplicates(BAD_SOLUTIONS)
+        passed = load_json(BAD_SOLUTIONS)
+        print("Number of unique bad solutions:", len(passed))
+    else:
+        passed = load_json(BAD_SOLUTIONS)
+
+    ############################
+    # Step 2: ????
+    ############################
+    scored_words = load_json(SCORES_DICT_JSON)
 
     print("number solutions ever:", len(solutions) + len(passed))
     print("number solutions considered:", len(solutions))
@@ -67,7 +91,7 @@ if __name__ == "__main__":
             allowed_grids.append(s)
             for w in words:
                 if w not in scored_words_seen:
-                    scored_words_seen[w] = scored_dict[w]
+                    scored_words_seen[w] = scored_words[w]
 
     print("number solutions allowed:", len(allowed_grids))
     write_json(BAD_SOLUTIONS, passed)
@@ -82,7 +106,12 @@ if __name__ == "__main__":
     )
 
     words_approved = load_json(WORDS_APPROVED_JSON)
-    sorted_data = list(set(sorted_data) - set(words_approved))
+    xx = []
+    for s in sorted_data:
+        if s not in words_approved:
+            xx.append(s)
+    sorted_data = xx
+
     write_json(WORDS_IN_SOLUTIONS_JSON, sorted_data)
 
     print("number of words that still havent been checked:", len(sorted_data))

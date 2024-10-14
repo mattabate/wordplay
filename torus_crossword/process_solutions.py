@@ -1,12 +1,11 @@
-import json
 import numpy as np
-from lib import Direction
+from lib import Direction, transpose
 from fast_search import get_word_locations, ROWLEN
 
 from torus.json import load_json, write_json
 from config import (
     get_solutions_json,
-    SCORED_WORDS_JSON,
+    SCORES_DICT_JSON,
     SEARCH_W_FLIPPED,
     IC_TYPE,
     MAX_WAL,
@@ -16,7 +15,7 @@ import matplotlib.pyplot as plt
 import tqdm
 
 SOLS_PATH = get_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
-SCORES_PATH = SCORED_WORDS_JSON
+scored_words_dict = load_json(SCORES_DICT_JSON)
 
 
 def reduce_to_unique_solutions():
@@ -43,11 +42,6 @@ def reduce_to_unique_solutions():
     return unique_solutions
 
 
-solutions = reduce_to_unique_solutions()
-
-score_list = load_json(SCORES_PATH)
-
-
 def score_words(grid: list[str]):
     words = get_word_locations(
         grid=grid, direction=Direction.ACROSS
@@ -70,13 +64,19 @@ def score_words(grid: list[str]):
                 string_word += grid[(w.start[0] + i) % ROWLEN][w.start[1]]
 
         word_strings.append(string_word)
-        for wr, sc in score_list:
+        for wr, sc in scored_words_dict.items():
             if wr == string_word:
                 scores.append(sc)
                 break
 
     return word_strings, scores
 
+
+print(T_YELLOW + "REMOVE DUPLICATES" + T_NORMAL)
+solutions = reduce_to_unique_solutions()
+
+
+print(T_YELLOW + "SCORING GRIDS" + T_NORMAL)
 
 highest_average_words_score = 0
 fewest_words = 10000
@@ -86,7 +86,6 @@ best_s = []
 best_w = []
 
 av_scores = []
-print(T_YELLOW + "SCORING GRIDS" + T_NORMAL)
 for s in tqdm.tqdm(solutions):
     word_strings, scores = score_words(s)
 
@@ -120,7 +119,11 @@ num_best = len(best_s)
 print("NUMBER OF BEST WORD SCORES:", num_best)
 print()
 for i, s in enumerate(best_s):
-    print("\n".join([" ".join(l) for l in s]))
+
+    if SEARCH_W_FLIPPED:
+        print("\n".join([" ".join(l) for l in s]))
+    else:
+        print("\n".join([" ".join(l) for l in transpose(s)]))
     word_strings, scores = score_words(s)
     print()
 
@@ -142,9 +145,8 @@ snoot = sorted(snoot, key=lambda x: x[1])
 
 print(
     T_YELLOW + "Worst Words in Best Grids:" + T_NORMAL,
-    snoot[:5],
+    snoot[:40],
 )
-snoot = zip(word_strings, scores)
 
 # min minus 1 to max plus 1 rounded to 0.1
 bins = np.arange(round(min(av_scores) - 1, 1), round(max(av_scores) + 1, 1), 0.1)

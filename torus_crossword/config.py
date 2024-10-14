@@ -1,7 +1,7 @@
 # the wordlist contains all words in consideration for the search
 # the format is a list of strings, about 100k total
 WOR_JSON = "wordlist/word_list.json"
-SCORED_WORDS_JSON = "wordlist/scored_words.json"
+SCORES_DICT_JSON = "wordlist/scores_dict.json"
 ACTIVE_WORDS_JSON = "filter_words/words_in_active_grids.json"
 WORDS_OMITTED_JSON = "wordlist/words_omitted.json"
 WORDS_APPROVED_JSON = "wordlist/words_approved.json"
@@ -33,6 +33,7 @@ C_WALL = "█"
 
 IC_TYPE = "AD"
 SEARCH_W_FLIPPED = False
+# note - WE HAVE GOOD for AD, 42, not flipped [but no solutions for 40]
 
 # IC_TYPE = "DA"  # da = flipped
 # SEARCH_W_FLIPPED = True
@@ -41,10 +42,10 @@ SEARCH_W_FLIPPED = False
 # SEARCH_W_FLIPPED = True
 
 MAX_WAL = 42
-f_verbose = True
+f_verbose = False
 f_save_words_used = True
-f_save_bounds = [1, 3]
-SLEEP_DURATION = 300
+f_save_bounds = [1, 8]
+SLEEP_DURATION = -1
 
 GRID_TEMPLATE = [
     "______█@@@_█___",
@@ -107,7 +108,7 @@ GRID_TEMPLATE_FLIPPED_MIN = [
 # generate_initials.py config
 # searches for completed 10x12 initial conditions
 ###############################################
-STAR_SEARCH_W_FLIPPED = True  # true on personal computer
+STAR_SEARCH_W_FLIPPED = False  # true on personal computer
 STAR_SEARCH_VERBOSE = False
 BAD_STAR_JSON = "ic_data/bad_stars.json"
 BAD_STAR_FLIPPED_JSON = "ic_data/bad_stars_flipped.json"
