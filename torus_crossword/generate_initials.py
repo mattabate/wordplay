@@ -27,6 +27,7 @@ from lib import (
     replace_char_in_grid,
     T_NORMAL,
     T_GREEN,
+    T_PINK,
 )
 
 f_flipped = STAR_SEARCH_W_FLIPPED
@@ -309,13 +310,6 @@ def get_prefix(word, word_len=9):
 
 
 if __name__ == "__main__":
-    words = get_word_locations(TEMPLATE, Direction.ACROSS) + get_word_locations(
-        TEMPLATE, Direction.DOWN
-    )
-
-    print("number of answers", len(words))
-    print("direction:", "flipped" if f_flipped else "NOT flipped")
-
     words_9_letter = WORDLIST_BY_LEN[9]
     pref_set = set(get_prefix(w) for w in words_9_letter)
     suff_set = set(get_suffix(w) for w in words_9_letter)
@@ -324,10 +318,17 @@ if __name__ == "__main__":
     t0 = time.time()
 
     for i, seed in enumerate(words_9_letter):
-        print(f"{i}/{len_wln}", "Seed word:", seed)
+        number_seen_so_far = len(list(set(load_json(CHE_JSON))))
+        print(
+            "-----------\n"
+            + f"direction: {T_GREEN}{"flipped" if f_flipped else "NOT flipped"}{T_NORMAL}\n"
+            + f"TOTAL PROGRESS: {T_GREEN}{number_seen_so_far} / {len_wln}{T_NORMAL}\n"
+            + f"LOCAL ITERATION {T_GREEN}{i}{T_NORMAL}\n"
+            + f"Seed word: {T_GREEN}{seed}{T_NORMAL}"
+        )
         already_checked = load_json(CHE_JSON)
         if seed in already_checked:
-            print(T_GREEN + "Already checked" + T_NORMAL)
+            print(T_PINK + "Already checked" + T_NORMAL)
             continue
         grid = TEMPLATE.copy()
 
