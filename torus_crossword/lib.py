@@ -1,6 +1,16 @@
 from enum import Enum
 import random
-from config import WOR_JSON, STAR_HEIGHT, STAR_WIDTH, ROWLEN
+from config import (
+    WOR_JSON,
+    STAR_HEIGHT,
+    STAR_WIDTH,
+    ROWLEN,
+    STAR_FLIPPED_TEMPLATE,
+    STAR_TEMPLATE,
+    STAR_START,
+    STAR_HEIGHT,
+    STAR_WIDTH,
+)
 from torus.json import load_json
 
 T_NORMAL = "\033[0m"
@@ -129,4 +139,27 @@ def add_theme_words(template: list[str], type: str):
                 template[i] = replace_char_in_string(template[i], col7[i], 7)
     else:
         raise ValueError(f"Invalid IC_TYPE: {type}")
+    return template
+
+
+import json
+
+
+def get_star_from_grid(grid, f_flipped) -> list[list[str]]:
+    if f_flipped:
+        template = STAR_FLIPPED_TEMPLATE.copy()
+    else:
+        template = STAR_TEMPLATE.copy()
+
+    for i in range(STAR_HEIGHT):
+        for j in range(STAR_WIDTH):
+            if template[i][j] != "@":
+                continue
+
+            template = replace_char_in_grid(
+                template,
+                (i, j),
+                grid[(STAR_START[0] + i) % ROWLEN][(STAR_START[1] + j) % ROWLEN],
+            )
+
     return template
