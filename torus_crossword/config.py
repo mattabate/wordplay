@@ -13,9 +13,13 @@ WORDS_IN_SOLUTIONS_JSON = "filter_words/words_in_valid_solutions.json"
 # files where the stars are stored are named star_sols.json and star_sols_flipped.json
 STARS_FOUND_JSON = "ic_data/star_sols.json"
 STARS_FOUND_FLIPPED_JSON = "ic_data/star_sols_flipped.json"
-
 STARS_CHECKED_JSON = "ic_data/stars_checked.json"
 STARS_CHECKED_FLIPPED_JSON = "ic_data/stars_checked_flipped.json"
+
+NEW_STARS_FOUND_JSON = "ic_data/new_star_sols.json"
+NEW_STARS_FOUND_FLIPPED_JSON = "ic_data/new_star_sols_flipped.json"
+NEW_STARS_CHECKED_JSON = "ic_data/new_stars_checked.json"
+NEW_STARS_CHECKED_FLIPPED_JSON = "ic_data/new_stars_checked_flipped.json"
 
 # basic properties of the grid
 ROWLEN = 15
