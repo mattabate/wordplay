@@ -36,9 +36,16 @@ def append_json(json_name, grid):
 
 
 def remove_duplicates(json_name):
+    "preserves ordering"
     initial = load_json(json_name)
     unique = []
     for s in tqdm.tqdm(initial):
         if s not in unique:
             unique.append(s)
     write_json(json_name, unique)
+
+
+def remove_from_json_list(json_file: str, entry):
+    current_list = load_json(json_file)
+    reduced_json = [e for e in current_list if e != entry]
+    write_json(json_file, reduced_json)

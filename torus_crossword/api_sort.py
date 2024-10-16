@@ -7,7 +7,7 @@ from config import (
     WOR_JSON,
     WORDS_OMITTED_JSON,
 )
-from torus.json import load_json, write_json
+from torus.json import load_json, write_json, remove_from_json_list, append_json
 import time
 import random
 
@@ -27,11 +27,13 @@ headers = {
     # Headers as defined previously
 }
 
+
 for word in words_condered:
     url = f"https://crosswordtracker.com/answer/{word.lower()}/"
     print(f"Word:", T_GREEN + f"{" ".join(word.upper())}" + T_NORMAL)
     if word in words_seen:
         print(T_PINK + "> Already seen" + T_NORMAL + "\n")
+        remove_from_json_list(WORDS_CONSIDERED_JSON, word)
         continue
 
     try:
@@ -73,32 +75,14 @@ for word in words_condered:
 
     if resp.lower() in ["p", "d"]:
         print("Saving as approved")
-        words_allowed = load_json(WORDS_APPROVED_JSON)
-        words_allowed.append(word)
-        write_json(WORDS_APPROVED_JSON, words_allowed)
-
-        words_condered_new = load_json(WORDS_CONSIDERED_JSON)
-        new = []
-        for ww in words_condered_new:
-            if ww != word:
-                new.append(ww)
-        write_json(WORDS_CONSIDERED_JSON, new)
+        append_json(WORDS_APPROVED_JSON, word)
+        remove_from_json_list(WORDS_CONSIDERED_JSON, word)
 
     elif resp.lower() in ["o", "s"]:
         print("Saving as Rejected")
-        word_list = load_json(WOR_JSON)
-        new = []
-        for ww in word_list:
-            if ww != word:
-                new.append(ww)
-        write_json(WOR_JSON, new)
-
-        words_condered_new = load_json(WORDS_CONSIDERED_JSON)
-        new = []
-        for ww in words_condered_new:
-            if ww != word:
-                new.append(ww)
-        write_json(WORDS_CONSIDERED_JSON, new)
+        append_json(WORDS_OMITTED_JSON, word)
+        remove_from_json_list(WOR_JSON, word)
+        remove_from_json_list(WORDS_CONSIDERED_JSON, word)
     else:
         print("Invalid Response")
 
