@@ -22,7 +22,7 @@
     "AER",
     "AES",
     "AFBS",
-    "AGA",
+    """AGA",
     "AGAS",
     "AGIN",
     "AGOGO",
@@ -912,6 +912,7 @@
     "STENOPADS",
     "STOL",
     "TAMA",
+    "TAMILNADU",
     "TEALEONI",
     "TEO",
     "TEOS",
@@ -2937,5 +2938,8 @@
     "ATH",
     "NCAR",
     "COACT",
-    "KOSAR"
+    "KOSAR",
+    "ULNAE",
+    "HOFFMANN",
+    "DIRNDL"
 ]

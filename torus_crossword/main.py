@@ -763,7 +763,7 @@ if __name__ == "__main__":
 
         all_solutions = torus.json.load_json(SOL_JSON)
         for s in all_solutions:
-            star = get_star_from_grid(s)
+            star = get_star_from_grid(s, SEARCH_W_FLIPPED)
             if star == star_str:
                 for _ in range(20):
                     print(T_YELLOW + "TOTALLY COMPLETED GOOD GRID" + T_NORMAL)
