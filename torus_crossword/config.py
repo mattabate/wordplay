@@ -44,7 +44,7 @@ MAX_WAL = 42
 f_verbose = True
 f_save_words_used = False
 f_save_bounds = [1, 8]
-SLEEP_DURATION = 180
+SLEEP_DURATION = 120
 
 GRID_TEMPLATE = [
     "______█@@@_█___",
