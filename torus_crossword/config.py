@@ -30,12 +30,12 @@ C_WALL = "█"
 # Config for maip.py 15x15 search
 # Note editing may cause big problems
 
-IC_TYPE = "AD"
-SEARCH_W_FLIPPED = False
+# IC_TYPE = "AD"
+# SEARCH_W_FLIPPED = False
 # note - WE HAVE GOOD for AD, 42, not flipped [but no solutions for 40]
 
-# IC_TYPE = "DA"  # da = flipped
-# SEARCH_W_FLIPPED = True
+IC_TYPE = "DA"  # da = flipped
+SEARCH_W_FLIPPED = True
 
 # IC_TYPE = "A"  # A = flipped
 # SEARCH_W_FLIPPED = True
