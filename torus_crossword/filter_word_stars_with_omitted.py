@@ -18,23 +18,28 @@ import tqdm
 
 words_ommitted = torus.json.load_json(WORDS_OMITTED_JSON)
 
+f_remove_duplicates = False
+
 print("(1) Remove Duplicate Stars")
-for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
-    star_sols = torus.json.load_json(file)
-    initial_num = len(star_sols)
-    new_star_sols = []
-    for s in tqdm.tqdm(star_sols):
-        if s not in new_star_sols:
-            new_star_sols.append(s)
-    final_num = len(new_star_sols)
-    print(f"number ics removed  from {file}:", initial_num - final_num)
-    if initial_num != final_num:
-        torus.json.write_json(file, new_star_sols)
+if f_remove_duplicates:
+    for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
+        star_sols = torus.json.load_json(file)
+        initial_num = len(star_sols)
+        new_star_sols = []
+        for s in tqdm.tqdm(star_sols):
+            if s not in new_star_sols:
+                new_star_sols.append(s)
+        final_num = len(new_star_sols)
+        print(f"number ics removed  from {file}:", initial_num - final_num)
+        if initial_num != final_num:
+            torus.json.write_json(file, new_star_sols)
+else:
+    print("Skipping. Change flag to readd.\n")
 
 
 print("(2) Check for omitted words in stars")
-words_found = set()
 for is_flipped in [False, True]:
+    words_found = set()
     if is_flipped:
         file = STARS_FOUND_FLIPPED_JSON
         bad_stars_json = BAD_STAR_FLIPPED_JSON
