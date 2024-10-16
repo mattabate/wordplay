@@ -46,6 +46,7 @@ from lib import (
     T_PINK,
     T_YELLOW,
     add_theme_words,
+    get_star_from_grid,
 )
 
 
@@ -292,6 +293,10 @@ def grid_contains_short_words(grid: list[str]) -> bool:
     return False
 
 
+def is_only_at_and_block(s):
+    return all(char in {"@", "█"} for char in s)
+
+
 def get_fixtures(line: str) -> list[tuple[int, str]]:
     indices: list[int] = [
         index for index, char in enumerate(line) if char not in ["█", "_"]
@@ -327,6 +332,10 @@ def get_fixtures(line: str) -> list[tuple[int, str]]:
 
         if w.count(C_WALL) == 2 and "@" not in w:
             continue
+
+        if is_only_at_and_block(w):
+            continue
+
         fixtures.append((strt, w))
 
     return fixtures
@@ -511,7 +520,6 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
     # transpose to find the best collum
     col_idx, best_col_score, best_col_grids = get_best_row(transpose(grid))
 
-    # TODO: SOMETHING WRONG HERE???
     # note you want to minimize scre
     if best_row_score < best_col_score:
         return "r", row_idx, best_row_grids
@@ -551,9 +559,11 @@ def recursive_search(grid, level=0):
         current_bad_solutions = torus.json.load_json(BAD_SOL_JSON)
         if grid in current_solutions or grid in current_bad_solutions:
             tqdm.tqdm.write(T_PINK + "Already in solutions" + T_NORMAL)
+            exit()
             return
         new_solutions.append(grid)
         torus.json.append_json(SOL_JSON, grid)
+        exit()
         return
 
     if f_save_words_used:
@@ -751,11 +761,16 @@ if __name__ == "__main__":
         new_solutions = []
         recursive_search(grid, 0)
 
-        if not new_solutions:
+        all_solutions = torus.json.load_json(SOL_JSON)
+        for s in all_solutions:
+            star = get_star_from_grid(s)
+            if star == star_str:
+                for _ in range(20):
+                    print(T_YELLOW + "TOTALLY COMPLETED GOOD GRID" + T_NORMAL)
+
+                print(T_PINK + star_str + T_NORMAL)
+                exit()
+                break
+        else:
             print(T_PINK + "No solution found." + T_NORMAL)
             torus.json.append_json(FAI_JSON, star_str)
-        else:
-            for _ in range(20):
-                print(T_YELLOW + "TOTALLY COMPLETED GOOD GRID" + T_NORMAL)
-            print(T_PINK + star_str + T_NORMAL)
-            exit()
