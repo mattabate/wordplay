@@ -2,7 +2,7 @@
 
 import json
 import tqdm
-from torus.json import load_json, write_json
+import torus
 from lib import Direction, Sqaure, Word, replace_char_in_grid, transpose
 import time
 import itertools
@@ -288,7 +288,7 @@ def recursive_search(grid, level=0):
         tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
         tqdm.tqdm.write(T_NORMAL)
         solutions.append(grid)
-        write_json(SOL_JSON, solutions)
+        torus.json.write_json(SOL_JSON, solutions)
 
         return
 
@@ -305,7 +305,7 @@ def recursive_search(grid, level=0):
         if l > v_best_score:
             v_best_score = l
             v_best_grids.append({"level": level, "score": l, "grid": grid})
-            write_json(BES_JSON, v_best_grids)
+            torus.json.write_json(BES_JSON, v_best_grids)
 
         for new_grid in t:
             recursive_search(new_grid.copy(), level + 1)
@@ -316,7 +316,7 @@ def recursive_search(grid, level=0):
 if __name__ == "__main__":
     grid = INITIAL_TEMPLATE.copy()
 
-    fails = load_json(FAI_JSON)
+    fails = torus.json.load_json(FAI_JSON)
 
     words = get_word_locations(grid, Direction.ACROSS) + get_word_locations(
         grid, Direction.DOWN
@@ -334,6 +334,6 @@ if __name__ == "__main__":
         print("No solution found")
 
         fails.append(INITIAL_TEMPLATE)
-        write_json(FAI_JSON, fails)
+        torus.json.write_json(FAI_JSON, fails)
     else:
         print(T_GREEN, f"Found {len(solutions)} solutions", T_NORMAL)

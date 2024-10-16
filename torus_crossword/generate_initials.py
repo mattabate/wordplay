@@ -3,9 +3,10 @@
 import json
 import time
 import tqdm
-from config import C_WALL
-from torus.json import append_json, load_json
+
+import torus
 from config import (
+    C_WALL,
     STARS_FOUND_JSON,
     STARS_FOUND_FLIPPED_JSON,
     STARS_CHECKED_JSON,
@@ -437,10 +438,10 @@ def recursive_search(grid, level=0):
         print(
             f"Found {T_PINK}{len(stars_from_grid)}{T_NORMAL} Solutions"
         )  # Green text indicating success
-        solutions = load_json(SOL_JSON)
+        solutions = torus.json.load_json(SOL_JSON)
         for s in stars_from_grid:
             if s not in solutions:
-                append_json(SOL_JSON, s)
+                torus.json.append_json(SOL_JSON, s)
         return
 
     new_grids = get_new_grids(grid)
@@ -462,7 +463,7 @@ if __name__ == "__main__":
 
     len_wln = len(across_suff_set)
     for i, seed in enumerate(words_now):
-        number_seen_so_far = len(list(set(load_json(CHE_JSON))))
+        number_seen_so_far = len(list(set(torus.json.load_json(CHE_JSON))))
         print(
             "-----------\n"
             + f"direction: {T_GREEN}{"flipped" if STAR_SEARCH_W_FLIPPED else "NOT flipped"}{T_NORMAL}\n"
@@ -470,7 +471,7 @@ if __name__ == "__main__":
             + f"LOCAL ITERATION {T_GREEN}{i}{T_NORMAL}\n"
             + f"Seed word: {T_GREEN}{seed}{T_NORMAL}"
         )
-        already_checked = load_json(CHE_JSON)
+        already_checked = torus.json.load_json(CHE_JSON)
         if seed in already_checked:
             print(T_PINK + "> Already checked" + T_NORMAL)
             continue
@@ -482,4 +483,4 @@ if __name__ == "__main__":
             grid[1] = seed2
             recursive_search(grid, 0)
 
-        append_json(CHE_JSON, seed)
+        torus.json.append_json(CHE_JSON, seed)

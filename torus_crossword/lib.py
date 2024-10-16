@@ -1,5 +1,7 @@
 from enum import Enum
 import random
+
+import torus
 from config import (
     WOR_JSON,
     STAR_HEIGHT,
@@ -11,7 +13,6 @@ from config import (
     STAR_HEIGHT,
     STAR_WIDTH,
 )
-from torus.json import load_json
 
 T_NORMAL = "\033[0m"
 T_BLUE = "\033[94m"
@@ -20,7 +21,7 @@ T_GREEN = "\033[92m"
 T_PINK = "\033[95m"
 
 
-WORDLIST = load_json(WOR_JSON)
+WORDLIST = torus.json.load_json(WOR_JSON)
 
 random.shuffle(WORDLIST)
 

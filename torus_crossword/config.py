@@ -43,7 +43,7 @@ SEARCH_W_FLIPPED = False
 MAX_WAL = 42
 f_verbose = True
 f_save_words_used = True
-f_save_bounds = [1, 4]
+f_save_bounds = [1, 8]
 SLEEP_DURATION = -1
 
 GRID_TEMPLATE = [

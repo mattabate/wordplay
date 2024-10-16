@@ -1,5 +1,10 @@
+import random
 import requests
+import time
+
 from bs4 import BeautifulSoup
+
+import torus
 from lib import T_YELLOW, T_PINK, T_NORMAL, T_GREEN, T_BLUE
 from config import (
     WORDS_CONSIDERED_JSON,
@@ -7,17 +12,14 @@ from config import (
     WOR_JSON,
     WORDS_OMITTED_JSON,
 )
-from torus.json import load_json, write_json, remove_from_json_list, append_json
-import time
-import random
 
 without_clues_only = False
 
-words_omitted = load_json(WORDS_OMITTED_JSON)
-words_appoved = load_json(WORDS_APPROVED_JSON)
+words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
+words_appoved = torus.json.load_json(WORDS_APPROVED_JSON)
 words_seen = set(words_omitted + words_appoved)
 
-words_condered = load_json(WORDS_CONSIDERED_JSON)
+words_condered = torus.json.load_json(WORDS_CONSIDERED_JSON)
 
 num_printed = 6
 params = {"search_redirect": "True"}
@@ -33,7 +35,7 @@ for word in words_condered:
     print(f"Word:", T_GREEN + f"{" ".join(word.upper())}" + T_NORMAL)
     if word in words_seen:
         print(T_PINK + "> Already seen" + T_NORMAL + "\n")
-        remove_from_json_list(WORDS_CONSIDERED_JSON, word)
+        torus.json.remove_from_json_list(WORDS_CONSIDERED_JSON, word)
         continue
 
     try:
@@ -75,14 +77,14 @@ for word in words_condered:
 
     if resp.lower() in ["p", "d"]:
         print("Saving as approved")
-        append_json(WORDS_APPROVED_JSON, word)
-        remove_from_json_list(WORDS_CONSIDERED_JSON, word)
+        torus.json.append_json(WORDS_APPROVED_JSON, word)
+        torus.json.remove_from_json_list(WORDS_CONSIDERED_JSON, word)
 
     elif resp.lower() in ["o", "s"]:
         print("Saving as Rejected")
-        append_json(WORDS_OMITTED_JSON, word)
-        remove_from_json_list(WOR_JSON, word)
-        remove_from_json_list(WORDS_CONSIDERED_JSON, word)
+        torus.json.append_json(WORDS_OMITTED_JSON, word)
+        torus.json.remove_from_json_list(WOR_JSON, word)
+        torus.json.remove_from_json_list(WORDS_CONSIDERED_JSON, word)
     else:
         print("Invalid Response")
 

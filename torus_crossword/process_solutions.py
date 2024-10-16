@@ -1,8 +1,12 @@
 import numpy as np
+import tqdm
 from lib import Direction, transpose
 from fast_search import get_word_locations, ROWLEN
 
-from torus.json import load_json, write_json
+import matplotlib.pyplot as plt
+
+import torus
+
 from config import (
     get_solutions_json,
     SCORES_DICT_JSON,
@@ -11,15 +15,14 @@ from config import (
     MAX_WAL,
 )
 from main import T_PINK, T_NORMAL, T_YELLOW
-import matplotlib.pyplot as plt
-import tqdm
+
 
 SOLS_PATH = get_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
-scored_words_dict = load_json(SCORES_DICT_JSON)
+scored_words_dict = torus.json.load_json(SCORES_DICT_JSON)
 
 
 def reduce_to_unique_solutions():
-    solutions = load_json(SOLS_PATH)
+    solutions = torus.json.load_json(SOLS_PATH)
 
     unique_solutions = []
     for s in solutions:
@@ -37,7 +40,7 @@ def reduce_to_unique_solutions():
             T_PINK + f"Removing {len(solutions) - len(unique_solutions)} grids" + T_PINK
         )
         print()
-        write_json(SOLS_PATH, unique_solutions)
+        torus.json.write_json(SOLS_PATH, unique_solutions)
 
     return unique_solutions
 
@@ -48,9 +51,9 @@ def score_words(grid: list[str]):
     ) + get_word_locations(grid=grid, direction=Direction.DOWN)
     # if contains duplicates, remove them
     if len(words) != len(set(words)):
-        sols = load_json(SOLS_PATH)
+        sols = torus.json.load_json(SOLS_PATH)
         sols.remove(grid)
-        write_json(SOLS_PATH, sols)
+        torus.json.write_json(SOLS_PATH, sols)
         return
 
     word_strings = []

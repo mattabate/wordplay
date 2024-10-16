@@ -1,6 +1,6 @@
 import tqdm
 from config import WOR_JSON, WORDS_OMITTED_JSON, SCORES_DICT_JSON
-from torus.json import load_json, write_json
+import torus
 from lib import T_YELLOW, T_NORMAL
 
 
@@ -8,11 +8,11 @@ from lib import T_YELLOW, T_NORMAL
 MIN_SOCRE = 30
 ###                             ###
 
-scored_words = load_json(SCORES_DICT_JSON)
+scored_words = torus.json.load_json(SCORES_DICT_JSON)
 
 print(T_YELLOW + "Len Wordlist:" + T_NORMAL, len(scored_words.keys()))
 
-current_list = load_json(WOR_JSON)
+current_list = torus.json.load_json(WOR_JSON)
 
 admissible = []
 for word, score in scored_words.items():
@@ -28,8 +28,8 @@ words_omitted = [
 
 print(T_YELLOW + "Number of Candidaes:" + T_NORMAL, len(current_list))
 num_omitted = len(words_omitted)
-old = len(load_json(WORDS_OMITTED_JSON))
+old = len(torus.json.load_json(WORDS_OMITTED_JSON))
 print(T_YELLOW + "Num Omitted:" + T_NORMAL, num_omitted - old)
 print(T_YELLOW + "Total Omitted:" + T_NORMAL, num_omitted)
 
-write_json(WORDS_OMITTED_JSON, words_omitted)
+torus.json.write_json(WORDS_OMITTED_JSON, words_omitted)

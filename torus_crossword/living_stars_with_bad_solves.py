@@ -1,6 +1,8 @@
 # determine if any living stars are in wins
 
 import tqdm
+
+import torus
 from lib import get_star_from_grid
 from config import (
     IC_TYPE,
@@ -10,18 +12,17 @@ from config import (
     get_failures_json,
     get_bad_solutions_json,
 )
-from torus.json import load_json
 
 
-stars_found = load_json(STARS_FOUND_FLIPPED_JSON)
+stars_found = torus.json.load_json(STARS_FOUND_FLIPPED_JSON)
 
-stars_failed = load_json(
+stars_failed = torus.json.load_json(
     get_failures_json(type=IC_TYPE, max_walls=MAX_WAL, flipped=SEARCH_W_FLIPPED)
 )
 
 
 bad_solutions_json = get_bad_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
-bad_solutions = load_json(bad_solutions_json)
+bad_solutions = torus.json.load_json(bad_solutions_json)
 
 import json
 

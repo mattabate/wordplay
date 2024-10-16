@@ -1,6 +1,9 @@
+import tqdm
+import torus
+
 from lib import Direction, T_YELLOW, T_NORMAL
 from fast_search import get_word_locations, ROWLEN
-import tqdm
+
 from config import (
     WOR_JSON,
     IC_TYPE,
@@ -12,13 +15,12 @@ from config import (
     get_solutions_json,
     get_bad_solutions_json,
 )
-from torus.json import load_json, write_json, remove_duplicates
 
 
 f_reomve_duplicates = True
 f_reomve_duplicates_bad = False
 
-WORDLIST = load_json(WOR_JSON)
+WORDLIST = torus.json.load_json(WOR_JSON)
 SOLS_PATH = get_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
 BAD_SOLUTIONS = get_bad_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
 
@@ -51,25 +53,27 @@ if __name__ == "__main__":
     ############################
     print(T_YELLOW, "Reducing Solutions to Unique", T_NORMAL)
     if f_reomve_duplicates:
-        print("Number of solutions in json:", len(load_json(SOLS_PATH)))
-        remove_duplicates(SOLS_PATH)
-        solutions = load_json(SOLS_PATH)
+        print("Number of solutions in json:", len(torus.json.load_json(SOLS_PATH)))
+        torus.json.remove_duplicates(SOLS_PATH)
+        solutions = torus.json.load_json(SOLS_PATH)
         print("Number of unique solutions:", len(solutions))
     else:
-        solutions = load_json(SOLS_PATH)
+        solutions = torus.json.load_json(SOLS_PATH)
 
     if f_reomve_duplicates_bad:
-        print("Number of bad solutions in json:", len(load_json(BAD_SOLUTIONS)))
-        remove_duplicates(BAD_SOLUTIONS)
-        passed = load_json(BAD_SOLUTIONS)
+        print(
+            "Number of bad solutions in json:", len(torus.json.load_json(BAD_SOLUTIONS))
+        )
+        torus.json.remove_duplicates(BAD_SOLUTIONS)
+        passed = torus.json.load_json(BAD_SOLUTIONS)
         print("Number of unique bad solutions:", len(passed))
     else:
-        passed = load_json(BAD_SOLUTIONS)
+        passed = torus.json.load_json(BAD_SOLUTIONS)
 
     ############################
     # Step 2: ????
     ############################
-    scored_words = load_json(SCORES_DICT_JSON)
+    scored_words = torus.json.load_json(SCORES_DICT_JSON)
 
     print("number solutions ever:", len(solutions) + len(passed))
     print("number solutions considered:", len(solutions))
@@ -94,8 +98,8 @@ if __name__ == "__main__":
                     scored_words_seen[w] = scored_words[w]
 
     print("number solutions allowed:", len(allowed_grids))
-    write_json(BAD_SOLUTIONS, passed)
-    write_json(SOLS_PATH, allowed_grids)
+    torus.json.write_json(BAD_SOLUTIONS, passed)
+    torus.json.write_json(SOLS_PATH, allowed_grids)
 
     print("number of scored words in valid solutiosn:", len(scored_words_seen))
     print("bad words seen:", list(bad_words_seens))
@@ -105,14 +109,14 @@ if __name__ == "__main__":
         scored_words_seen.keys(), key=lambda x: scored_words_seen[x], reverse=True
     )
 
-    words_approved = load_json(WORDS_APPROVED_JSON)
+    words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
     xx = []
     for s in sorted_data:
         if s not in words_approved:
             xx.append(s)
     sorted_data = xx
 
-    write_json(WORDS_IN_SOLUTIONS_JSON, sorted_data)
+    torus.json.write_json(WORDS_IN_SOLUTIONS_JSON, sorted_data)
 
     print("number of words that still havent been checked:", len(sorted_data))
     print(

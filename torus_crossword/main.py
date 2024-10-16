@@ -15,6 +15,7 @@ from config import (
     WOR_JSON,
     STARS_FOUND_JSON,
     STARS_FOUND_FLIPPED_JSON,
+    WORDS_OMITTED_JSON,
     ROWLEN,
     GRIDCELLS,
     STAR_START,
@@ -33,7 +34,7 @@ from config import (
     f_save_bounds,
 )
 
-from torus.json import append_json, load_json, write_json
+import torus
 
 from lib import (
     transpose,
@@ -52,11 +53,11 @@ FAI_JSON = get_failures_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
 SOL_JSON = get_solutions_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
 BAD_SOL_JSON = get_bad_solutions_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
 if not os.path.exists(FAI_JSON):
-    write_json(FAI_JSON, [])
+    torus.json.write_json(FAI_JSON, [])
 if not os.path.exists(SOL_JSON):
-    write_json(SOL_JSON, [])
+    torus.json.write_json(SOL_JSON, [])
 if not os.path.exists(BAD_SOL_JSON):
-    write_json(BAD_SOL_JSON, [])
+    torus.json.write_json(BAD_SOL_JSON, [])
 
 
 if not SEARCH_W_FLIPPED:
@@ -72,7 +73,7 @@ new_solutions = []  # tracks initial conditions solutions
 v_best_grids = []
 v_best_score = 0
 
-WORDLIST = load_json(WOR_JSON)
+WORDLIST = torus.json.load_json(WOR_JSON)
 
 for i, w in enumerate(WORDLIST):
     WORDLIST[i] = C_WALL + w + C_WALL
@@ -546,14 +547,41 @@ def recursive_search(grid, level=0):
         tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
         tqdm.tqdm.write(T_NORMAL)
 
-        current_solutions = load_json(SOL_JSON)
-        current_bad_solutions = load_json(BAD_SOL_JSON)
+        current_solutions = torus.json.load_json(SOL_JSON)
+        current_bad_solutions = torus.json.load_json(BAD_SOL_JSON)
         if grid in current_solutions or grid in current_bad_solutions:
             tqdm.tqdm.write(T_PINK + "Already in solutions" + T_NORMAL)
             return
         new_solutions.append(grid)
-        append_json(SOL_JSON, grid)
+        torus.json.append_json(SOL_JSON, grid)
         return
+
+    if f_save_words_used:
+        across_words = set()
+        for l in grid:
+            bits = (l + l).split(C_WALL)[1:-1]
+
+            for b in bits:
+                if b and ("@" not in b) and ("_" not in b):
+                    across_words.add(b)
+
+        down_words = set()
+        for l in transpose(grid):
+            bits = (l + l).split(C_WALL)[1:-1]
+            for b in bits:
+                if b and "@" not in b and "_" not in b:
+                    down_words.add(b)
+
+        all_words = across_words | down_words
+
+        words_omitted = set(torus.json.load_json(WORDS_OMITTED_JSON))
+
+        overlap = all_words & words_omitted
+        if overlap:
+            tqdm.tqdm.write(
+                T_PINK + f"FOUND TRASHED WORD ... Skipping: {overlap}" + T_NORMAL
+            )
+            return
 
     grid_str = "".join(grid)
     if grid_str.count("_") == 0:
@@ -608,20 +636,54 @@ def recursive_search(grid, level=0):
 
             return
 
-        if row_or_col == "r":
-            lines = [g[start] for g in new_grids]
-            # reorder longest first
-        else:
-            lines = [transpose(g)[start] for g in new_grids]
-
         # reorder longest first
         if False:
+            if row_or_col == "r":
+                lines = [g[start] for g in new_grids]
+                # reorder longest first
+            else:
+                lines = [transpose(g)[start] for g in new_grids]
+
             ind_w_line_sorted = sorted(
                 enumerate(lines),
                 key=lambda x: count_letters_in_line(x[1]),
                 reverse=True,
             )
             new_grids = [new_grids[i].copy() for i, _ in ind_w_line_sorted]
+
+        if f_save_words_used and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]:
+            words_seen = set(torus.json.load_json(ACTIVE_WORDS_JSON))
+            words_seen_inital = words_seen.copy()
+            if row_or_col == "r":
+                for pp in new_grids:
+                    row = pp[start]
+                    words_seen |= set(
+                        [
+                            l
+                            for l in (row + row).split(C_WALL)[1:-1]
+                            if l and "@" not in l and "_" not in l
+                        ]
+                    )
+            else:
+                for pp in new_grids:
+                    row = transpose(pp)[start]
+                    words_seen |= set(
+                        [
+                            l
+                            for l in (row + row).split(C_WALL)[1:-1]
+                            if l and "@" not in l and "_" not in l
+                        ]
+                    )
+
+            # get all words in words approved, and add them to active words
+            words_approved = set(torus.json.load_json("wordlist/words_approved.json"))
+            words_seen = words_seen - words_approved
+            if words_seen != words_seen_inital:
+                tqdm.tqdm.write(
+                    T_PINK + "\n".join(words_seen - words_seen_inital) + T_NORMAL
+                )
+                torus.json.write_json(ACTIVE_WORDS_JSON, list(words_seen))
+                tqdm.tqdm.write("\n")
 
         with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
             if f_verbose:
@@ -635,49 +697,13 @@ def recursive_search(grid, level=0):
                 tqdm.tqdm.write(print_grid(grid, (row_or_col, start, T_GREEN)))
                 tqdm.tqdm.write("\n")
 
-            if (
-                f_save_words_used
-                and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]
-            ):
-                words_seen = set(load_json(ACTIVE_WORDS_JSON))
-                words_seen_inital = words_seen.copy()
-                if row_or_col == "r":
-                    for pp in new_grids:
-                        row = pp[start]
-                        words_seen |= set(
-                            [
-                                l
-                                for l in (row + row).split(C_WALL)[1:-1]
-                                if l and "@" not in l and "_" not in l
-                            ]
-                        )
-                else:
-                    for pp in new_grids:
-                        row = transpose(pp)[start]
-                        words_seen |= set(
-                            [
-                                l
-                                for l in (row + row).split(C_WALL)[1:-1]
-                                if l and "@" not in l and "_" not in l
-                            ]
-                        )
-
-                words_approved = set(load_json("wordlist/words_approved.json"))
-                words_seen = words_seen - words_approved
-                if words_seen != words_seen_inital:
-                    tqdm.tqdm.write(
-                        T_PINK + "\n".join(words_seen - words_seen_inital) + T_NORMAL
-                    )
-                    write_json(ACTIVE_WORDS_JSON, list(words_seen))
-                    tqdm.tqdm.write("\n")
-
             for new_grid in t:
                 recursive_search(new_grid, level + 1)
 
 
 if __name__ == "__main__":
-    stars_strings = load_json(STA_JSON)
-    fail_stars = load_json(FAI_JSON)
+    stars_strings = torus.json.load_json(STA_JSON)
+    fail_stars = torus.json.load_json(FAI_JSON)
 
     t0 = datetime.now()
     INITIAL_TEMPLATE = add_theme_words(INITIAL_TEMPLATE, IC_TYPE)
@@ -716,7 +742,7 @@ if __name__ == "__main__":
         grid = INITIAL_TEMPLATE.copy()
 
         grid = add_star(grid, string_to_star(star_str))
-        fail_stars_str = load_json(FAI_JSON)
+        fail_stars_str = torus.json.load_json(FAI_JSON)
 
         if star_str in fail_stars_str:
             tqdm.tqdm.write(T_BLUE + "Already Failed - Skipping" + T_NORMAL)
@@ -727,7 +753,7 @@ if __name__ == "__main__":
 
         if not new_solutions:
             print(T_PINK + "No solution found." + T_NORMAL)
-            append_json(FAI_JSON, star_str)
+            torus.json.append_json(FAI_JSON, star_str)
         else:
             for _ in range(20):
                 print(T_YELLOW + "TOTALLY COMPLETED GOOD GRID" + T_NORMAL)

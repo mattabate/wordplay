@@ -3,10 +3,11 @@
     then it finds all the contained words
 """
 
-from config import C_WALL
-from torus.json import load_json, write_json
+import torus
+
 from lib import string_to_star
 from config import (
+    C_WALL,
     STAR_ROWS_OF_INTEREST,
     STAR_COLS_OF_INTEREST,
     STARS_FOUND_JSON,
@@ -37,15 +38,15 @@ if __name__ == "__main__":
     FAI_JSON = get_failures_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
 
     if SEARCH_W_FLIPPED:
-        sol_strs = load_json(STARS_FOUND_FLIPPED_JSON)
+        sol_strs = torus.json.load_json(STARS_FOUND_FLIPPED_JSON)
     else:
-        sol_strs = load_json(STARS_FOUND_JSON)
+        sol_strs = torus.json.load_json(STARS_FOUND_JSON)
 
-    fails_set = set(load_json(FAI_JSON))
+    fails_set = set(torus.json.load_json(FAI_JSON))
 
     good_star_strs = [s for s in sol_strs if s not in fails_set]
 
-    words_approved = load_json(WORDS_APPROVED_JSON)
+    words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
 
     print("number words in all ics", len(good_star_strs))
     all_words = set()
@@ -55,7 +56,7 @@ if __name__ == "__main__":
 
     all_words = all_words - set(words_approved)
 
-    word_scores = load_json(SCORES_DICT_JSON)
+    word_scores = torus.json.load_json(SCORES_DICT_JSON)
 
     # Filter words to include only those in all_words, sort by score
     # highest to lowest
@@ -65,4 +66,6 @@ if __name__ == "__main__":
         reverse=True,
     )
 
-    write_json("filter_words/sorted_words_in_ics.json", [w for w, _ in sorted_words])
+    torus.json.write_json(
+        "filter_words/sorted_words_in_ics.json", [w for w, _ in sorted_words]
+    )
