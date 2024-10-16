@@ -62,7 +62,8 @@ if __name__ == "__main__":
 
     if f_reomve_duplicates_bad:
         print(
-            "Number of bad solutions in json:", len(torus.json.load_json(BAD_SOLUTIONS))
+            "Number of bad solutions in json:",
+            len(torus.json.load_json(BAD_SOLUTIONS)),
         )
         torus.json.remove_duplicates(BAD_SOLUTIONS)
         passed = torus.json.load_json(BAD_SOLUTIONS)
