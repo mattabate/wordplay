@@ -18,6 +18,7 @@ from config import (
     WORDS_OMITTED_JSON,
     ROWLEN,
     GRIDCELLS,
+    SLEEP_DURATION,
     STAR_START,
     C_WALL,
     GRID_TEMPLATE,

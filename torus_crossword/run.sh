@@ -12,7 +12,7 @@ else
     while true; do
         poetry run python3 main.py &
         PID=$!
-        echo "timestep $SLEEP_DURATION"
+        echo "Update Rate: $SLEEP_DURATION"
         sleep $SLEEP_DURATION
         kill $PID
         sleep 1
