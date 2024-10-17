@@ -115,13 +115,13 @@ def add_theme_words(template: list[str], type: str):
     Add theme words to the initial 15x15 grid.
     """
     t_holder = "____█TORUS█____"
-    d_holder = "HUNT█_____█DOUG"
+    d_holder = "HNUT█_____█DOUG"
     if type == "A":
         for i in range(ROWLEN):
             if t_holder[i] != "_":
                 template[7] = replace_char_in_string(template[7], t_holder[i], i)
     elif type == "AA":
-        template[7] = "HUNT█TORUS█DOUG"
+        template[7] = "HNUT█TORUS█DOUG"
     elif type == "AD":
         for i in range(ROWLEN):
             if d_holder[i] != "_":
@@ -138,7 +138,7 @@ def add_theme_words(template: list[str], type: str):
             if col7[i] != "_":
                 template[i] = replace_char_in_string(template[i], col7[i], 7)
     elif type == "DD":
-        col7 = "HUNT█TORUS█DOUG"
+        col7 = "HNUT█TORUS█DOUG"
         for i in range(ROWLEN):
             if col7[i] != "_":
                 template[i] = replace_char_in_string(template[i], col7[i], 7)

@@ -594,6 +594,7 @@ def recursive_search(grid, level=0):
         tqdm.tqdm.write(
             T_PINK + f"FOUND TRASHED WORD ... Skipping: {trashed_words}" + T_NORMAL
         )
+        return
 
     grid_str = "".join(grid)
     if grid_str.count("_") == 0:
