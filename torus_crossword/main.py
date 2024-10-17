@@ -18,7 +18,6 @@ from config import (
     WORDS_OMITTED_JSON,
     ROWLEN,
     GRIDCELLS,
-    SLEEP_DURATION,
     STAR_START,
     C_WALL,
     GRID_TEMPLATE,
@@ -71,11 +70,12 @@ else:
 
 
 # bests
-new_solutions = []  # tracks initial conditions solutions
+
 v_best_grids = []
 v_best_score = 0
 
 WORDLIST = torus.json.load_json(WOR_JSON)
+WORDLIST_SET = set(WORDLIST)
 
 for i, w in enumerate(WORDLIST):
     WORDLIST[i] = C_WALL + w + C_WALL
@@ -546,8 +546,26 @@ def print_grid(grid: list[str], h: tuple[str, int, str]):
     return "\n".join(grid_copy) + T_NORMAL
 
 
+def get_words_in_partial_grid(grid: list[str]) -> set[str]:
+    across_words = set()
+    for l in grid:
+        bits = (l + l).split(C_WALL)[1:-1]
+
+        for b in bits:
+            if b and ("@" not in b) and ("_" not in b):
+                across_words.add(b)
+
+    down_words = set()
+    for l in transpose(grid):
+        bits = (l + l).split(C_WALL)[1:-1]
+        for b in bits:
+            if b and "@" not in b and "_" not in b:
+                down_words.add(b)
+
+    return across_words | down_words
+
+
 def recursive_search(grid, level=0):
-    global new_solutions
     global v_best_score
     global v_best_grids
 
@@ -562,37 +580,20 @@ def recursive_search(grid, level=0):
             tqdm.tqdm.write(T_PINK + "Already in solutions" + T_NORMAL)
             exit()
             return
-        new_solutions.append(grid)
         torus.json.append_json(SOL_JSON, grid)
         exit()
         return
 
     if f_save_words_used:
-        across_words = set()
-        for l in grid:
-            bits = (l + l).split(C_WALL)[1:-1]
-
-            for b in bits:
-                if b and ("@" not in b) and ("_" not in b):
-                    across_words.add(b)
-
-        down_words = set()
-        for l in transpose(grid):
-            bits = (l + l).split(C_WALL)[1:-1]
-            for b in bits:
-                if b and "@" not in b and "_" not in b:
-                    down_words.add(b)
-
-        all_words = across_words | down_words
-
-        words_omitted = set(torus.json.load_json(WORDS_OMITTED_JSON))
-
-        overlap = all_words & words_omitted
-        if overlap:
-            tqdm.tqdm.write(
-                T_PINK + f"FOUND TRASHED WORD ... Skipping: {overlap}" + T_NORMAL
-            )
-            return
+        trashed_words = get_words_in_partial_grid(grid) - set(
+            torus.json.load_json(WOR_JSON)
+        )
+    else:
+        trashed_words = get_words_in_partial_grid(grid) - WORDLIST_SET
+    if trashed_words:
+        tqdm.tqdm.write(
+            T_PINK + f"FOUND TRASHED WORD ... Skipping: {trashed_words}" + T_NORMAL
+        )
 
     grid_str = "".join(grid)
     if grid_str.count("_") == 0:
@@ -759,7 +760,6 @@ if __name__ == "__main__":
             tqdm.tqdm.write(T_BLUE + "Already Failed - Skipping" + T_NORMAL)
             continue
 
-        new_solutions = []
         recursive_search(grid, 0)
 
         all_solutions = torus.json.load_json(SOL_JSON)
