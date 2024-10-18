@@ -13,9 +13,11 @@ from fast_search import get_new_grids as get_new_grids_main
 
 from config import (
     WOR_JSON,
+    ACTIVE_WORDS_JSON,
     STARS_FOUND_JSON,
     STARS_FOUND_FLIPPED_JSON,
     WORDS_APPROVED_JSON,
+    WORDS_OMITTED_JSON,
     ROWLEN,
     GRIDCELLS,
     STAR_START,
@@ -28,7 +30,6 @@ from config import (
     IC_TYPE,
     MAX_WAL,
     SEARCH_W_FLIPPED,
-    ACTIVE_WORDS_JSON,
     f_verbose,
     f_save_words_used,
     f_save_bounds,
@@ -692,13 +693,14 @@ def recursive_search(grid, level=0):
                     )
 
             # get all words in words approved, and add them to active words
-            words_approved = set(torus.json.load_json(WORDS_APPROVED_JSON))
-            words_seen = words_seen - words_approved
+            words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
+            words_active = torus.json.load_json(ACTIVE_WORDS_JSON)
+            words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
 
             for w in words_seen:
-                if w in words_approved:
+                if w in words_active or w in words_approved or w in words_omitted:
                     continue
-                tqdm.tqdm.write(f"Adding {w} to active words")
+                tqdm.tqdm.write(T_YELLOW + f"Adding {w} to active words" + T_NORMAL)
                 torus.json.append_json(ACTIVE_WORDS_JSON, w)
 
         with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:

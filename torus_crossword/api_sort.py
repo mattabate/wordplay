@@ -11,15 +11,25 @@ from config import (
     WORDS_APPROVED_JSON,
     WOR_JSON,
     WORDS_OMITTED_JSON,
+    ACTIVE_WORDS_JSON,
 )
 
 without_clues_only = False
+f_from_active = True
+f_delete_active = True
 
 words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
 words_appoved = torus.json.load_json(WORDS_APPROVED_JSON)
 words_seen = set(words_omitted + words_appoved)
 
+
+if f_from_active:
+    torus.json.write_json(
+        WORDS_CONSIDERED_JSON, torus.json.load_json(ACTIVE_WORDS_JSON)
+    )
 words_condered = torus.json.load_json(WORDS_CONSIDERED_JSON)
+if f_delete_active:
+    torus.json.write_json(ACTIVE_WORDS_JSON, [])
 
 num_printed = 6
 params = {"search_redirect": "True"}
