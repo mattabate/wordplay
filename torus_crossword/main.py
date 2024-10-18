@@ -15,7 +15,7 @@ from config import (
     WOR_JSON,
     STARS_FOUND_JSON,
     STARS_FOUND_FLIPPED_JSON,
-    WORDS_OMITTED_JSON,
+    WORDS_APPROVED_JSON,
     ROWLEN,
     GRIDCELLS,
     STAR_START,
@@ -75,7 +75,8 @@ v_best_grids = []
 v_best_score = 0
 
 WORDLIST = torus.json.load_json(WOR_JSON)
-WORDLIST_SET = set(WORDLIST)
+if not f_save_words_used:
+    WORDLIST_SET = set(WORDLIST)
 
 for i, w in enumerate(WORDLIST):
     WORDLIST[i] = C_WALL + w + C_WALL
@@ -590,27 +591,28 @@ def recursive_search(grid, level=0):
         )
     else:
         trashed_words = get_words_in_partial_grid(grid) - WORDLIST_SET
+
     if trashed_words:
+        tqdm.tqdm.write("\n")
         tqdm.tqdm.write(
             T_PINK + f"FOUND TRASHED WORD ... Skipping: {trashed_words}" + T_NORMAL
         )
+        tqdm.tqdm.write(T_PINK + "\n".join(grid) + T_NORMAL)
         return
 
     grid_str = "".join(grid)
     if grid_str.count("_") == 0:
         for i, line in enumerate(grid):
             if C_WALL not in line:
-                tqdm.tqdm.write(
-                    f"\nGrid has max walls but ROW {i} has no black squares."
-                )
+                tqdm.tqdm.write("\n")
+                tqdm.tqdm.write(f"Grid has max walls but ROW {i} has no black squares.")
                 tqdm.tqdm.write(print_grid(grid, ("r", i, T_BLUE)))
                 return
 
         for i, line in enumerate(transpose(grid)):
             if C_WALL not in line:
-                tqdm.tqdm.write(
-                    f"\nGrid has max walls but COL {i} has no black squares."
-                )
+                tqdm.tqdm.write("\n")
+                tqdm.tqdm.write(f"Grid has max walls but COL {i} has no black squares.")
                 tqdm.tqdm.write(print_grid(grid, ("c", i, T_BLUE)))
                 return
 
@@ -640,10 +642,11 @@ def recursive_search(grid, level=0):
         if not new_grids:
             if f_verbose:
                 out1 = (
-                    f"\nNo possibilities ROW {start}"
+                    f"No possibilities ROW {start}"
                     if row_or_col == "r"
                     else f"\nNo possibilities COL {start}"
                 )
+                tqdm.tqdm.write("\n")
                 tqdm.tqdm.write(out1)
                 tqdm.tqdm.write(print_grid(grid, (row_or_col, start, T_PINK)))
 
@@ -689,26 +692,26 @@ def recursive_search(grid, level=0):
                     )
 
             # get all words in words approved, and add them to active words
-            words_approved = set(torus.json.load_json("wordlist/words_approved.json"))
+            words_approved = set(torus.json.load_json(WORDS_APPROVED_JSON))
             words_seen = words_seen - words_approved
-            if words_seen != words_seen_inital:
-                tqdm.tqdm.write(
-                    T_PINK + "\n".join(words_seen - words_seen_inital) + T_NORMAL
-                )
-                torus.json.write_json(ACTIVE_WORDS_JSON, list(words_seen))
-                tqdm.tqdm.write("\n")
+
+            for w in words_seen:
+                if w in words_approved:
+                    continue
+                tqdm.tqdm.write(f"Adding {w} to active words")
+                torus.json.append_json(ACTIVE_WORDS_JSON, w)
 
         with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
             if f_verbose:
                 len_new_grids = len(new_grids)
                 out2 = (
-                    f"\nTesting {len_new_grids} possibilities for ROW {start}"
+                    f"Testing {len_new_grids} possibilities for ROW {start}"
                     if row_or_col == "r"
-                    else f"\nTesting {len_new_grids} possibilities for COL {start}"
+                    else f"Testing {len_new_grids} possibilities for COL {start}"
                 )
+                tqdm.tqdm.write("\n")
                 tqdm.tqdm.write(out2)
                 tqdm.tqdm.write(print_grid(grid, (row_or_col, start, T_GREEN)))
-                tqdm.tqdm.write("\n")
 
             for new_grid in t:
                 recursive_search(new_grid, level + 1)
