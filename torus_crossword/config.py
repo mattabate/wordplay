@@ -30,21 +30,21 @@ C_WALL = "█"
 # Config for maip.py 15x15 search
 # Note editing may cause big problems
 
-# IC_TYPE = "AD"
-# SEARCH_W_FLIPPED = False
+IC_TYPE = "AD"
+SEARCH_W_FLIPPED = False
 # note - WE HAVE GOOD for AD, 42, not flipped [but no solutions for 40]
 
-IC_TYPE = "DA"  # da = flipped
-SEARCH_W_FLIPPED = True
+# IC_TYPE = "DA"  # da = flipped
+# SEARCH_W_FLIPPED = True
 
 # IC_TYPE = "A"  # A = flipped
 # SEARCH_W_FLIPPED = True
 
 MAX_WAL = 42
-f_verbose = True
-f_save_words_used = True
+f_verbose = False
+f_save_words_used = False
 f_save_bounds = [1, 2]
-SLEEP_DURATION = 75
+SLEEP_DURATION = 120
 
 GRID_TEMPLATE = [
     "______█@@@_█___",
@@ -107,7 +107,7 @@ GRID_TEMPLATE_FLIPPED_MIN = [
 # generate_initials.py config
 # searches for completed 10x12 initial conditions
 ###############################################
-STAR_SEARCH_W_FLIPPED = True  # True on personal computer
+STAR_SEARCH_W_FLIPPED = False  # True on personal computer
 STAR_SEARCH_VERBOSE = False
 BAD_STAR_JSON = "ic_data/bad_stars.json"
 BAD_STAR_FLIPPED_JSON = "ic_data/bad_stars_flipped.json"

@@ -594,11 +594,12 @@ def recursive_search(grid, level=0):
         trashed_words = get_words_in_partial_grid(grid) - WORDLIST_SET
 
     if trashed_words:
-        tqdm.tqdm.write("\n")
-        tqdm.tqdm.write(
-            T_PINK + f"FOUND TRASHED WORD ... Skipping: {trashed_words}" + T_NORMAL
-        )
-        tqdm.tqdm.write(T_PINK + "\n".join(grid) + T_NORMAL)
+        if f_verbose:
+            tqdm.tqdm.write("\n")
+            tqdm.tqdm.write(
+                T_PINK + f"FOUND TRASHED WORD ... Skipping: {trashed_words}" + T_NORMAL
+            )
+            tqdm.tqdm.write(T_PINK + "\n".join(grid) + T_NORMAL)
         return
 
     grid_str = "".join(grid)
