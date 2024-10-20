@@ -51,6 +51,8 @@ from lib import (
 )
 
 
+# grids i dont like
+
 FAI_JSON = get_failures_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
 SOL_JSON = get_solutions_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
 BAD_SOL_JSON = get_bad_solutions_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
@@ -401,8 +403,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
     """
 
     K_INDEX = -1
-    K_BEST_SCORE = 1000000000000
-    K_MIN_BLANKS_SEEN = 1000000000000
+    K_MIN_SCORE = 1000000000000
     K_MIN_GRIDS = 1000000000000
     K_BEST_GRIDS = []
     score = 0
@@ -432,6 +433,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
         # now that you have the words that fit, do any lead to a trvially bad grid?
         working_grids: list[list[str]] = []
         min_new_grids = 0
+        num_new_grids_from_line = 0
         num_blanks = 0
         for l in candidate_lines:
             candidate_grid = grid.copy()
@@ -486,33 +488,32 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             num_blanks += "".join(candidate_grid).count(
                 "_"
             )  # minimize number of total blanks
-            min_new_grids += 1  # minimize number of candidate lines
+
+            # grid is approved!
+            num_new_grids_from_line += 1
 
             # the idea us that i need -> 1000 grids with 0 blanks
             # less preferable then -> 10 grids with 100 blanks
             # 1000 grids with 0 blanks > 10 grids with 100 blanks
             # score = num_grids * (num_blanks + 1)
 
-            # score = min_new_grids * (num_blanks + 1)
+            # score = num_new_grids_from_line * (num_blanks + 1)
             # score = num_blanks
-            # score = min_new_grids
-            score = num_blanks + min_new_grids
-            if score > K_MIN_BLANKS_SEEN:  # minimize score
+            # score = num_new_grids_from_line
+            score = num_blanks + num_new_grids_from_line
+            if score > K_MIN_SCORE:  # minimize score
                 break
-
         else:
-            if K_MIN_BLANKS_SEEN == 0 and min_new_grids >= K_MIN_GRIDS:
+            if score >= K_MIN_SCORE:
                 continue
 
-            K_MIN_GRIDS = min_new_grids
-            K_MIN_BLANKS_SEEN = num_blanks
-
+            K_MIN_SCORE = score
+            K_MIN_GRIDS = num_new_grids_from_line
             K_INDEX = row
-            K_BEST_SCORE = K_MIN_BLANKS_SEEN
             K_BEST_GRIDS = working_grids
 
     # candidate_grid = [long_string[j:j+ROWLEN] for j in range(0, len(long_string), ROWLEN)]
-    return K_INDEX, K_BEST_SCORE, K_BEST_GRIDS
+    return K_INDEX, K_MIN_SCORE, K_BEST_GRIDS
 
 
 def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
