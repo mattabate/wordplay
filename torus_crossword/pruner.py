@@ -39,10 +39,10 @@ def remove_unfound_fails():
         else:
             doots = star_sols.copy()
 
-        stars_failed = torus.json.load_json(file)
+        stars_failed = torus.json.load_json(file)  # every failed star
         new_stars_failed = []
         for star in tqdm.tqdm(stars_failed):
-            if star in doots:
+            if star in doots:  # if star in star STARS_FOUND_FLIPPED_JSON
                 new_stars_failed.append(star)
 
         print(file)
@@ -66,6 +66,8 @@ def propegate_fails_to_lower_files():
             ):
                 numbers.append(int(file.split("_")[-1].split(".")[0]))
 
+        if not numbers:
+            continue
         # find the highest number
         highest_number = max(numbers)
         remove_number = highest_number - 2
@@ -90,15 +92,19 @@ def propegate_fails_to_lower_files():
                 )
                 lower_data: list[list[str]] = torus.json.load_json(file2)
 
-                for grid in higher_data:
+                tqdm.tqdm.write(
+                    "adding grids from num "
+                    + T_GREEN
+                    + str(highest_number)
+                    + T_NORMAL
+                    + " to "
+                    + T_GREEN
+                    + str(lower_number)
+                    + T_NORMAL
+                )
+                for grid in tqdm.tqdm(higher_data):
                     if grid not in lower_data:
                         lower_data.append(grid)
-                        print(
-                            "adding one possible grid from ",
-                            T_GREEN + str(highest_number) + T_NORMAL,
-                            "to",
-                            T_GREEN + str(lower_number) + T_NORMAL,
-                        )
 
                 torus.json.write_json(file2, lower_data)
 
@@ -136,15 +142,19 @@ def propegate_fails_to_lower_files():
                 )
                 lower_data: list[list[str]] = torus.json.load_json(file2)
 
-                for grid in higher_data:
+                tqdm.tqdm.write(
+                    "adding grids from num "
+                    + T_GREEN
+                    + str(highest_number)
+                    + T_NORMAL
+                    + " to "
+                    + T_GREEN
+                    + str(lower_number)
+                    + T_NORMAL
+                )
+                for grid in tqdm.tqdm(higher_data):
                     if grid not in lower_data:
                         lower_data.append(grid)
-                        print(
-                            "adding one possible grid from ",
-                            T_GREEN + str(highest_number) + T_NORMAL,
-                            "to",
-                            T_GREEN + str(lower_number) + T_NORMAL,
-                        )
 
                 torus.json.write_json(file2, lower_data)
 
@@ -152,5 +162,5 @@ def propegate_fails_to_lower_files():
 
 
 if __name__ == "__main__":
-    remove_unfound_fails()
+    # remove_unfound_fails()
     propegate_fails_to_lower_files()
