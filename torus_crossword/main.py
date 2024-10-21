@@ -539,7 +539,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
     # o = FILL_INS_TEMPLATE
     FILL_INS_TEMPLATE = enforce_symmetry(FILL_INS_TEMPLATE)
     if not FILL_INS_TEMPLATE:
-        tqdm.tqdm.write(T_YELLOW + "below not actually doable" + T_NORMAL)
+        # tqdm.tqdm.write(T_YELLOW + "below not actually doable" + T_NORMAL)
         # print(T_YELLOW + json.dumps(o, indent=2, ensure_ascii=False) + T_NORMAL)
         return row, 0, []
 
