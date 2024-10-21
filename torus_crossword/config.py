@@ -30,12 +30,12 @@ C_WALL = "█"
 # Config for maip.py 15x15 search
 # Note editing may cause big problems
 
-# IC_TYPE = "AD"
-# SEARCH_W_FLIPPED = False
+IC_TYPE = "AD"
+SEARCH_W_FLIPPED = False
 # note - WE HAVE GOOD for AD, 42, not flipped [but no solutions for 40]
 
-IC_TYPE = "DA"  # da = flipped
-SEARCH_W_FLIPPED = True
+# IC_TYPE = "DA"  # da = flipped
+# SEARCH_W_FLIPPED = True
 
 # IC_TYPE = "A"  # A = flipped
 # SEARCH_W_FLIPPED = True
@@ -44,7 +44,7 @@ MAX_WAL = 42
 f_verbose = True
 f_save_words_used = False
 f_save_bounds = [1, 10]
-SLEEP_DURATION = -1
+SLEEP_DURATION = 120
 
 GRID_TEMPLATE = [
     "______█@@@_█___",

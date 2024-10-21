@@ -276,13 +276,19 @@ def enforce_symmetry(grid: list[str]) -> list[str]:
     long_string = "".join(grid)
     for j, c in enumerate(long_string):
         rvs_idx = GRIDCELLS - 1 - j
-        if long_string[rvs_idx] != "_":
-            continue
+        rvs_c = long_string[rvs_idx]
 
+        # ENFORCE SYMETRY
         if c == C_WALL:
-            long_string = replace_char_in_string(long_string, C_WALL, rvs_idx)
+            if rvs_c != C_WALL and rvs_c != "_":  # check symetry
+                return False
+            if rvs_c == "_":  # enforce symetry
+                long_string = replace_char_in_string(long_string, C_WALL, rvs_idx)
         elif c != "_":
-            long_string = replace_char_in_string(long_string, "@", rvs_idx)
+            if rvs_c == C_WALL:  # check symetry
+                return False
+            if rvs_c == "_":  # enforce symetry
+                long_string = replace_char_in_string(long_string, "@", rvs_idx)
 
     return [long_string[j : j + ROWLEN] for j in range(0, GRIDCELLS, ROWLEN)]
 
@@ -432,6 +438,8 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
     K_BEST_GRIDS = []
     score = 0
 
+    FILL_INS_TEMPLATE = grid.copy()
+
     for row in range(ROWLEN):
         # for every row, compute the latch with the fewest fitting words
 
@@ -452,6 +460,20 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             # no words fit template
             return row, 0, []
 
+        # get the squares that have letters in all of the candidate lines
+        for i in range(15):  # every letter location
+            if FILL_INS_TEMPLATE[row][i] != "_":
+                continue
+            if all([line[i] == C_WALL for line in candidate_lines]):
+                FILL_INS_TEMPLATE[row] = replace_char_in_string(
+                    FILL_INS_TEMPLATE[row], C_WALL, i
+                )
+
+            if all([line[i] not in [C_WALL, "_"] for line in candidate_lines]):
+                FILL_INS_TEMPLATE[row] = replace_char_in_string(
+                    FILL_INS_TEMPLATE[row], "@", i
+                )
+
         # TODO: DO THIS WITHOUT COMPUTING GRIDS EXPLICITLY
         # now that you have the words that fit, do any lead to a trvially bad grid?
         working_grids: list[list[str]] = []
@@ -464,6 +486,8 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             candidate_grid[row] = l  # make line word from options
 
             candidate_grid = enforce_symmetry(candidate_grid)
+            if not candidate_grid:
+                continue
             candidate_grid = fill_in_small_holes(candidate_grid)
 
             if num_walls(candidate_grid) > MAX_WAL:
@@ -511,6 +535,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             K_INDEX = row
             K_BEST_GRIDS = working_grids
 
+    print(json.dumps(FILL_INS_TEMPLATE, indent=2, ensure_ascii=False))
     # candidate_grid = [long_string[j:j+ROWLEN] for j in range(0, len(long_string), ROWLEN)]
     return K_INDEX, K_MIN_SCORE, K_BEST_GRIDS
 
