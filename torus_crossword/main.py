@@ -464,12 +464,12 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
         for i in range(15):  # every letter location
             if FILL_INS_TEMPLATE[row][i] != "_":
                 continue
-            if all([line[i] == C_WALL for line in candidate_lines]):
+            all_fills = set(line[i] for line in candidate_lines)
+            if len(all_fills) == 1:
                 FILL_INS_TEMPLATE[row] = replace_char_in_string(
-                    FILL_INS_TEMPLATE[row], C_WALL, i
+                    FILL_INS_TEMPLATE[row], next(iter(all_fills)), i
                 )
-
-            if all([line[i] not in [C_WALL, "_"] for line in candidate_lines]):
+            elif C_WALL not in all_fills and "_" not in all_fills:
                 FILL_INS_TEMPLATE[row] = replace_char_in_string(
                     FILL_INS_TEMPLATE[row], "@", i
                 )
@@ -535,8 +535,22 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             K_INDEX = row
             K_BEST_GRIDS = working_grids
 
-    print(json.dumps(FILL_INS_TEMPLATE, indent=2, ensure_ascii=False))
-    # candidate_grid = [long_string[j:j+ROWLEN] for j in range(0, len(long_string), ROWLEN)]
+    # check to make sure it is possible to make grid symetric from all row options
+    # o = FILL_INS_TEMPLATE
+    FILL_INS_TEMPLATE = enforce_symmetry(FILL_INS_TEMPLATE)
+    if not FILL_INS_TEMPLATE:
+        tqdm.tqdm.write(T_YELLOW + "below not actually doable" + T_NORMAL)
+        # print(T_YELLOW + json.dumps(o, indent=2, ensure_ascii=False) + T_NORMAL)
+        return row, 0, []
+
+    betterd_grids = []
+    for g in K_BEST_GRIDS:
+        for i in range(ROWLEN):
+            for j in range(ROWLEN):
+                if g[i][j] == "_" and FILL_INS_TEMPLATE[i][j] != "_":
+                    g[i][j] == FILL_INS_TEMPLATE[i][j]
+        betterd_grids.append(g)
+
     return K_INDEX, K_MIN_SCORE, K_BEST_GRIDS
 
 
