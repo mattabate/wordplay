@@ -226,29 +226,29 @@ def fill_small_holes_line(line: str) -> str:
 
 def add_letter_placeholders_line(line: str) -> str:
     """Add placeholders for letters in the line."""
-    double = line + line
 
+    double = line + line
     matches = re.finditer(r"█[A-Z@][A-Z@_][A-Z@_]", double)
     for match in matches:
         if line[(match.end() - 2) % ROWLEN] == "_":
             line = replace_char_in_string(line, "@", (match.end() - 2) % ROWLEN)
         if line[(match.end() - 1) % ROWLEN] == "_":
             line = replace_char_in_string(line, "@", (match.end() - 1) % ROWLEN)
-    double = line + line
 
+    double = line + line
     matches = re.finditer(r"█_[A-Z@]_", double)
     for match in matches:
         line = replace_char_in_string(line, "@", (match.end() - 1) % ROWLEN)
-    double = line + line
 
+    double = line + line
     matches = re.finditer(r"[A-Z@_][A-Z@_][A-Z@]█", double)
     for match in matches:
         if line[(match.start()) % ROWLEN] == "_":
             line = replace_char_in_string(line, "@", match.start() % ROWLEN)
         if line[(match.start() + 1) % ROWLEN] == "_":
             line = replace_char_in_string(line, "@", (match.start() + 1) % ROWLEN)
-    double = line + line
 
+    double = line + line
     matches = re.finditer(r"_[A-Z@]_█", double)
     for match in matches:
         line = replace_char_in_string(line, "@", match.start() % ROWLEN)
@@ -265,7 +265,7 @@ def fill_in_small_holes(grid: list[str]) -> list[str]:
 
 
 def add_letter_placeholders(grid: list[str]) -> list[str]:
-    """Add placeholders for letters in the grid."""
+    """Add placeholders for letters in the grid. like █[A-Z@][A-Z@_][A-Z@_] -> █@@@."""
     new_grid = [add_letter_placeholders_line(l) for l in grid]
     tr = transpose(new_grid)  # compute transpose matrix
     new_grid = [add_letter_placeholders_line(l) for l in tr]
@@ -393,6 +393,31 @@ def grid_contains_englosed_spaces(grid):
     return count != total_non_wall
 
 
+def check_center_row_sym(line: str) -> bool:
+    "Return true if line symetric in terms of C_WALL ie █@@█@█@@█"
+    return any(
+        [
+            ((line[k] == C_WALL) ^ (line[ROWLEN - 1 - k] == C_WALL))
+            for k in range(ROWLEN)
+        ]
+    )
+
+
+def num_walls(grid: list[str]) -> int:
+    "return number of wall characters in grid"
+    return "".join(grid).count(C_WALL)
+
+
+def grid_contains_unwalled_rows(grid: list[str]) -> bool:
+    for line in grid:
+        if C_WALL not in line:
+            return True
+    for line in transpose(grid):
+        if C_WALL not in line:
+            return True
+    return False
+
+
 def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
     """Given a grid, find the best row to latch on to.
 
@@ -404,7 +429,6 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
 
     K_INDEX = -1
     K_MIN_SCORE = 1000000000000
-    K_MIN_GRIDS = 1000000000000
     K_BEST_GRIDS = []
     score = 0
 
@@ -422,7 +446,6 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
         if not fixtures:
             continue
 
-        # TODO: get possible word lens from the grid:
         candidate_lines = get_new_lines(fixtures, line)
 
         if not candidate_lines:
@@ -432,54 +455,30 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
         # TODO: DO THIS WITHOUT COMPUTING GRIDS EXPLICITLY
         # now that you have the words that fit, do any lead to a trvially bad grid?
         working_grids: list[list[str]] = []
-        min_new_grids = 0
         num_new_grids_from_line = 0
         num_blanks = 0
         for l in candidate_lines:
+            if row == 7 and not check_center_row_sym(l):
+                continue
             candidate_grid = grid.copy()
-
-            if row == 7:
-                if any(
-                    [
-                        C_WALL in [l[k], l[14 - k]] and l[k] != l[14 - k]
-                        for k in range(ROWLEN)
-                    ]
-                ):
-                    continue
-
             candidate_grid[row] = l  # make line word from options
 
             candidate_grid = enforce_symmetry(candidate_grid)
             candidate_grid = fill_in_small_holes(candidate_grid)
 
-            # NOTE: This ensures not to many walls
-            num_walls = "".join(candidate_grid).count(C_WALL)
-            if num_walls > MAX_WAL:
+            if num_walls(candidate_grid) > MAX_WAL:
                 continue
-
-            candidate_grid = add_letter_placeholders(candidate_grid)
 
             if grid_contains_englosed_spaces(candidate_grid):
                 continue
 
-            if num_walls == MAX_WAL:
-                for j in range(ROWLEN):
-                    if C_WALL in candidate_grid[j]:
-                        candidate_grid[j] = candidate_grid[j].replace("_", "@")
+            candidate_grid = add_letter_placeholders(candidate_grid)
 
-                passes = True
-                for line in grid:
-                    if C_WALL not in line:
-                        passes = False
-                        break
-
-                for line in transpose(grid):
-                    if C_WALL not in line:
-                        passes = False
-                        break
-
-                if not passes:
+            if num_walls(candidate_grid) == MAX_WAL:
+                if grid_contains_unwalled_rows(candidate_grid):
                     continue
+                for j in range(ROWLEN):
+                    candidate_grid[j] = candidate_grid[j].replace("_", "@")
 
             if grid_contains_short_words(candidate_grid):
                 continue
@@ -670,7 +669,6 @@ def recursive_search(grid, level=0):
 
         if f_save_words_used and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]:
             words_seen = set(torus.json.load_json(ACTIVE_WORDS_JSON))
-            words_seen_inital = words_seen.copy()
             if row_or_col == "r":
                 for pp in new_grids:
                     row = pp[start]
