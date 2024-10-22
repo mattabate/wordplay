@@ -3,6 +3,7 @@ import random
 
 import torus
 from config import (
+    C_WALL,
     WOR_JSON,
     STAR_HEIGHT,
     STAR_WIDTH,
@@ -168,3 +169,22 @@ def get_star_from_grid(grid, f_flipped) -> list[list[str]]:
             )
 
     return template
+
+
+def get_words_in_partial_grid(grid: list[str]) -> set[str]:
+    across_words = set()
+    for l in grid:
+        bits = (l + l).split(C_WALL)[1:-1]
+
+        for b in bits:
+            if b and ("@" not in b) and ("_" not in b):
+                across_words.add(b)
+
+    down_words = set()
+    for l in transpose(grid):
+        bits = (l + l).split(C_WALL)[1:-1]
+        for b in bits:
+            if b and "@" not in b and "_" not in b:
+                down_words.add(b)
+
+    return across_words | down_words

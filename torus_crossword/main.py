@@ -41,6 +41,7 @@ from lib import (
     transpose,
     replace_char_in_string,
     string_to_star,
+    get_words_in_partial_grid,
     T_BLUE,
     T_GREEN,
     T_NORMAL,
@@ -585,25 +586,6 @@ def print_grid(grid: list[str], h: tuple[str, int, str]):
             )
 
     return "\n".join(grid_copy) + T_NORMAL
-
-
-def get_words_in_partial_grid(grid: list[str]) -> set[str]:
-    across_words = set()
-    for l in grid:
-        bits = (l + l).split(C_WALL)[1:-1]
-
-        for b in bits:
-            if b and ("@" not in b) and ("_" not in b):
-                across_words.add(b)
-
-    down_words = set()
-    for l in transpose(grid):
-        bits = (l + l).split(C_WALL)[1:-1]
-        for b in bits:
-            if b and "@" not in b and "_" not in b:
-                down_words.add(b)
-
-    return across_words | down_words
 
 
 def recursive_search(grid, level=0):

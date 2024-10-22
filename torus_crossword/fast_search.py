@@ -3,28 +3,35 @@
 import json
 import tqdm
 import torus
-from lib import Direction, Sqaure, Word, replace_char_in_grid, transpose
+from lib import (
+    Direction,
+    Sqaure,
+    Word,
+    replace_char_in_grid,
+    transpose,
+    get_words_in_partial_grid,
+)
 import time
 import itertools
 
 # NOTE: instead we need to do somethign where "the letter a in this position implies the letter x in this position."
 
 INITIAL_TEMPLATE = [
-    "RTCOAT█H@@██SPO",
-    "MEATES█N@@@█PER",
-    "ERNIST█U@@@█INT",
-    "███@@@@T██@@ATE",
-    "@@@█@@@█@@@@NSD",
-    "@@@@@█@@@@@@███",
-    "@@@@@@█@@@@█@@@",
-    "@@@@█TORUS█@@@@",
+    "@@@██@@@█@@@@@@",
     "@@@█@@@@█@@@@@@",
-    "███@@@@@@█@@@@@",
-    "OME@@@@█@@@█@@@",
-    "HUT@@██D@@@@███",
-    "DER█@@@O█EASTSI",
-    "ENU█@@@U█ONTHEM",
-    "ASS██@@G█UNDERP",
+    "@@@█@@@@█@@@@@@",
+    "@@@@@██@@@@@███",
+    "@@@@@@@█@@@█@@@",
+    "███@@@@T@█@@@@@",
+    "@@@█@@@O█@@@@@@",
+    "HNUT█@@R@@█DOUG",
+    "@@@@@@█U@@@█@@@",
+    "@@@@@█@S@@@@███",
+    "@@@█@@@█@@@@@@@",
+    "███@@@@@██@@@@@",
+    "@@@@@@█@@@@█@@@",
+    "@@@@@@█@@@@█@@@",
+    "@@@@@@█@@@██@@@",
 ]
 
 
@@ -47,7 +54,7 @@ INITIAL_TEMPLATE = [
 # ]
 
 id = int(time.time())
-BES_JSON = f"bests_{id}.json"
+BES_JSON = f"fast_search/bests_{id}.json"
 SOL_JSON = f"solutions/solutions_{id}.json"
 FAI_JSON = "temp_fails.json"
 
@@ -274,10 +281,41 @@ def grid_filled(grid: list[str]) -> bool:
     return True
 
 
+f_save_words_used = True
+
+from config import WOR_JSON, WORDS_APPROVED_JSON, ACTIVE_WORDS_JSON, WORDS_OMITTED_JSON
+
+
 def recursive_search(grid, level=0):
     global v_best_score
     global v_best_grids
     global solutions
+
+    tqdm.tqdm.write(
+        T_BLUE + f"{json.dumps(grid, indent=2, ensure_ascii=False)}" + T_NORMAL
+    )
+    if f_save_words_used:
+        words_contained = get_words_in_partial_grid(grid)
+        words_contained
+        trashed_words = words_contained - set(torus.json.load_json(WOR_JSON))
+        if trashed_words:
+            tqdm.tqdm.write("\n")
+            tqdm.tqdm.write(
+                T_PINK + f"FOUND TRASHED WORD ... Skipping: {trashed_words}" + T_NORMAL
+            )
+            tqdm.tqdm.write(T_PINK + "\n".join(grid) + T_NORMAL)
+            return
+
+        # get all words in words approved, and add them to active words
+        words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
+        words_active = torus.json.load_json(ACTIVE_WORDS_JSON)
+        words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
+
+        for w in words_contained:
+            if w in words_active or w in words_approved or w in words_omitted:
+                continue
+            # tqdm.tqdm.write(T_YELLOW + f"Adding {w} to active words" + T_NORMAL)
+            torus.json.append_json(ACTIVE_WORDS_JSON, w)
 
     if grid_filled(grid):
         for l in solutions:
