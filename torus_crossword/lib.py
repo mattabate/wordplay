@@ -133,7 +133,10 @@ def add_theme_words(template: list[str], type: str):
                 template[7] = replace_char_in_string(template[7], t_holder[i], i)
 
     elif type == "DA":
-        template[7] = "HNUT█_____█DOUG"
+
+        for i in range(ROWLEN):
+            if d_holder[i] != "_":
+                template[7] = replace_char_in_string(template[7], d_holder[i], i)
         col7 = "____█TORUS█____"
         for i in range(ROWLEN):
             if col7[i] != "_":
