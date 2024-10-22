@@ -1,6 +1,7 @@
 *.prof
 
 filter_words/*
+fast_search/*
 
 nohup.out
 

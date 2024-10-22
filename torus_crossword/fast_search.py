@@ -281,7 +281,7 @@ def grid_filled(grid: list[str]) -> bool:
     return True
 
 
-f_save_words_used = True
+f_save_words_used = False
 
 from config import WOR_JSON, WORDS_APPROVED_JSON, ACTIVE_WORDS_JSON, WORDS_OMITTED_JSON
 
@@ -291,9 +291,9 @@ def recursive_search(grid, level=0):
     global v_best_grids
     global solutions
 
-    tqdm.tqdm.write(
-        T_BLUE + f"{json.dumps(grid, indent=2, ensure_ascii=False)}" + T_NORMAL
-    )
+    # tqdm.tqdm.write(
+    #     T_BLUE + f"{json.dumps(grid, indent=2, ensure_ascii=False)}" + T_NORMAL
+    # )
     if f_save_words_used:
         words_contained = get_words_in_partial_grid(grid)
         words_contained
@@ -314,8 +314,9 @@ def recursive_search(grid, level=0):
         for w in words_contained:
             if w in words_active or w in words_approved or w in words_omitted:
                 continue
-            # tqdm.tqdm.write(T_YELLOW + f"Adding {w} to active words" + T_NORMAL)
+            tqdm.tqdm.write(T_YELLOW + f"Adding {w} to active words" + T_NORMAL)
             torus.json.append_json(ACTIVE_WORDS_JSON, w)
+            exit()
 
     if grid_filled(grid):
         for l in solutions:
@@ -333,9 +334,6 @@ def recursive_search(grid, level=0):
     new_grids = get_new_grids(grid)
 
     if not new_grids:
-        tqdm.tqdm.write(
-            T_PINK + "No solution found" + T_NORMAL
-        )  # Red text indicating failure
         return
 
     with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
