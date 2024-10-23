@@ -15,6 +15,23 @@ import time
 import itertools
 
 # NOTE: instead we need to do somethign where "the letter a in this position implies the letter x in this position."
+INITIAL_TEMPLATE = [
+    "@@@█@@@@█@@@@@@",
+    "@@@█@@@@█@@@@@@",
+    "@@@█@@@@█@@@@@@",
+    "@@@@██@@@@@████",
+    "@@@@@@@█@@@█@@@",
+    "███@@@@T@█@@@@@",
+    "@@@@@@█O@@█@@@@",
+    "HNUT█@@R@@█DOUG",
+    "@@@@█@@U█@@@@@@",
+    "@@@@@█@S@@@@███",
+    "@@@█@@@█@@@@@@@",
+    "████@@@@@██@@@@",
+    "@@@@@@█@@@@█@@@",
+    "@@@@@@█@@@@█@@@",
+    "@@@@@@█@@@@█@@@",
+]
 
 # INITIAL_TEMPLATE = [
 #     "@@@██@@@█@@@@@@",
@@ -281,7 +298,7 @@ def grid_filled(grid: list[str]) -> bool:
     return True
 
 
-f_save_words_used = False
+f_save_words_used = True
 
 from config import WOR_JSON, WORDS_APPROVED_JSON, ACTIVE_WORDS_JSON, WORDS_OMITTED_JSON
 
@@ -291,9 +308,9 @@ def recursive_search(grid, level=0):
     global v_best_grids
     global solutions
 
-    # tqdm.tqdm.write(
-    #     T_BLUE + f"{json.dumps(grid, indent=2, ensure_ascii=False)}" + T_NORMAL
-    # )
+    tqdm.tqdm.write(
+        T_BLUE + f"{json.dumps(grid, indent=2, ensure_ascii=False)}" + T_NORMAL
+    )
     if f_save_words_used:
         words_contained = get_words_in_partial_grid(grid)
         words_contained
@@ -316,7 +333,6 @@ def recursive_search(grid, level=0):
                 continue
             tqdm.tqdm.write(T_YELLOW + f"Adding {w} to active words" + T_NORMAL)
             torus.json.append_json(ACTIVE_WORDS_JSON, w)
-            exit()
 
     if grid_filled(grid):
         for l in solutions:

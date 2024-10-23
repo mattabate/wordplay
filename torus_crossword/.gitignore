@@ -1,5 +1,6 @@
 *.prof
-
+*.pkl
+embed_seperate.py
 filter_words/*
 fast_search/*
 
