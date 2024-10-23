@@ -9,6 +9,7 @@ import random
 import os
 from collections import deque
 
+import lib
 from fast_search import get_new_grids as get_new_grids_main
 
 from config import (
@@ -689,33 +690,14 @@ def recursive_search(grid, level=0):
             new_grids = [new_grids[i].copy() for i, _ in ind_w_line_sorted]
 
         if f_save_words_used and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]:
-            words_seen = set(torus.json.load_json(ACTIVE_WORDS_JSON))
-            if row_or_col == "r":
-                for pp in new_grids:
-                    row = pp[start]
-                    words_seen |= set(
-                        [
-                            l
-                            for l in (row + row).split(C_WALL)[1:-1]
-                            if l and "@" not in l and "_" not in l
-                        ]
-                    )
-            else:
-                for pp in new_grids:
-                    row = transpose(pp)[start]
-                    words_seen |= set(
-                        [
-                            l
-                            for l in (row + row).split(C_WALL)[1:-1]
-                            if l and "@" not in l and "_" not in l
-                        ]
-                    )
+            words_seen = set()
+            for l in new_grids:
+                words_seen |= set(lib.get_words_in_partial_grid(l))
 
+            words_active = set(torus.json.load_json(ACTIVE_WORDS_JSON))
             # get all words in words approved, and add them to active words
             words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
-            words_active = torus.json.load_json(ACTIVE_WORDS_JSON)
             words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
-
             for w in words_seen:
                 if w in words_active or w in words_approved or w in words_omitted:
                     continue

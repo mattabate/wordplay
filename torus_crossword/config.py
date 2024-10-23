@@ -41,10 +41,10 @@ SEARCH_W_FLIPPED = True
 # SEARCH_W_FLIPPED = True
 
 MAX_WAL = 42
-f_verbose = True
+f_verbose = False
 f_save_words_used = False
 f_save_bounds = [1, 4]
-SLEEP_DURATION = -1
+SLEEP_DURATION = 120
 
 GRID_TEMPLATE = [
     "______█@@@_█___",
