@@ -14,22 +14,48 @@ from config import (
     ACTIVE_WORDS_JSON,
 )
 
+import enum
+
+
+class Source(enum.Enum):
+    in_consideration: int = 0
+    active_grids: int = 1
+    bad_words: int = 2
+    good_words: int = 3
+
+
+source = Source.bad_words
+
 without_clues_only = False
 f_from_active = False
-f_delete_active = False
+f_delete_active = True
 
 words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
 words_appoved = torus.json.load_json(WORDS_APPROVED_JSON)
 words_seen = set(words_omitted + words_appoved)
 
 
-if f_from_active:
+if source == Source.active_grids:
     torus.json.write_json(
         WORDS_CONSIDERED_JSON, torus.json.load_json(ACTIVE_WORDS_JSON)
     )
+    if f_delete_active:
+        torus.json.write_json(ACTIVE_WORDS_JSON, [])
+if source == Source.bad_words:
+    torus.json.write_json(
+        WORDS_CONSIDERED_JSON, torus.json.load_json("filter_words/assumed_bad.json")
+    )
+    if f_delete_active:
+        torus.json.write_json(ACTIVE_WORDS_JSON, [])
+if source == Source.good_words:
+    torus.json.write_json(
+        WORDS_CONSIDERED_JSON, torus.json.load_json("filter_words/assumed_good.json")
+    )
+    if f_delete_active:
+        torus.json.write_json(ACTIVE_WORDS_JSON, [])
+
 words_condered = torus.json.load_json(WORDS_CONSIDERED_JSON)
-if f_delete_active:
-    torus.json.write_json(ACTIVE_WORDS_JSON, [])
+
 
 num_printed = 6
 params = {"search_redirect": "True"}
