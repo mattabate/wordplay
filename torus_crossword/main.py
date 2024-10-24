@@ -426,6 +426,9 @@ def grid_contains_unwalled_rows(grid: list[str]) -> bool:
     return False
 
 
+import time
+
+
 def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
     """Given a grid, find the best row to latch on to.
 
@@ -543,6 +546,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
     if not FILL_INS_TEMPLATE:
         tqdm.tqdm.write(T_YELLOW + "not actually doable" + T_NORMAL)
         # print(T_YELLOW + json.dumps(o, indent=2, ensure_ascii=False) + T_NORMAL)
+        time.sleep(1)
         return row, 0, []
 
     betterd_grids = []
@@ -754,6 +758,10 @@ if __name__ == "__main__":
     print(T_YELLOW + "Saving Failures to: " + T_GREEN + FAI_JSON + T_NORMAL)
     print(T_YELLOW + "Current time: " + T_GREEN + f"{datetime_string_am_pm}" + T_NORMAL)
     print()
+    if not id_stars_of_interest:
+        print(T_PINK + "No stars to search" + T_NORMAL)
+        exit()
+
     for t, s in enumerate(id_stars_of_interest):
         init_id, star_str = s
         tqdm.tqdm.write(T_YELLOW + f"Trial {t} / {lsoi}  ({ls} tot)" + T_NORMAL)

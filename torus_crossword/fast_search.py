@@ -15,23 +15,23 @@ import time
 import itertools
 
 # NOTE: instead we need to do somethign where "the letter a in this position implies the letter x in this position."
-INITIAL_TEMPLATE = [
-    "@@@█@@@@█@@@@@@",
-    "@@@█@@@@█@@@@@@",
-    "@@@█@@@@█@@@@@@",
-    "@@@@██@@@@@████",
-    "@@@@@@@█@@@█@@@",
-    "███@@@@T@█@@@@@",
-    "@@@@@@█O@@█@@@@",
-    "HNUT█@@R@@█DOUG",
-    "@@@@█@@U█@@@@@@",
-    "@@@@@█@S@@@@███",
-    "@@@█@@@█@@@@@@@",
-    "████@@@@@██@@@@",
-    "@@@@@@█@@@@█@@@",
-    "@@@@@@█@@@@█@@@",
-    "@@@@@@█@@@@█@@@",
-]
+# INITIAL_TEMPLATE = [
+#     "@@@█@@@@█@@@@@@",
+#     "@@@█@@@@█@@@@@@",
+#     "@@@█@@@@█@@@@@@",
+#     "@@@@██@@@@@████",
+#     "@@@@@@@█@@@█@@@",
+#     "███@@@@T@█@@@@@",
+#     "@@@@@@█O@@█@@@@",
+#     "HNUT█@@R@@█DOUG",
+#     "@@@@█@@U█@@@@@@",
+#     "@@@@@█@S@@@@███",
+#     "@@@█@@@█@@@@@@@",
+#     "████@@@@@██@@@@",
+#     "@@@@@@█@@@@█@@@",
+#     "@@@@@@█@@@@█@@@",
+#     "@@@@@@█@@@@█@@@",
+# ]
 
 # INITIAL_TEMPLATE = [
 #     "@@@██@@@█@@@@@@",
@@ -298,7 +298,7 @@ def grid_filled(grid: list[str]) -> bool:
     return True
 
 
-f_save_words_used = True
+f_save_words_used = False
 
 from config import WOR_JSON, WORDS_APPROVED_JSON, ACTIVE_WORDS_JSON, WORDS_OMITTED_JSON
 
