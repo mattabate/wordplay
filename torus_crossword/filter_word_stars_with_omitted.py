@@ -18,7 +18,7 @@ import tqdm
 
 words_ommitted = torus.json.load_json(WORDS_OMITTED_JSON)
 
-f_remove_duplicates = False
+f_remove_duplicates = True
 
 print("(1) Remove Duplicate Stars")
 if f_remove_duplicates:
