@@ -285,6 +285,7 @@ def get_stars_from_seed_grids(grid: list[str]) -> list[list[str]]:
         new_temp = STAR_FLIPPED_TEMPLATE.copy()
     else:
         new_temp = STAR_TEMPLATE.copy()
+
     for r in range(6):
         new_temp[r + 2] = new_temp[r + 2][:3] + grid[r] + new_temp[r + 2][9:]
     actual_ics = [new_temp]
@@ -461,7 +462,7 @@ if __name__ == "__main__":
     else:
         words_now = across_suff_set
 
-    len_wln = len(across_suff_set)
+    len_wln = len(words_now)
     for i, seed in enumerate(words_now):
         number_seen_so_far = len(list(set(torus.json.load_json(CHE_JSON))))
         print(

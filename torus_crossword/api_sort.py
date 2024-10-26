@@ -28,7 +28,7 @@ source = Source.bad_words
 
 without_clues_only = False
 f_from_active = False
-f_delete_active = True
+f_delete_active = False
 
 words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
 words_appoved = torus.json.load_json(WORDS_APPROVED_JSON)
