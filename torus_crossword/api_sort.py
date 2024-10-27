@@ -76,8 +76,10 @@ for word in words_condered:
     try:
         response = requests.get(url, headers=headers, params=params)
         code = response.status_code
+        print(f"Response Code: {code}")
     except:
         code = 1
+
     if code != 200:
         print(T_PINK + f"No Clues Found for '{word}'" + T_NORMAL)
     else:

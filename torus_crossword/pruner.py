@@ -69,15 +69,11 @@ def propegate_fails_to_lower_files():
         if not numbers:
             continue
         # find the highest number
-        highest_number = max(numbers)
-        remove_number = highest_number - 2
 
         # sorted highest first
         numbers.sort(reverse=True)
-        highest_number = numbers[0]
-        lower_numbers = numbers[1:]
-
         len_numbers = len(numbers)
+
         for i in range(len_numbers - 1):
             highest_number = numbers[i]
             file1 = get_failures_json(
