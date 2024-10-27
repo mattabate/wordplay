@@ -25,6 +25,7 @@ from config import (
     C_WALL,
     GRID_TEMPLATE,
     GRID_TEMPLATE_FLIPPED,
+    GRID_TEMPLATE_FLIPPED_MIN,
     get_failures_json,
     get_solutions_json,
     get_bad_solutions_json,
@@ -66,7 +67,10 @@ if not os.path.exists(BAD_SOL_JSON):
     torus.json.write_json(BAD_SOL_JSON, [])
 
 
-if not SEARCH_W_FLIPPED:
+if not IC_TYPE:
+    STA_JSON = STARS_FOUND_FLIPPED_JSON
+    INITIAL_TEMPLATE = GRID_TEMPLATE_FLIPPED_MIN
+elif not SEARCH_W_FLIPPED:
     STA_JSON = STARS_FOUND_JSON
     INITIAL_TEMPLATE = GRID_TEMPLATE
 else:
@@ -565,6 +569,9 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
 
     # find the best row to latch on
     row_idx, best_row_score, best_row_grids = get_best_row(grid)
+    if len(best_row_grids) == 0:
+        return "r", row_idx, best_row_grids
+
     # transpose to find the best collum
     col_idx, best_col_score, best_col_grids = get_best_row(transpose(grid))
 
