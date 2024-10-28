@@ -16,6 +16,9 @@ from config import (
 import torus
 from lib import transpose, string_to_star
 import tqdm
+import time
+
+from lib import T_YELLOW, T_NORMAL, T_GREEN
 
 words_ommitted = torus.json.load_json(WORDS_OMITTED_JSON)
 
@@ -31,9 +34,9 @@ file_names = [
     for f in os.listdir(directory_path)
     if os.path.isfile(os.path.join(directory_path, f))
 ]
-
+print("(1) Removing failures that have bad words")
 for failed_file in file_names:
-    bad_path = directory_path + failed_file.replace(".json", "_bad.json")
+    bad_path = directory_path + "bad/" + failed_file.replace(".json", "_bad.json")
     if not os.path.exists(bad_path):
         torus.json.write_json(bad_path, [])
 
@@ -42,10 +45,41 @@ for failed_file in file_names:
     else:
         stars_allowed = torus.json.load_json(STARS_FOUND_JSON)
 
-    for failed_star in torus.json.load_json(failed_file):  # for every
-        if not failed_star in stars_allowed:
-            torus.json.remove_from_json_list(failed_file, failed_star)
-            torus.json.append_json(bad_path, failed_star)
+    tot_removed = 0
+    tot_good_words = 0
+    failed_stars = torus.json.load_json(directory_path + failed_file)
+
+    new_fails = []
+    new_bad_fails = []
+
+    if not failed_stars:
+        tqdm.tqdm.write(
+            f"No stars in file {T_YELLOW}{failed_file}{T_NORMAL}: " + f"Skipping..."
+        )
+        continue
+    for failed_star in tqdm.tqdm(
+        failed_stars, leave=False
+    ):  # for every failed star weve seen
+        if not failed_star in stars_allowed:  # if we removed that ic from the ic pool
+            new_bad_fails.append(failed_star)  # add to new_bad_fails
+            tot_removed += 1
+        else:
+            new_fails.append(failed_star)  # add to failed with good words
+            tot_good_words += 1
+
+    torus.json.write_json(directory_path + failed_file, new_fails)
+    bad_fail_stars = torus.json.load_json(
+        bad_path
+    )  # ics with no solution and a bad word
+    for x in new_bad_fails:
+        if x not in bad_fail_stars:
+            bad_fail_stars.append(x)
+    torus.json.write_json(bad_path, bad_fail_stars)
+    tqdm.tqdm.write(
+        f"Number ics removed  from {T_YELLOW}{failed_file}{T_NORMAL}: "
+        + f"{T_YELLOW}{tot_removed}{T_NORMAL}"
+        + f" (was {T_YELLOW}{tot_removed + tot_good_words}{T_NORMAL} now {T_YELLOW}{tot_good_words}{T_NORMAL})",
+    )
 
 exit()
 
