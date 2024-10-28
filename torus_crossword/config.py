@@ -16,7 +16,7 @@ class Mode(enum.Enum):
     MIN = 3
 
 
-mode = Mode.DA
+mode = Mode.AD  # da on personal
 f_verbose = False
 f_save_words_used = False
 f_save_bounds = [0, 1]
