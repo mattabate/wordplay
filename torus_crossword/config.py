@@ -10,17 +10,17 @@ import enum
 
 
 class Mode(enum.Enum):
-    AD: int = 0
-    DA: int = 1
-    A: int = 2
-    MIN: int = 3
+    AD = 0
+    DA = 1
+    A = 2
+    MIN = 3
 
 
 mode = Mode.DA
-f_verbose = True
+f_verbose = False
 f_save_words_used = False
 f_save_bounds = [0, 1]
-SLEEP_DURATION = -1
+SLEEP_DURATION = 120
 
 
 if mode == Mode.AD:
