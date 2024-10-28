@@ -499,7 +499,8 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
                 continue
             candidate_grid = fill_in_small_holes(candidate_grid)
 
-            if num_walls(candidate_grid) > MAX_WAL:
+            total_num_walls = num_walls(candidate_grid)
+            if total_num_walls > MAX_WAL:
                 continue
 
             if grid_contains_englosed_spaces(candidate_grid):
@@ -507,7 +508,7 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
 
             candidate_grid = add_letter_placeholders(candidate_grid)
 
-            if num_walls(candidate_grid) == MAX_WAL:
+            if total_num_walls == MAX_WAL:
                 if grid_contains_unwalled_rows(candidate_grid):
                     continue
                 for j in range(ROWLEN):
@@ -531,8 +532,8 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
 
             # score = num_new_grids_from_line * (num_blanks + 1)
             # score = num_blanks
-            # score = num_new_grids_from_line
-            score = num_blanks + num_new_grids_from_line
+            score = num_new_grids_from_line
+            # score = num_blanks + num_new_grids_from_line - total_num_walls
             if score > K_MIN_SCORE:  # minimize score
                 break
         else:
