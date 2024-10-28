@@ -1,5 +1,6 @@
 """Given a bad word, remove it from all stars and the word_list"""
 
+import os
 from config import (
     STARS_FOUND_JSON,
     STARS_FOUND_FLIPPED_JSON,
@@ -19,6 +20,35 @@ import tqdm
 words_ommitted = torus.json.load_json(WORDS_OMITTED_JSON)
 
 f_remove_duplicates = False
+
+
+# Specify the directory path
+directory_path = "failures/"
+
+# List all files in the directory
+file_names = [
+    f
+    for f in os.listdir(directory_path)
+    if os.path.isfile(os.path.join(directory_path, f))
+]
+
+for failed_file in file_names:
+    bad_path = directory_path + failed_file.replace(".json", "_bad.json")
+    if not os.path.exists(bad_path):
+        torus.json.write_json(bad_path, [])
+
+    if failed_file.endswith("_flipped.json"):
+        stars_allowed = torus.json.load_json(STARS_FOUND_FLIPPED_JSON)
+    else:
+        stars_allowed = torus.json.load_json(STARS_FOUND_JSON)
+
+    for failed_star in torus.json.load_json(failed_file):  # for every
+        if not failed_star in stars_allowed:
+            torus.json.remove_from_json_list(failed_file, failed_star)
+            torus.json.append_json(bad_path, failed_star)
+
+exit()
+
 
 print("(1) Remove Duplicate Stars")
 if f_remove_duplicates:
@@ -124,3 +154,6 @@ torus.json.write_json("filter_words/all_words_in_ics.json", across_words)
 # sort the keys by value (largest to smallest) and then save as list of strings (just key, forget value)
 sorted_words = sorted(across_words, key=across_words.get, reverse=True)
 torus.json.write_json("filter_words/sorted_words_in_ics.json", sorted_words)
+
+
+# get all files in failures/

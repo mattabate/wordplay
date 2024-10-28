@@ -1,26 +1,4 @@
-# the wordlist contains all words in consideration for the search
-# the format is a list of strings, about 100k total
-WOR_JSON = "wordlist/word_list.json"
-SCORES_DICT_JSON = "wordlist/scores_dict.json"
-ACTIVE_WORDS_JSON = "filter_words/words_in_active_grids.json"
-WORDS_OMITTED_JSON = "wordlist/words_omitted.json"
-WORDS_APPROVED_JSON = "wordlist/words_approved.json"
-WORDS_CONSIDERED_JSON = "filter_words/in_consideration.json"
-WORDS_IN_SOLUTIONS_JSON = "filter_words/words_in_valid_solutions.json"
-
-# initial conditions for the search are refered to as stars
-# stars come in two flavors: normal and flipped
-# files where the stars are stored are named star_sols.json and star_sols_flipped.json
-STARS_FOUND_JSON = "ic_data/star_sols.json"
-STARS_FOUND_FLIPPED_JSON = "ic_data/star_sols_flipped.json"
-STARS_CHECKED_JSON = "ic_data/stars_checked.json"
-STARS_CHECKED_FLIPPED_JSON = "ic_data/stars_checked_flipped.json"
-
-# basic properties of the grid
-ROWLEN = 15
-COLLEN = 15
-GRIDCELLS = ROWLEN * ROWLEN
-C_WALL = "█"
+import enum
 
 ###############################################
 # main.py config
@@ -30,24 +8,39 @@ C_WALL = "█"
 # Config for maip.py 15x15 search
 # Note editing may cause big problems
 
-# IC_TYPE = "AD"
-# SEARCH_W_FLIPPED = False
-# note - WE HAVE GOOD for AD, 42, not flipped [but no solutions for 40]
 
-IC_TYPE = "DA"  # da = flipped
-SEARCH_W_FLIPPED = True
+class Mode(enum.Enum):
+    AD: int = 0
+    DA: int = 1
+    A: int = 2
+    MIN: int = 3
 
-# IC_TYPE = "A"  # A = flipped
-# SEARCH_W_FLIPPED = True
 
-# IC_TYPE = ""
-# SEARCH_W_FLIPPED = True
-
-MAX_WAL = 42
+mode = Mode.DA
 f_verbose = True
 f_save_words_used = False
 f_save_bounds = [0, 1]
 SLEEP_DURATION = 125
+
+
+if mode == Mode.AD:
+    IC_TYPE = "AD"
+    SEARCH_W_FLIPPED = False
+    MAX_WAL = 42
+    # note - WE HAVE GOOD for AD, 42, not flipped [but no solutions for 40]
+elif mode == Mode.DA:
+    IC_TYPE = "DA"  # da = flipped
+    SEARCH_W_FLIPPED = True
+    MAX_WAL = 42
+elif mode == Mode.A:
+    IC_TYPE = "A"  # A = flipped
+    SEARCH_W_FLIPPED = True
+    MAX_WAL = 42
+elif mode == Mode.MIN:
+    IC_TYPE = ""
+    SEARCH_W_FLIPPED = True
+    MAX_WAL = 42
+
 
 GRID_TEMPLATE = [
     "______█@@@_█___",
@@ -176,3 +169,28 @@ def get_bad_solutions_json(type: str, max_walls: int, flipped: bool = False) -> 
     if flipped:
         return f"bad_solutions/15x15_grid_solutions_{type}_{max_walls}_bad_flipped.json"
     return f"bad_solutions/15x15_grid_solutions_{type}_{max_walls}_bad.json"
+
+
+# the wordlist contains all words in consideration for the search
+# the format is a list of strings, about 100k total
+WOR_JSON = "wordlist/word_list.json"
+SCORES_DICT_JSON = "wordlist/scores_dict.json"
+ACTIVE_WORDS_JSON = "filter_words/words_in_active_grids.json"
+WORDS_OMITTED_JSON = "wordlist/words_omitted.json"
+WORDS_APPROVED_JSON = "wordlist/words_approved.json"
+WORDS_CONSIDERED_JSON = "filter_words/in_consideration.json"
+WORDS_IN_SOLUTIONS_JSON = "filter_words/words_in_valid_solutions.json"
+
+# initial conditions for the search are refered to as stars
+# stars come in two flavors: normal and flipped
+# files where the stars are stored are named star_sols.json and star_sols_flipped.json
+STARS_FOUND_JSON = "ic_data/star_sols.json"
+STARS_FOUND_FLIPPED_JSON = "ic_data/star_sols_flipped.json"
+STARS_CHECKED_JSON = "ic_data/stars_checked.json"
+STARS_CHECKED_FLIPPED_JSON = "ic_data/stars_checked_flipped.json"
+
+# basic properties of the grid
+ROWLEN = 15
+COLLEN = 15
+GRIDCELLS = ROWLEN * ROWLEN
+C_WALL = "█"
