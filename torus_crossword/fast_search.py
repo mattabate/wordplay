@@ -70,6 +70,23 @@ import itertools
 #     "@@@@@@█@@@@█@@@",  # note - double here could come out
 # ]
 
+# INITIAL_TEMPLATE = [
+#     "@@@█@@@@@█O@@@@",
+#     "@@@█@@@@@█M@@@@",
+#     "@@@█@@@@@█E@@@@",
+#     "@@@@█@@@█BT@███",
+#     "@@@@@@@█CAESAR█",
+#     "@@@@@█STARR█LAS",
+#     "███@@S█ONES█TGI",
+#     "HNUT█AIRES█DOUG",
+#     "EAR█ACLU█T@@███",
+#     "NCE█TRESS█ONEOU",
+#     "█LA@@ED█@@@@@@@",
+#     "███@@D█@@@█@@@@",
+#     "@@@@@█@@@@@█@@@",
+#     "@@@@@█@@@@@█@@@",
+#     "@@@@@█@@@@@█@@@",
+# ]
 id = int(time.time())
 BES_JSON = f"fast_search/bests_{id}.json"
 SOL_JSON = f"solutions/solutions_{id}.json"

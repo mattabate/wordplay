@@ -10,7 +10,7 @@ import os
 from collections import deque
 
 import lib
-from fast_search import get_new_grids as get_new_grids_main
+from fast_search import get_new_grids as get_new_grids_from_filled
 
 from config import (
     WOR_JSON,
@@ -650,7 +650,7 @@ def recursive_search(grid, level=0):
                 tqdm.tqdm.write(print_grid(grid, ("c", i, T_BLUE)))
                 return
 
-        new_grids = get_new_grids_main(grid)
+        new_grids = get_new_grids_from_filled(grid)
 
         if not new_grids:
             if f_verbose:
@@ -701,7 +701,9 @@ def recursive_search(grid, level=0):
             )
             new_grids = [new_grids[i].copy() for i, _ in ind_w_line_sorted]
 
-        if f_save_words_used and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]:
+        if (
+            f_save_words_used
+        ):  # and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]:
             words_seen = set()
             for l in new_grids:
                 words_seen |= set(lib.get_words_in_partial_grid(l))
