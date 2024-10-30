@@ -701,9 +701,7 @@ def recursive_search(grid, level=0):
             )
             new_grids = [new_grids[i].copy() for i, _ in ind_w_line_sorted]
 
-        if (
-            f_save_words_used
-        ):  # and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]:
+        if f_save_words_used and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]:
             words_seen = set()
             for l in new_grids:
                 words_seen |= set(lib.get_words_in_partial_grid(l))
