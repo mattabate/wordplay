@@ -20,7 +20,7 @@ mode = Mode.DA  # da on personal
 f_verbose = True
 f_save_words_used = False
 f_save_bounds = [0, 10]
-SLEEP_DURATION = -1
+SLEEP_DURATION = 60
 
 
 if mode == Mode.AD:

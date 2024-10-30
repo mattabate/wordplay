@@ -17,7 +17,8 @@ from config import (
 )
 
 
-f_reomve_duplicates = True
+f_reomve_duplicates = False
+f_save_words_in_solutions = True
 f_reomve_duplicates_bad = False
 
 WORDLIST = torus.json.load_json(WOR_JSON)
@@ -117,7 +118,8 @@ if __name__ == "__main__":
             xx.append(s)
     sorted_data = xx
 
-    torus.json.write_json(WORDS_IN_SOLUTIONS_JSON, sorted_data)
+    if f_save_words_in_solutions:
+        torus.json.write_json(WORDS_IN_SOLUTIONS_JSON, sorted_data)
 
     print("number of words that still havent been checked:", len(sorted_data))
     print(
