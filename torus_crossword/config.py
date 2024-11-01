@@ -18,9 +18,9 @@ class Mode(enum.Enum):
 
 mode = Mode.DA  # da on personal
 f_verbose = False
-f_save_words_used = False
-f_save_bounds = [0, 10]
-SLEEP_DURATION = 120
+f_save_words_used = True
+f_save_bounds = [0, 1]
+SLEEP_DURATION = 240
 
 
 if mode == Mode.AD:
