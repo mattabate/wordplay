@@ -17,10 +17,10 @@ class Mode(enum.Enum):
 
 
 mode = Mode.DA  # da on personal
-f_verbose = False
+f_verbose = True
 f_save_words_used = True
-f_save_bounds = [0, 1]
-SLEEP_DURATION = 240
+f_save_bounds = [0, 3]
+SLEEP_DURATION = -1
 
 
 if mode == Mode.AD:
@@ -60,7 +60,14 @@ GRID_TEMPLATE = [
     "___█_@@@█______",
 ]
 
-GRID_TEMPLATE_FLIPPED = [s[::-1] for s in GRID_TEMPLATE]
+# GRID_TEMPLATE_FLIPPED = [s[::-1] for s in GRID_TEMPLATE]
+
+import json
+
+with open("liked_templates.json", "r") as f:
+    liked_templates = json.load(f)
+
+GRID_TEMPLATE_FLIPPED = liked_templates[0]
 
 # GRID_TEMPLATE_FLIPPED = [
 #     "@@@█@@@@█@@@@@@",

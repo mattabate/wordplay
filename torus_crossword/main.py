@@ -601,6 +601,22 @@ def print_grid(grid: list[str], h: tuple[str, int, str]):
     return "\n".join(grid_copy) + T_NORMAL
 
 
+def save_words_to_active(new_grids: list[list[str]]):
+    words_seen = set()
+    for l in new_grids:
+        words_seen |= set(lib.get_words_in_partial_grid(l))
+
+    words_active = set(torus.json.load_json(ACTIVE_WORDS_JSON))
+    # get all words in words approved, and add them to active words
+    words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
+    words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
+    for w in words_seen:
+        if w in words_active or w in words_approved or w in words_omitted:
+            continue
+        tqdm.tqdm.write(T_YELLOW + f"Adding {w} to active words" + T_NORMAL)
+        torus.json.append_json(ACTIVE_WORDS_JSON, w)
+
+
 def recursive_search(grid, level=0):
     global v_best_score
     global v_best_grids
@@ -658,6 +674,9 @@ def recursive_search(grid, level=0):
                 tqdm.tqdm.write(T_BLUE + "\n".join(grid) + T_NORMAL)
             return
 
+        if f_save_words_used and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]:
+            save_words_to_active(new_grids)
+
         with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
             if f_verbose:
                 tqdm.tqdm.write(
@@ -686,35 +705,8 @@ def recursive_search(grid, level=0):
 
             return
 
-        # reorder longest first
-        if False:
-            if row_or_col == "r":
-                lines = [g[start] for g in new_grids]
-                # reorder longest first
-            else:
-                lines = [transpose(g)[start] for g in new_grids]
-
-            ind_w_line_sorted = sorted(
-                enumerate(lines),
-                key=lambda x: count_letters_in_line(x[1]),
-                reverse=True,
-            )
-            new_grids = [new_grids[i].copy() for i, _ in ind_w_line_sorted]
-
         if f_save_words_used and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]:
-            words_seen = set()
-            for l in new_grids:
-                words_seen |= set(lib.get_words_in_partial_grid(l))
-
-            words_active = set(torus.json.load_json(ACTIVE_WORDS_JSON))
-            # get all words in words approved, and add them to active words
-            words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
-            words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
-            for w in words_seen:
-                if w in words_active or w in words_approved or w in words_omitted:
-                    continue
-                tqdm.tqdm.write(T_YELLOW + f"Adding {w} to active words" + T_NORMAL)
-                torus.json.append_json(ACTIVE_WORDS_JSON, w)
+            save_words_to_active(new_grids)
 
         with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
             if f_verbose:
