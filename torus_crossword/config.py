@@ -60,14 +60,16 @@ GRID_TEMPLATE = [
     "___█_@@@█______",
 ]
 
-# GRID_TEMPLATE_FLIPPED = [s[::-1] for s in GRID_TEMPLATE]
+GRID_TEMPLATE_FLIPPED = [s[::-1] for s in GRID_TEMPLATE]
 
 import json
 
 with open("liked_templates.json", "r") as f:
     liked_templates = json.load(f)
 
-GRID_TEMPLATE_FLIPPED = liked_templates[0]
+# GRID_TEMPLATE_FLIPPED = liked_templates[
+#     4
+# ]  # was still going on this one, after solutions
 
 # GRID_TEMPLATE_FLIPPED = [
 #     "@@@█@@@@█@@@@@@",
