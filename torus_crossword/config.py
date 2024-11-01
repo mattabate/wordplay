@@ -67,9 +67,9 @@ import json
 with open("liked_templates.json", "r") as f:
     liked_templates = json.load(f)
 
-# GRID_TEMPLATE_FLIPPED = liked_templates[
-#     4
-# ]  # was still going on this one, after solutions
+GRID_TEMPLATE_FLIPPED = liked_templates[
+    5
+]  # 4 was still going, after solutions but want to test 5
 
 # GRID_TEMPLATE_FLIPPED = [
 #     "@@@█@@@@█@@@@@@",
