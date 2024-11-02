@@ -22,7 +22,7 @@ from lib import T_YELLOW, T_NORMAL
 words_ommitted = torus.json.load_json(WORDS_OMITTED_JSON)
 
 f_remove_duplicates = False
-f_remove_fails = False
+f_remove_fails = True
 
 
 print("(1) Remove Duplicate Stars")
