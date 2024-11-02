@@ -18,7 +18,7 @@ class Mode(enum.Enum):
 
 mode = Mode.DA  # da on personal
 f_verbose = True
-f_save_words_used = True
+f_save_words_used = False
 f_save_bounds = [0, 3]
 SLEEP_DURATION = -1
 
@@ -67,9 +67,9 @@ import json
 with open("liked_templates.json", "r") as f:
     liked_templates = json.load(f)
 
-GRID_TEMPLATE_FLIPPED = liked_templates[
-    5
-]  # 4 was still going, after solutions but want to test 5
+# GRID_TEMPLATE_FLIPPED = liked_templates[
+#     6
+# ]  # 4 (1), 5 (2) was still going, after solutions but want to test 5
 
 # GRID_TEMPLATE_FLIPPED = [
 #     "@@@█@@@@█@@@@@@",
