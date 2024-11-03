@@ -24,7 +24,7 @@ class Source(enum.Enum):
     good_words: int = 3
 
 
-source = Source.active_grids
+source = Source.in_consideration
 
 without_clues_only = False
 f_delete_active = True
@@ -48,7 +48,6 @@ if source == Source.good_words:
     )
 
 words_condered = torus.json.load_json(WORDS_CONSIDERED_JSON)
-words_condered = [x for x in words_condered if len(x) == 9]
 if f_delete_active:
     torus.json.write_json(ACTIVE_WORDS_JSON, [])
 
