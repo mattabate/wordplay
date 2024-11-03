@@ -35,26 +35,22 @@ words_seen = set(words_omitted + words_appoved)
 
 
 if source == Source.active_grids:
-    torus.json.write_json(
-        WORDS_CONSIDERED_JSON, torus.json.load_json(ACTIVE_WORDS_JSON)
-    )
-    if f_delete_active:
-        torus.json.write_json(ACTIVE_WORDS_JSON, [])
+    t = torus.json.load_json(ACTIVE_WORDS_JSON)
+    t.sort(key=lambda x: len(x), reverse=True)
+    torus.json.write_json(WORDS_CONSIDERED_JSON, t)
 if source == Source.bad_words:
-    torus.json.write_json(
-        WORDS_CONSIDERED_JSON, torus.json.load_json("filter_words/assumed_bad.json")
-    )
-    if f_delete_active:
-        torus.json.write_json(ACTIVE_WORDS_JSON, [])
+    t = torus.json.load_json("filter_words/assumed_bad.json")
+    t.sort(key=lambda x: len(x), reverse=True)
+    torus.json.write_json(WORDS_CONSIDERED_JSON, t)
 if source == Source.good_words:
     torus.json.write_json(
         WORDS_CONSIDERED_JSON, torus.json.load_json("filter_words/assumed_good.json")
     )
-    if f_delete_active:
-        torus.json.write_json(ACTIVE_WORDS_JSON, [])
 
 words_condered = torus.json.load_json(WORDS_CONSIDERED_JSON)
-
+words_condered = [x for x in words_condered if len(x) == 9]
+if f_delete_active:
+    torus.json.write_json(ACTIVE_WORDS_JSON, [])
 
 num_printed = 6
 params = {"search_redirect": "True"}
