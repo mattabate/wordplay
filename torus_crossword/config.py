@@ -18,9 +18,9 @@ class Mode(enum.Enum):
 
 mode = Mode.DA  # da on personal
 f_verbose = True
-f_save_words_used = True
+f_save_words_used = False
 f_save_bounds = [0, 2]
-SLEEP_DURATION = 60
+SLEEP_DURATION = -1
 
 
 if mode == Mode.AD:
@@ -67,9 +67,10 @@ import json
 with open("liked_templates.json", "r") as f:
     liked_templates = json.load(f)
 
-# GRID_TEMPLATE_FLIPPED = liked_templates[
-#     6
-# ]  # 4 (1), 5 (2), 6 (2) was still going, after solutions but want to test 5
+GRID_TEMPLATE_FLIPPED = liked_templates[6]
+
+# 4, 5 unkillable
+# 6 has solutions
 
 # GRID_TEMPLATE_FLIPPED = [
 #     "@@@█@@@@█@@@@@@",
