@@ -25,7 +25,6 @@ class Source(enum.Enum):
 
 
 source = Source.bad_words
-
 without_clues_only = False
 f_delete_active = True
 
