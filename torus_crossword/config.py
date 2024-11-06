@@ -20,7 +20,7 @@ mode = Mode.DA  # da on personal
 f_verbose = True
 f_save_words_used = False
 f_save_bounds = [0, 8]
-SLEEP_DURATION = 33
+SLEEP_DURATION = -1
 
 
 if mode == Mode.AD:
@@ -67,13 +67,14 @@ import json
 with open("liked_templates.json", "r") as f:
     liked_templates = json.load(f)
 
-# GRID_TEMPLATE_FLIPPED = liked_templates[4]
+# GRID_TEMPLATE_FLIPPED = liked_templates[41]
 
 # 0, 1, 3 has failed
 # 2 got down to 1, no solutions found
 
 # 4 got down to 1, no solutions found
 # 5, 6, 7, 8, 9 no solutions
+## fails = 11 - 41
 
 
 # GRID_TEMPLATE_FLIPPED = [

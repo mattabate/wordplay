@@ -13,6 +13,7 @@ from config import (
     STAR_START,
     STAR_HEIGHT,
     STAR_WIDTH,
+    GRIDCELLS,
 )
 
 T_NORMAL = "\033[0m"
@@ -190,3 +191,14 @@ def get_words_in_partial_grid(grid: list[str]) -> set[str]:
                 down_words.add(b)
 
     return across_words | down_words
+
+
+def grid_filled(grid: list[str]) -> bool:
+    """
+    Return True if the grid is filled with letters
+    and there are no remaining placeholders, False otherwise.
+    """
+    for l in grid:
+        if "@" in l or "_" in l:
+            return False
+    return True

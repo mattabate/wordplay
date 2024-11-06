@@ -10,6 +10,7 @@ import os
 from collections import deque
 
 import lib
+from lib import grid_filled
 from fast_search import get_new_grids as get_new_grids_from_filled
 
 from config import (
@@ -103,21 +104,6 @@ def add_star(grid, star):
                 grid[r][c] = l
 
     return ["".join(row) for row in grid]
-
-
-def grid_filled(grid: list[str]) -> bool:
-    for l in grid:
-        if "_" in l or "@" in l:
-            return False
-    return True
-
-
-def count_letters_in_line(line: str) -> int:
-    return len([c for c in line if c.isalpha()])
-
-
-def count_letters(grid: list[str]) -> int:
-    return GRIDCELLS - sum([l.count("_") + l.count("@") + l.count("█") for l in grid])
 
 
 def check_line_for_short_words(line: str) -> bool:
