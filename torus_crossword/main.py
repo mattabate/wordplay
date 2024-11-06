@@ -532,8 +532,8 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
 
             # score = num_new_grids_from_line * (num_blanks + 1)
             # score = num_blanks
-            score = num_new_grids_from_line
-            # score = num_blanks + num_new_grids_from_line
+            # score = num_new_grids_from_line
+            score = num_blanks + num_new_grids_from_line
             if score > K_MIN_SCORE:  # minimize score
                 break
         else:
@@ -666,6 +666,10 @@ def recursive_search(grid, level=0):
                 tqdm.tqdm.write(print_grid(grid, ("c", i, T_BLUE)))
                 return
 
+        torus.json.append_json_list(
+            "liked_templates.json",
+            ["".join("@" if c != C_WALL else C_WALL for c in s) for s in grid],
+        )
         new_grids = get_new_grids_from_filled(grid)
 
         if not new_grids:

@@ -35,6 +35,21 @@ def append_json(json_name, grid):
             fcntl.flock(f, fcntl.LOCK_UN)
 
 
+def append_json_list(json_name, grid):
+    # only append if not in
+    with open(json_name, "r+") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            data = json.load(f)
+            if grid not in data:
+                data.append(grid)
+            f.seek(0)
+            json.dump(data, f, indent=4, ensure_ascii=False)
+            f.truncate()
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
+
+
 def remove_duplicates(json_name):
     "preserves ordering"
     initial = load_json(json_name)

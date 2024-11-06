@@ -18,9 +18,9 @@ class Mode(enum.Enum):
 
 mode = Mode.DA  # da on personal
 f_verbose = True
-f_save_words_used = True
+f_save_words_used = False
 f_save_bounds = [0, 8]
-SLEEP_DURATION = 35
+SLEEP_DURATION = 33
 
 
 if mode == Mode.AD:
@@ -31,7 +31,7 @@ if mode == Mode.AD:
 elif mode == Mode.DA:
     IC_TYPE = "DA"  # da = flipped
     SEARCH_W_FLIPPED = True
-    MAX_WAL = 42
+    MAX_WAL = 40
 elif mode == Mode.A:
     IC_TYPE = "A"  # A = flipped
     SEARCH_W_FLIPPED = True
