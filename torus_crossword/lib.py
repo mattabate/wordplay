@@ -116,6 +116,7 @@ def add_theme_words(template: list[str], type: str):
     """
     Add theme words to the initial 15x15 grid.
     """
+    template = template.copy()
     t_holder = "____█TORUS█____"
     d_holder = "HNUT█_____█DOUG"
     if type == "A":
@@ -202,3 +203,10 @@ def grid_filled(grid: list[str]) -> bool:
         if "@" in l or "_" in l:
             return False
     return True
+
+
+def count_letters(grid: list[str]) -> int:
+    """
+    Count the number of letters in the grid.
+    """
+    return len([c for c in "".join(grid) if c.isalpha()])

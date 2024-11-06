@@ -10,7 +10,7 @@ if [ $SLEEP_DURATION -le 0 ]; then
     exit 0
 else
     while true; do
-        poetry run python3 fast_search.py &
+        poetry run python3 search_filled.py &
         PID=$!
         echo "Update Rate: $SLEEP_DURATION"
         sleep $SLEEP_DURATION

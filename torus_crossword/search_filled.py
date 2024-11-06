@@ -1,33 +1,19 @@
 import torus
-from lib import Direction
-from fast_search import get_word_locations, get_new_grids, count_letters
+from lib import Direction, count_letters
+from fast_search import get_word_locations, get_new_grids
 import time
 import json
 import tqdm
 import torus
-from lib import Direction, get_words_in_partial_grid, grid_filled
+from lib import Direction, get_words_in_partial_grid, grid_filled, add_theme_words
 
-from config import C_WALL
+from config import C_WALL, IC_TYPE, WOR_JSON
 
-FAI_JSON = "temp_fails.json"
+f_save_words_used = True
 
-INITIAL_TEMPLATE = [
-    "@@@█@@@@█@@@@@@",
-    "@@@█@@@@█@@@@@@",
-    "@@@█@@@@█@@@@@@",
-    "@@@@█@@@@@@@███",
-    "@@@@@@@█@@@█@@@",
-    "███@@@@T@@@█@@@",
-    "@@@@@█@O@@██@@@",
-    "HNUT█@@R@@█DOUG",
-    "@@@██@@U@█@@@@@",
-    "@@@█@@@S@@@@███",
-    "@@@█@@@█@@@@@@@",
-    "███@@@@@@@█@@@@",
-    "@@@@@@█@@@@█@@@",
-    "@@@@@@█@@@@█@@@",
-    "@@@@@@█@@@@█@@@",
-]
+WORDLIST = torus.json.load_json(WOR_JSON)
+if not f_save_words_used:
+    WORDLIST_SET = set(WORDLIST)
 
 id = int(time.time())
 BES_JSON = f"fast_search/bests_{id}.json"
@@ -42,8 +28,6 @@ T_PINK = "\033[95m"
 
 solutions = []
 
-
-f_save_words_used = False
 
 from config import WOR_JSON, WORDS_APPROVED_JSON, ACTIVE_WORDS_JSON, WORDS_OMITTED_JSON
 
@@ -60,18 +44,21 @@ def recursive_search(grid, level=0):
     tqdm.tqdm.write(
         T_BLUE + f"{json.dumps(grid, indent=2, ensure_ascii=False)}" + T_NORMAL
     )
+
     if f_save_words_used:
         words_contained = get_words_in_partial_grid(grid)
-        words_contained
         trashed_words = words_contained - set(torus.json.load_json(WOR_JSON))
-        if trashed_words:
-            tqdm.tqdm.write("\n")
-            tqdm.tqdm.write(
-                T_PINK + f"FOUND TRASHED WORD ... Skipping: {trashed_words}" + T_NORMAL
-            )
-            tqdm.tqdm.write(T_PINK + "\n".join(grid) + T_NORMAL)
-            return
+    else:
+        trashed_words = get_words_in_partial_grid(grid) - WORDLIST_SET
 
+    if trashed_words:
+        tqdm.tqdm.write("\n")
+        tqdm.tqdm.write(
+            T_PINK + f"FOUND TRASHED WORD ... Skipping: {trashed_words}" + T_NORMAL
+        )
+        tqdm.tqdm.write(T_PINK + "\n".join(grid) + T_NORMAL)
+        return
+    else:
         # get all words in words approved, and add them to active words
         words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
         words_active = torus.json.load_json(ACTIVE_WORDS_JSON)
@@ -111,26 +98,34 @@ def recursive_search(grid, level=0):
 
 
 if __name__ == "__main__":
-    grid = INITIAL_TEMPLATE.copy()
+    tamplates = torus.json.load_json("liked_templates.json")
+    failed_templates = torus.json.load_json("bad_templates.json")
+    import random
 
-    fails = torus.json.load_json(FAI_JSON)
+    random.shuffle(tamplates)
 
-    words = get_word_locations(grid, Direction.ACROSS) + get_word_locations(
-        grid, Direction.DOWN
-    )
-    print(T_YELLOW, "number of answers", len(words), T_NORMAL)
-    print(T_YELLOW, "number of black squares", "".join(grid).count(C_WALL), T_NORMAL)
+    for t in tamplates:
+        if t in failed_templates:
+            print("Already failed")
+            continue
 
-    if grid in fails:
-        print("Already failed")
-        exit()
+        grid = add_theme_words(t, IC_TYPE)
 
-    recursive_search(grid, 0)
+        words = get_word_locations(grid, Direction.ACROSS) + get_word_locations(
+            grid, Direction.DOWN
+        )
 
-    if not len(solutions):
-        print("No solution found")
+        print(T_YELLOW, "number of answers", len(words), T_NORMAL)
+        print(
+            T_YELLOW, "number of black squares", "".join(grid).count(C_WALL), T_NORMAL
+        )
 
-        fails.append(INITIAL_TEMPLATE)
-        torus.json.write_json(FAI_JSON, fails)
-    else:
-        print(T_GREEN, f"Found {len(solutions)} solutions", T_NORMAL)
+        recursive_search(grid, 0)
+
+        if not len(solutions):
+            print("No solution found")
+
+            torus.json.append_json_list("bad_templates.json", t)
+        else:
+            print(T_GREEN, f"Found {len(solutions)} solutions", T_NORMAL)
+        solutions = []
