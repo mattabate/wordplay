@@ -100,14 +100,15 @@ def recursive_search(grid, level=0):
 if __name__ == "__main__":
     tamplates = torus.json.load_json("liked_templates.json")
     failed_templates = torus.json.load_json("bad_templates.json")
+    templates_of_interest = [t for t in tamplates if t not in failed_templates]
     import random
 
-    random.shuffle(tamplates)
+    ls = len(tamplates)
+    lsoi = len(templates_of_interest)
+    random.shuffle(templates_of_interest)
 
-    for t in tamplates:
-        if t in failed_templates:
-            print("Already failed")
-            continue
+    for i, t in enumerate(templates_of_interest):
+        tqdm.tqdm.write(T_YELLOW + f"Trial {i} / {lsoi}  ({ls} tot)" + T_NORMAL)
 
         grid = add_theme_words(t, IC_TYPE)
 
@@ -115,9 +116,11 @@ if __name__ == "__main__":
             grid, Direction.DOWN
         )
 
-        print(T_YELLOW, "number of answers", len(words), T_NORMAL)
-        print(
-            T_YELLOW, "number of black squares", "".join(grid).count(C_WALL), T_NORMAL
+        tqdm.tqdm.write(T_YELLOW + f"> number of answers {len(words)}" + T_NORMAL)
+        tqdm.tqdm.write(
+            T_YELLOW
+            + f"> number of black squares {"".join(grid).count(C_WALL)}"
+            + T_NORMAL
         )
 
         recursive_search(grid, 0)
