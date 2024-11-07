@@ -92,6 +92,8 @@ for i, w in enumerate(WORDLIST):
     WORDLIST[i] = C_WALL + w + C_WALL
 random.shuffle(WORDLIST)
 
+BADGRIDTEMPLATES = torus.json.load_json("bad_templates.json")
+
 
 def add_star(grid, star):
     grid = [list(row) for row in grid]
@@ -419,7 +421,7 @@ def grid_contains_unwalled_rows(grid: list[str]) -> bool:
 import time
 
 
-def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
+def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str]]]:
     """Given a grid, find the best row to latch on to.
 
     Returns:
@@ -427,6 +429,10 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
         int: The score of the best row
         list[list[str]]: The best grids
     """
+    if rc == "c":
+        return get_best_row(grid=transpose(grid))
+    elif rc:
+        raise ValueError("rc must be 'c' or null")
 
     K_INDEX = -1
     K_MIN_SCORE = 1000000000000
@@ -497,6 +503,14 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             if total_num_walls == MAX_WAL:
                 if grid_contains_unwalled_rows(candidate_grid):
                     continue
+
+                gt = get_grid_template_from_grid(transpose(candidate_grid))
+                if gt in BADGRIDTEMPLATES:
+                    tqdm.tqdm.write("\n")
+                    tqdm.tqdm.write(T_YELLOW + f"Grid is in bad templates" + T_NORMAL)
+                    tqdm.tqdm.write(print_grid(grid, ("c", i, T_BLUE)))
+                    continue
+
                 for j in range(ROWLEN):
                     candidate_grid[j] = candidate_grid[j].replace("_", "@")
 
@@ -560,7 +574,7 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
         return "r", row_idx, best_row_grids
 
     # transpose to find the best collum
-    col_idx, best_col_score, best_col_grids = get_best_row(transpose(grid))
+    col_idx, best_col_score, best_col_grids = get_best_row(grid, "c")
 
     # note you want to minimize scre
     if best_row_score < best_col_score:
@@ -601,9 +615,6 @@ def save_words_to_active(new_grids: list[list[str]]):
             continue
         tqdm.tqdm.write(T_YELLOW + f"Adding {w} to active words" + T_NORMAL)
         torus.json.append_json(ACTIVE_WORDS_JSON, w)
-
-
-bad_templates = torus.json.load_json("bad_templates.json")
 
 
 def get_grid_template_from_grid(grid):
@@ -660,7 +671,7 @@ def recursive_search(grid, level=0):
                 return
 
         gt = get_grid_template_from_grid(grid)
-        if gt in torus.json.load_json("bad_templates.json"):
+        if gt in BADGRIDTEMPLATES:
             tqdm.tqdm.write("\n")
             tqdm.tqdm.write(T_YELLOW + f"Grid is in bad templates" + T_NORMAL)
             tqdm.tqdm.write(print_grid(grid, ("c", i, T_BLUE)))
