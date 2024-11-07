@@ -603,6 +603,13 @@ def save_words_to_active(new_grids: list[list[str]]):
         torus.json.append_json(ACTIVE_WORDS_JSON, w)
 
 
+bad_templates = torus.json.load_json("bad_templates.json")
+
+
+def get_grid_template_from_grid(grid):
+    return ["".join("@" if c != C_WALL else C_WALL for c in s) for s in grid]
+
+
 def recursive_search(grid, level=0):
     global v_best_score
     global v_best_grids
@@ -652,10 +659,14 @@ def recursive_search(grid, level=0):
                 tqdm.tqdm.write(print_grid(grid, ("c", i, T_BLUE)))
                 return
 
-        torus.json.append_json_list(
-            "liked_templates.json",
-            ["".join("@" if c != C_WALL else C_WALL for c in s) for s in grid],
-        )
+        gt = get_grid_template_from_grid(grid)
+        if gt in torus.json.load_json("bad_templates.json"):
+            tqdm.tqdm.write("\n")
+            tqdm.tqdm.write(T_YELLOW + f"Grid is in bad templates" + T_NORMAL)
+            tqdm.tqdm.write(print_grid(grid, ("c", i, T_BLUE)))
+            return
+
+        torus.json.append_json_list("liked_templates.json", gt)
         new_grids = get_new_grids_from_filled(grid)
 
         if not new_grids:
