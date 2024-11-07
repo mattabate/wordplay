@@ -676,6 +676,7 @@ def recursive_search(grid, level=0):
                 T_PINK + f"Should not get here - Grid is in bad templates" + T_NORMAL
             )
             tqdm.tqdm.write(print_grid(grid, ("c", i, T_BLUE)))
+            raise ValueError("Should not get here")
             return
 
         torus.json.append_json_list("liked_templates.json", gt)
