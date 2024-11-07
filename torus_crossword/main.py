@@ -429,10 +429,6 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
         int: The score of the best row
         list[list[str]]: The best grids
     """
-    if rc == "c":
-        return get_best_row(grid=transpose(grid))
-    elif rc:
-        raise ValueError("rc must be 'c' or null")
 
     K_INDEX = -1
     K_MIN_SCORE = 1000000000000
@@ -504,13 +500,15 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
                 if grid_contains_unwalled_rows(candidate_grid):
                     continue
 
-                gt = get_grid_template_from_grid(transpose(candidate_grid))
-                if gt in BADGRIDTEMPLATES:
-                    tqdm.tqdm.write("\n")
-                    tqdm.tqdm.write(T_YELLOW + f"Grid is in bad templates" + T_NORMAL)
-                    tqdm.tqdm.write(print_grid(grid, ("c", i, T_BLUE)))
-                    continue
+                if rc:  # rc = c
+                    gt = get_grid_template_from_grid(transpose(candidate_grid))
+                else:  # rc = r
+                    gt = get_grid_template_from_grid(candidate_grid)
 
+                if gt in BADGRIDTEMPLATES:
+                    # tqdm.tqdm.write("\n"+T_YELLOW + f"Grid is in bad templates" + T_NORMAL)
+                    # tqdm.tqdm.write(print_grid(gt, (rc if rc == "c" else "r", row, T_BLUE)))
+                    continue
                 for j in range(ROWLEN):
                     candidate_grid[j] = candidate_grid[j].replace("_", "@")
 
@@ -541,7 +539,6 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
                 continue
 
             K_MIN_SCORE = score
-            K_MIN_GRIDS = num_new_grids_from_line
             K_INDEX = row
             K_BEST_GRIDS = working_grids
 
@@ -574,7 +571,9 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
         return "r", row_idx, best_row_grids
 
     # transpose to find the best collum
-    col_idx, best_col_score, best_col_grids = get_best_row(grid, "c")
+    col_idx, best_col_score, best_col_grids = get_best_row(
+        transpose(grid), "c"
+    )  # HACK: redundant
 
     # note you want to minimize scre
     if best_row_score < best_col_score:
@@ -673,7 +672,9 @@ def recursive_search(grid, level=0):
         gt = get_grid_template_from_grid(grid)
         if gt in BADGRIDTEMPLATES:
             tqdm.tqdm.write("\n")
-            tqdm.tqdm.write(T_YELLOW + f"Grid is in bad templates" + T_NORMAL)
+            tqdm.tqdm.write(
+                T_PINK + f"Should not get here - Grid is in bad templates" + T_NORMAL
+            )
             tqdm.tqdm.write(print_grid(grid, ("c", i, T_BLUE)))
             return
 

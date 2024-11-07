@@ -24,7 +24,7 @@ class Source(enum.Enum):
     good_words: int = 3
 
 
-source = Source.active_grids
+source = Source.bad_words
 without_clues_only = False
 f_delete_active = True
 
