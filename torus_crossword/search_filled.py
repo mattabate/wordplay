@@ -7,9 +7,7 @@ import tqdm
 import torus
 from lib import Direction, get_words_in_partial_grid, grid_filled, add_theme_words
 
-from config import C_WALL, IC_TYPE, WOR_JSON
-
-f_save_words_used = True
+from config import C_WALL, IC_TYPE, WOR_JSON, f_save_words_used
 
 WORDLIST = torus.json.load_json(WOR_JSON)
 if not f_save_words_used:
@@ -58,12 +56,10 @@ def recursive_search(grid, level=0):
         )
         tqdm.tqdm.write(T_PINK + "\n".join(grid) + T_NORMAL)
         return
-    else:
-        # get all words in words approved, and add them to active words
+    elif f_save_words_used:
         words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
         words_active = torus.json.load_json(ACTIVE_WORDS_JSON)
         words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
-
         for w in words_contained:
             if w in words_active or w in words_approved or w in words_omitted:
                 continue

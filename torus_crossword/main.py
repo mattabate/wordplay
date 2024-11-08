@@ -496,7 +496,7 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
 
             candidate_grid = add_letter_placeholders(candidate_grid)
 
-            if total_num_walls == MAX_WAL:
+            if lib.grid_template_filled(candidate_grid) or total_num_walls == MAX_WAL:
                 if grid_contains_unwalled_rows(candidate_grid):
                     continue
 
@@ -506,9 +506,14 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
                     gt = get_grid_template_from_grid(candidate_grid)
 
                 if gt in BADGRIDTEMPLATES:
-                    # tqdm.tqdm.write("\n"+T_YELLOW + f"Grid is in bad templates" + T_NORMAL)
-                    # tqdm.tqdm.write(print_grid(gt, (rc if rc == "c" else "r", row, T_BLUE)))
+                    # tqdm.tqdm.write(
+                    #     "\n" + T_YELLOW + f"Grid is in bad templates" + T_NORMAL
+                    # )
+                    # tqdm.tqdm.write(
+                    #     print_grid(gt, (rc if rc == "c" else "r", row, T_BLUE))
+                    # )
                     continue
+
                 for j in range(ROWLEN):
                     candidate_grid[j] = candidate_grid[j].replace("_", "@")
 
@@ -529,9 +534,9 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
             # score = num_grids * (num_blanks + 1)
 
             # score = num_new_grids_from_line * (num_blanks + 1)
-            # score = num_blanks
+            score = num_blanks
             # score = num_new_grids_from_line
-            score = num_blanks + num_new_grids_from_line
+            # score = num_blanks + num_new_grids_from_line
             if score > K_MIN_SCORE:  # minimize score
                 break
         else:

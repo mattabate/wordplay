@@ -194,6 +194,17 @@ def get_words_in_partial_grid(grid: list[str]) -> set[str]:
     return across_words | down_words
 
 
+def grid_template_filled(grid: list[str]) -> bool:
+    """
+    Return True if the grid template is filled with letters and letter placeholders.
+    True if all letter locations are known, False otherwise.
+    """
+    for l in grid:
+        if "_" in l:
+            return False
+    return True
+
+
 def grid_filled(grid: list[str]) -> bool:
     """
     Return True if the grid is filled with letters
