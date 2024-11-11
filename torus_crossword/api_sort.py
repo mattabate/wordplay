@@ -37,7 +37,9 @@ class Source(enum.Enum):
     good_words = 3
 
 
-WORDS_SOURCE = Source.bad_words
+WORDS_SOURCE = Source.active_grids
+WITHOUT_CLUES_ONLY = False
+DELETE_ACTIVE = True
 
 
 class WordSortingApp(QWidget):
@@ -45,8 +47,8 @@ class WordSortingApp(QWidget):
         super().__init__()
 
         self.source = WORDS_SOURCE
-        self.without_clues_only = False
-        self.f_delete_active = True
+        self.without_clues_only = WITHOUT_CLUES_ONLY
+        self.f_delete_active = DELETE_ACTIVE
 
         self.words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
         self.words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
@@ -243,6 +245,20 @@ class WordSortingApp(QWidget):
 
 
 if __name__ == "__main__":
+    stuff = []
+    if WORDS_SOURCE == Source.active_grids:
+        stuff = torus.json.load_json(ACTIVE_WORDS_JSON)
+    elif WORDS_SOURCE == Source.bad_words:
+        stuff = torus.json.load_json("filter_words/assumed_bad.json")
+    elif WORDS_SOURCE == Source.good_words:
+        stuff = (torus.json.load_json("filter_words/assumed_good.json"),)
+    elif WORDS_SOURCE == Source.in_consideration:
+        stuff = torus.json.load_json(WORDS_CONSIDERED_JSON)
+
+    if not stuff:
+        print("No words to process.")
+        exit()
+
     app = QApplication(sys.argv)
     ex = WordSortingApp()
     sys.exit(app.exec_())

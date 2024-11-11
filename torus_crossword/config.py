@@ -17,10 +17,11 @@ class Mode(enum.Enum):
 
 
 mode = Mode.DA  # da on personal
-f_verbose = False
-f_save_words_used = False
-f_save_bounds = [0, 5]
-SLEEP_DURATION = 45
+f_verbose = True
+f_save_words_used = True
+f_save_bounds = [0, 100]
+SLEEP_DURATION = -1
+SLEEP_DURATION_GRID = -1
 
 
 if mode == Mode.AD:
