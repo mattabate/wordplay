@@ -2,6 +2,7 @@ import sys
 import random
 import requests
 import time
+import webbrowser  # Added import for webbrowser
 
 from bs4 import BeautifulSoup
 from PyQt5.QtCore import Qt
@@ -39,7 +40,7 @@ class Source(enum.Enum):
 
 
 WORDS_SOURCE = Source.ics
-WITHOUT_CLUES_ONLY = True
+WITHOUT_CLUES_ONLY = False
 DELETE_ACTIVE = False
 
 
@@ -126,6 +127,7 @@ class WordSortingApp(QWidget):
         self.accept_button = QPushButton("Accept ✅", self)
         self.reject_button = QPushButton("Reject ❌", self)
         self.pass_button = QPushButton("Pass ⏭️", self)
+        self.google_button = QPushButton("Google 🔍", self)  # Added Google button
         self.exit_button = QPushButton("Exit 🚪", self)
 
         self.accept_button.setStyleSheet(
@@ -137,6 +139,9 @@ class WordSortingApp(QWidget):
         self.pass_button.setStyleSheet(
             "background-color: #2196F3; color: white; padding: 10px; font-size: 14px;"
         )
+        self.google_button.setStyleSheet(  # Style for Google button
+            "background-color: #FFA500; color: white; padding: 10px; font-size: 14px;"
+        )
         self.exit_button.setStyleSheet(
             "background-color: #757575; color: white; padding: 10px; font-size: 14px;"
         )
@@ -144,6 +149,7 @@ class WordSortingApp(QWidget):
         self.accept_button.clicked.connect(self.accept_word)
         self.reject_button.clicked.connect(self.reject_word)
         self.pass_button.clicked.connect(self.pass_word)
+        self.google_button.clicked.connect(self.google_word)  # Connected Google button
         self.exit_button.clicked.connect(self.exit_app)
 
         # Layouts
@@ -151,6 +157,7 @@ class WordSortingApp(QWidget):
         button_layout.addWidget(self.accept_button)
         button_layout.addWidget(self.reject_button)
         button_layout.addWidget(self.pass_button)
+        button_layout.addWidget(self.google_button)  # Added Google button to layout
         button_layout.addWidget(self.exit_button)
 
         main_layout = QVBoxLayout()
@@ -245,6 +252,12 @@ class WordSortingApp(QWidget):
     def pass_word(self):
         self.word_index += 1
         self.process_next_word()
+
+    def google_word(self):  # Added function to handle Google search
+        word = self.current_word
+        query = word
+        url = f"https://www.google.com/search?q={query}"
+        webbrowser.open_new_tab(url)
 
     def exit_app(self):
         self.close()

@@ -20,7 +20,7 @@ mode = Mode.DA  # da on personal
 f_verbose = True
 f_save_words_used = True
 f_save_bounds = [0, 2]
-SLEEP_DURATION = 240
+SLEEP_DURATION = 38
 SLEEP_DURATION_GRID = 100
 
 
