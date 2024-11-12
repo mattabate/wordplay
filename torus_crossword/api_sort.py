@@ -35,11 +35,12 @@ class Source(enum.Enum):
     active_grids = 1
     bad_words = 2
     good_words = 3
+    ics = 4
 
 
-WORDS_SOURCE = Source.active_grids
-WITHOUT_CLUES_ONLY = False
-DELETE_ACTIVE = True
+WORDS_SOURCE = Source.ics
+WITHOUT_CLUES_ONLY = True
+DELETE_ACTIVE = False
 
 
 class WordSortingApp(QWidget):
@@ -66,6 +67,11 @@ class WordSortingApp(QWidget):
             torus.json.write_json(
                 WORDS_CONSIDERED_JSON,
                 torus.json.load_json("filter_words/assumed_good.json"),
+            )
+        elif self.source == Source.ics:
+            torus.json.write_json(
+                WORDS_CONSIDERED_JSON,
+                torus.json.load_json("filter_words/sorted_words_in_ics.json"),
             )
 
         self.words_considered = torus.json.load_json(WORDS_CONSIDERED_JSON)
@@ -254,6 +260,8 @@ if __name__ == "__main__":
         stuff = (torus.json.load_json("filter_words/assumed_good.json"),)
     elif WORDS_SOURCE == Source.in_consideration:
         stuff = torus.json.load_json(WORDS_CONSIDERED_JSON)
+    elif WORDS_SOURCE == Source.ics:
+        stuff = torus.json.load_json("filter_words/sorted_words_in_ics.json")
 
     if not stuff:
         print("No words to process.")
