@@ -39,9 +39,9 @@ class Source(enum.Enum):
     ics = 4
 
 
-WORDS_SOURCE = Source.ics
+WORDS_SOURCE = Source.active_grids
 WITHOUT_CLUES_ONLY = False
-DELETE_ACTIVE = False
+DELETE_ACTIVE = True
 
 
 class WordSortingApp(QWidget):
@@ -207,7 +207,7 @@ class WordSortingApp(QWidget):
             )
             clues_text = f"No clues found for '{word}'."
         else:
-            time.sleep(random.uniform(0.5, 2))
+            time.sleep(random.uniform(0.5, 1.25))
             if self.without_clues_only:
                 self.word_index += 1
                 self.process_next_word()

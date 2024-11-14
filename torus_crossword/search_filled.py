@@ -26,6 +26,7 @@ T_PINK = "\033[95m"
 
 solutions = []
 
+kill_step = 4
 
 from config import WOR_JSON, WORDS_APPROVED_JSON, ACTIVE_WORDS_JSON, WORDS_OMITTED_JSON
 
@@ -38,6 +39,9 @@ def recursive_search(grid, level=0):
     global v_best_score
     global v_best_grids
     global solutions
+
+    if level >= kill_step + 1:
+        exit()
 
     tqdm.tqdm.write(
         T_BLUE + f"{json.dumps(grid, indent=2, ensure_ascii=False)}" + T_NORMAL
