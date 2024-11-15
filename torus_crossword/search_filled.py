@@ -97,9 +97,17 @@ def recursive_search(grid, level=0):
 
 if __name__ == "__main__":
     tamplates = torus.json.load_json("liked_templates.json")
+    nums = set(["".join(k).count(C_WALL) for k in tamplates])
+
     failed_templates = torus.json.load_json("bad_templates.json")
+
+    for k in nums:
+        if not str(k) in failed_templates:
+            failed_templates[str(k)] = []
     templates_of_interest = [
-        t for t in tamplates if t not in failed_templates["".join(t).count(C_WALL)]
+        t
+        for t in tamplates
+        if "".join(t) not in failed_templates[str("".join(t).count(C_WALL))]
     ]
     import random
 
@@ -128,8 +136,10 @@ if __name__ == "__main__":
         if not len(solutions):
             print("No solution found")
             failed_templates = torus.json.load_json("bad_templates.json")
-            if "".join(t) not in failed_templates["".join(t).count(C_WALL)]:
-                failed_templates["".join(t).count(C_WALL)].append("".join(t))
+            t_str = "".join(t)
+            n_w = t_str.count(C_WALL)
+            if t_str not in failed_templates[str(n_w)]:
+                failed_templates[str(n_w)].append("".join(t))
                 torus.json.write_json("bad_templates.json", failed_templates)
         else:
             print(T_GREEN, f"Found {len(solutions)} solutions", T_NORMAL)
