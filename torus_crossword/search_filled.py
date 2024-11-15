@@ -7,7 +7,7 @@ import tqdm
 import torus
 from lib import Direction, get_words_in_partial_grid, grid_filled, add_theme_words
 
-from config import C_WALL, IC_TYPE, WOR_JSON, f_save_words_used
+from config import C_WALL, IC_TYPE, WOR_JSON, GRID_KILL_STEP, f_save_words_used
 
 WORDLIST = torus.json.load_json(WOR_JSON)
 if not f_save_words_used:
@@ -26,8 +26,6 @@ T_PINK = "\033[95m"
 
 solutions = []
 
-kill_step = 4
-
 from config import WOR_JSON, WORDS_APPROVED_JSON, ACTIVE_WORDS_JSON, WORDS_OMITTED_JSON
 
 v_best_score = 0
@@ -40,7 +38,7 @@ def recursive_search(grid, level=0):
     global v_best_grids
     global solutions
 
-    if level >= kill_step + 1:
+    if level >= GRID_KILL_STEP + 1:
         exit()
 
     tqdm.tqdm.write(

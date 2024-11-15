@@ -26,22 +26,11 @@ from config import (
     WOR_JSON,
     WORDS_OMITTED_JSON,
     ACTIVE_WORDS_JSON,
+    WORDS_SOURCE,
+    WITHOUT_CLUES_ONLY,
+    DELETE_ACTIVE,
+    Source,
 )
-
-import enum
-
-
-class Source(enum.Enum):
-    in_consideration = 0
-    active_grids = 1
-    bad_words = 2
-    good_words = 3
-    ics = 4
-
-
-WORDS_SOURCE = Source.active_grids
-WITHOUT_CLUES_ONLY = False
-DELETE_ACTIVE = True
 
 
 class WordSortingApp(QWidget):

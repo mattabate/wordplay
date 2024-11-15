@@ -22,6 +22,7 @@ from config import (
     WORDS_OMITTED_JSON,
     ROWLEN,
     GRIDCELLS,
+    RESTART_AT_LEVEL,
     STAR_START,
     C_WALL,
     GRID_TEMPLATE,
@@ -628,6 +629,9 @@ def get_grid_template_from_grid(grid):
 def recursive_search(grid, level=0):
     global v_best_score
     global v_best_grids
+
+    if level >= RESTART_AT_LEVEL + 2:
+        exit()
 
     if grid_filled(grid):
         tqdm.tqdm.write(T_GREEN + "Solution found")  # Green text indicating success
