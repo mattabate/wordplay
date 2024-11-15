@@ -505,9 +505,8 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
                     gt = get_grid_template_from_grid(transpose(candidate_grid))
                 else:  # rc = r
                     gt = get_grid_template_from_grid(candidate_grid)
-                # gt_str = "".join(gt)
-                # num_walls = gt_str.count(C_WALL)
-                if gt in BADGRIDTEMPLATES:
+                gt_str = "".join(gt)
+                if gt_str in BADGRIDTEMPLATES[str(total_num_walls)]:
                     # tqdm.tqdm.write(
                     #     "\n" + T_YELLOW + f"Grid is in bad templates" + T_NORMAL
                     # )
@@ -682,7 +681,10 @@ def recursive_search(grid, level=0):
                 return
 
         gt = get_grid_template_from_grid(grid)
-        if gt in BADGRIDTEMPLATES:
+        gt_str = "".join(gt)
+        num_walls = gt_str.count(C_WALL)
+
+        if gt_str in BADGRIDTEMPLATES[str(num_walls)]:
             tqdm.tqdm.write("\n")
             tqdm.tqdm.write(
                 T_PINK + f"Should not get here - Grid is in bad templates" + T_NORMAL

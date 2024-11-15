@@ -7,7 +7,7 @@ import tqdm
 import torus
 from lib import Direction, get_words_in_partial_grid, grid_filled, add_theme_words
 
-from config import C_WALL, IC_TYPE, WOR_JSON, GRID_KILL_STEP, f_save_words_used
+from config import C_WALL, IC_TYPE, WOR_JSON, GRID_KILL_STEP, f_save_words_used, MAX_WAL
 
 WORDLIST = torus.json.load_json(WOR_JSON)
 if not f_save_words_used:
@@ -98,7 +98,9 @@ def recursive_search(grid, level=0):
 if __name__ == "__main__":
     tamplates = torus.json.load_json("liked_templates.json")
     failed_templates = torus.json.load_json("bad_templates.json")
-    templates_of_interest = [t for t in tamplates if t not in failed_templates]
+    templates_of_interest = [
+        t for t in tamplates if t not in failed_templates["".join(t).count(C_WALL)]
+    ]
     import random
 
     ls = len(tamplates)
@@ -125,8 +127,10 @@ if __name__ == "__main__":
 
         if not len(solutions):
             print("No solution found")
-
-            torus.json.append_json_list("bad_templates.json", t)
+            failed_templates = torus.json.load_json("bad_templates.json")
+            if "".join(t) not in failed_templates["".join(t).count(C_WALL)]:
+                failed_templates["".join(t).count(C_WALL)].append("".join(t))
+                torus.json.write_json("bad_templates.json", failed_templates)
         else:
             print(T_GREEN, f"Found {len(solutions)} solutions", T_NORMAL)
         solutions = []
