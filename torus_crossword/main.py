@@ -505,7 +505,8 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
                     gt = get_grid_template_from_grid(transpose(candidate_grid))
                 else:  # rc = r
                     gt = get_grid_template_from_grid(candidate_grid)
-
+                # gt_str = "".join(gt)
+                # num_walls = gt_str.count(C_WALL)
                 if gt in BADGRIDTEMPLATES:
                     # tqdm.tqdm.write(
                     #     "\n" + T_YELLOW + f"Grid is in bad templates" + T_NORMAL
@@ -549,11 +550,13 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
             K_BEST_GRIDS = working_grids
 
     # check to make sure it is possible to make grid symetric from all row options
-    # o = FILL_INS_TEMPLATE
+    o = FILL_INS_TEMPLATE.copy()
     FILL_INS_TEMPLATE = enforce_symmetry(FILL_INS_TEMPLATE)
     if not FILL_INS_TEMPLATE:
         tqdm.tqdm.write(T_YELLOW + "not actually doable" + T_NORMAL)
-        # print(T_YELLOW + json.dumps(o, indent=2, ensure_ascii=False) + T_NORMAL)
+        tqdm.tqdm.write(
+            T_YELLOW + json.dumps(o, indent=2, ensure_ascii=False) + T_NORMAL
+        )
         time.sleep(1)
         return row, 0, []
 
@@ -630,7 +633,7 @@ def recursive_search(grid, level=0):
     global v_best_score
     global v_best_grids
 
-    if level >= RESTART_AT_LEVEL + 2:
+    if 0 < RESTART_AT_LEVEL <= level - 2:
         exit()
 
     if grid_filled(grid):

@@ -21,12 +21,10 @@ f_verbose = True
 f_save_words_used = False
 f_save_bounds = [0, 100]
 SLEEP_DURATION = -1
-RESTART_AT_LEVEL = 1000000
+RESTART_AT_LEVEL = -1
 
 SLEEP_DURATION_GRID = 10000
 GRID_KILL_STEP = 8
-
-# API Sort
 
 
 class Source(enum.Enum):
@@ -36,6 +34,8 @@ class Source(enum.Enum):
     good_words = 3
     ics = 4
 
+
+# API Sort
 
 WORDS_SOURCE = Source.active_grids
 WITHOUT_CLUES_ONLY = False
