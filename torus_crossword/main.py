@@ -552,11 +552,11 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
     o = FILL_INS_TEMPLATE.copy()
     FILL_INS_TEMPLATE = enforce_symmetry(FILL_INS_TEMPLATE)
     if not FILL_INS_TEMPLATE:
-        tqdm.tqdm.write(T_YELLOW + "not actually doable" + T_NORMAL)
-        tqdm.tqdm.write(
-            T_YELLOW + json.dumps(o, indent=2, ensure_ascii=False) + T_NORMAL
-        )
-        time.sleep(1)
+        if f_verbose:
+            tqdm.tqdm.write(T_YELLOW + "not actually doable" + T_NORMAL)
+            tqdm.tqdm.write(
+                T_YELLOW + json.dumps(o, indent=2, ensure_ascii=False) + T_NORMAL
+            )
         return row, 0, []
 
     betterd_grids = []
@@ -693,7 +693,11 @@ def recursive_search(grid, level=0):
             raise ValueError("Should not get here")
             return
 
-        torus.json.append_json_list("liked_templates.json", gt)
+        seen_temps = torus.json.load_json("liked_templates.json")
+        if gt_str not in seen_temps[str(MAX_WAL)]:
+            seen_temps[str(MAX_WAL)].append(gt_str)
+            torus.json.write_json("liked_templates.json", seen_temps)
+
         new_grids = get_new_grids_from_filled(grid)
 
         if not new_grids:

@@ -17,10 +17,10 @@ class Mode(enum.Enum):
 
 
 mode = Mode.DA  # da on personal
-f_verbose = True
-f_save_words_used = False
-f_save_bounds = [0, 100]
-SLEEP_DURATION = -1
+f_verbose = False
+f_save_words_used = True
+f_save_bounds = [0, 3]
+SLEEP_DURATION = 120
 RESTART_AT_LEVEL = -1
 
 SLEEP_DURATION_GRID = 1000000000
@@ -80,58 +80,6 @@ GRID_TEMPLATE = [
 ]
 
 GRID_TEMPLATE_FLIPPED = [s[::-1] for s in GRID_TEMPLATE]
-
-import json
-
-with open("liked_templates.json", "r") as f:
-    liked_templates = json.load(f)
-
-# GRID_TEMPLATE_FLIPPED = liked_templates[41]
-
-# 0, 1, 3 has failed
-# 2 got down to 1, no solutions found
-
-# 4 got down to 1, no solutions found
-# 5, 6, 7, 8, 9 no solutions
-## fails = 11 - 41
-
-
-# GRID_TEMPLATE_FLIPPED = [
-#     "@@@█@@@@█@@@@@@",
-#     "@@@█@@@@█@@@@@@",
-#     "@@@█@@@@█@@@@@@",
-#     "@@@@██@@@@@_███",
-#     "@@@@@@@█@@@█@@@",
-#     "███@@@@@@█@@@@@",
-#     "@@@@@@█@@@█@@@@",
-#     "@@@@█@@@@@█@@@@",
-#     "@@@@█@@@█@@@@@@",
-#     "@@@@@█@@@@@@███",
-#     "@@@█@@@█@@@@@@@",
-#     "███_@@@@@██@@@@",
-#     "@@@@@@█@@@@█@@@",
-#     "@@@@@@█@@@@█@@@",
-#     "@@@@@@█@@@@█@@@",
-# ]
-
-
-# GRID_TEMPLATE_FLIPPED = [
-#     "@@@██@@@█@@@@@@",
-#     "@@@█@@@@█@@@@@@",
-#     "@@@█@@@@█@@@@@@",
-#     "@@@@@██@@@@@███",
-#     "@@@@@@@█@@@█@@@",
-#     "███@@@@T@█@@@@@",
-#     "@@@█@@@O█@@@@@@",
-#     "HNUT█@@R@@█DOUG",
-#     "@@@@@@█U@@@█@@@",
-#     "@@@@@█@S@@@@███",
-#     "@@@█@@@█@@@@@@@",
-#     "███@@@@@██@@@@@",
-#     "@@@@@@█@@@@█@@@",
-#     "@@@@@@█@@@@█@@@",
-#     "@@@@@@█@@@██@@@",
-# ]
 
 
 GRID_TEMPLATE_FLIPPED_MIN = [

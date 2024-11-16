@@ -7,7 +7,17 @@ import tqdm
 import torus
 from lib import Direction, get_words_in_partial_grid, grid_filled, add_theme_words
 
-from config import C_WALL, IC_TYPE, WOR_JSON, GRID_KILL_STEP, f_save_words_used, MAX_WAL
+from config import (
+    C_WALL,
+    IC_TYPE,
+    WOR_JSON,
+    GRID_KILL_STEP,
+    f_save_words_used,
+    MAX_WAL,
+    f_verbose,
+)
+
+from lib import T_BLUE, T_YELLOW, T_GREEN, T_PINK, T_NORMAL
 
 WORDLIST = torus.json.load_json(WOR_JSON)
 if not f_save_words_used:
@@ -16,12 +26,6 @@ if not f_save_words_used:
 id = int(time.time())
 BES_JSON = f"fast_search/bests_{id}.json"
 SOL_JSON = f"solutions/solutions_{id}.json"
-
-T_NORMAL = "\033[0m"
-T_BLUE = "\033[94m"
-T_YELLOW = "\033[93m"
-T_GREEN = "\033[92m"
-T_PINK = "\033[95m"
 
 
 solutions = []
@@ -41,9 +45,10 @@ def recursive_search(grid, level=0):
     if level >= GRID_KILL_STEP + 1:
         exit()
 
-    tqdm.tqdm.write(
-        T_BLUE + f"{json.dumps(grid, indent=2, ensure_ascii=False)}" + T_NORMAL
-    )
+    if f_verbose:
+        tqdm.tqdm.write(
+            T_BLUE + f"{json.dumps(grid, indent=2, ensure_ascii=False)}" + T_NORMAL
+        )
 
     if f_save_words_used:
         words_contained = get_words_in_partial_grid(grid)
@@ -97,21 +102,19 @@ def recursive_search(grid, level=0):
 
 if __name__ == "__main__":
     tamplates = torus.json.load_json("liked_templates.json")
-    nums = set(["".join(k).count(C_WALL) for k in tamplates])
-
     failed_templates = torus.json.load_json("bad_templates.json")
 
-    for k in nums:
-        if not str(k) in failed_templates:
-            failed_templates[str(k)] = []
     templates_of_interest = [
-        t
-        for t in tamplates
-        if "".join(t) not in failed_templates[str("".join(t).count(C_WALL))]
+        [t[i : i + 15] for i in range(0, 225, 15)]
+        for t in tamplates[str(MAX_WAL)]
+        if t not in failed_templates[str(MAX_WAL)]
     ]
+
     import random
 
-    ls = len(tamplates)
+    # templats of interest are those not in the chat
+
+    ls = len(tamplates[str(MAX_WAL)])
     lsoi = len(templates_of_interest)
     random.shuffle(templates_of_interest)
 
@@ -123,7 +126,7 @@ if __name__ == "__main__":
         words = get_word_locations(grid, Direction.ACROSS) + get_word_locations(
             grid, Direction.DOWN
         )
-
+        tqdm.tqdm.write(T_YELLOW + f"> max wall {MAX_WAL}" + T_NORMAL)
         tqdm.tqdm.write(T_YELLOW + f"> number of answers {len(words)}" + T_NORMAL)
         tqdm.tqdm.write(
             T_YELLOW
