@@ -37,7 +37,7 @@ class Source(enum.Enum):
 
 # API Sort
 
-WORDS_SOURCE = Source.active_grids
+WORDS_SOURCE = Source.bad_words
 WITHOUT_CLUES_ONLY = False
 DELETE_ACTIVE = True
 
