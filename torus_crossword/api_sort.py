@@ -49,15 +49,6 @@ class WordSortingApp(QWidget):
             t = torus.json.load_json(ACTIVE_WORDS_JSON)
             t.sort(key=lambda x: len(x), reverse=True)
             torus.json.write_json(WORDS_CONSIDERED_JSON, t)
-        elif self.source == Source.bad_words:
-            t = torus.json.load_json("filter_words/assumed_bad.json")
-            t.sort(key=lambda x: len(x), reverse=True)
-            torus.json.write_json(WORDS_CONSIDERED_JSON, t)
-        elif self.source == Source.good_words:
-            torus.json.write_json(
-                WORDS_CONSIDERED_JSON,
-                torus.json.load_json("filter_words/assumed_good.json"),
-            )
         elif self.source == Source.ics:
             torus.json.write_json(
                 WORDS_CONSIDERED_JSON,
@@ -261,10 +252,6 @@ if __name__ == "__main__":
     stuff = []
     if WORDS_SOURCE == Source.active_grids:
         stuff = torus.json.load_json(ACTIVE_WORDS_JSON)
-    elif WORDS_SOURCE == Source.bad_words:
-        stuff = torus.json.load_json("filter_words/assumed_bad.json")
-    elif WORDS_SOURCE == Source.good_words:
-        stuff = (torus.json.load_json("filter_words/assumed_good.json"),)
     elif WORDS_SOURCE == Source.in_consideration:
         stuff = torus.json.load_json(WORDS_CONSIDERED_JSON)
     elif WORDS_SOURCE == Source.ics:
