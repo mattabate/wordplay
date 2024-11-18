@@ -63,6 +63,11 @@ class WordSortingApp(QWidget):
                 WORDS_CONSIDERED_JSON,
                 torus.json.load_json("filter_words/sorted_words_in_ics.json"),
             )
+        elif self.source == Source.ranked:
+            torus.json.write_json(
+                WORDS_CONSIDERED_JSON,
+                torus.json.load_json("filter_words/active_ranked.json"),
+            )
 
         self.words_considered = torus.json.load_json(WORDS_CONSIDERED_JSON)
         if self.f_delete_active:
@@ -264,7 +269,8 @@ if __name__ == "__main__":
         stuff = torus.json.load_json(WORDS_CONSIDERED_JSON)
     elif WORDS_SOURCE == Source.ics:
         stuff = torus.json.load_json("filter_words/sorted_words_in_ics.json")
-
+    elif WORDS_SOURCE == Source.ranked:
+        stuff = torus.json.load_json("filter_words/active_ranked.json")
     if not stuff:
         print("No words to process.")
         exit()
