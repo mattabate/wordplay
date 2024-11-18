@@ -17,11 +17,11 @@ class Mode(enum.Enum):
 
 
 mode = Mode.DA  # da on personal
-f_verbose = False
+f_verbose = True
 f_save_words_used = True
-f_save_bounds = [0, 3]
-SLEEP_DURATION = 120
-RESTART_AT_LEVEL = -1
+f_save_bounds = [0, 1000]
+SLEEP_DURATION = 100
+RESTART_AT_LEVEL = 1
 
 SLEEP_DURATION_GRID = 1000000000
 GRID_KILL_STEP = 8
@@ -37,7 +37,7 @@ class Source(enum.Enum):
 
 # API Sort
 
-WORDS_SOURCE = Source.bad_words
+WORDS_SOURCE = Source.active_grids
 WITHOUT_CLUES_ONLY = False
 DELETE_ACTIVE = True
 

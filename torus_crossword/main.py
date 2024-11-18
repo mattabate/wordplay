@@ -608,6 +608,26 @@ def print_grid(grid: list[str], h: tuple[str, int, str]):
     return "\n".join(grid_copy) + T_NORMAL
 
 
+def contains_bad_words(grid: str):
+    if f_save_words_used:
+        trashed_words = get_words_in_partial_grid(grid) - set(
+            torus.json.load_json(WOR_JSON)
+        )
+    else:
+        trashed_words = get_words_in_partial_grid(grid) - WORDLIST_SET
+
+    if trashed_words:
+        if f_verbose:
+            tqdm.tqdm.write(
+                T_PINK
+                + f"\nFOUND TRASHED WORD ... Skipping: {trashed_words}"
+                + T_NORMAL
+            )
+            tqdm.tqdm.write(T_PINK + "\n".join(grid) + T_NORMAL)
+        return True
+    return False
+
+
 def save_words_to_active(new_grids: list[list[str]]):
     words_seen = set()
     for l in new_grids:
@@ -626,6 +646,13 @@ def save_words_to_active(new_grids: list[list[str]]):
 
 def get_grid_template_from_grid(grid):
     return ["".join("@" if c != C_WALL else C_WALL for c in s) for s in grid]
+
+
+def add_to_grid_templates_if_not_seen(gt_str):
+    seen_temps = torus.json.load_json("liked_templates.json")
+    if gt_str not in seen_temps[str(MAX_WAL)]:
+        seen_temps[str(MAX_WAL)].append(gt_str)
+        torus.json.write_json("liked_templates.json", seen_temps)
 
 
 def recursive_search(grid, level=0):
@@ -648,20 +675,7 @@ def recursive_search(grid, level=0):
         torus.json.append_json(SOL_JSON, grid)
         return
 
-    if f_save_words_used:
-        trashed_words = get_words_in_partial_grid(grid) - set(
-            torus.json.load_json(WOR_JSON)
-        )
-    else:
-        trashed_words = get_words_in_partial_grid(grid) - WORDLIST_SET
-
-    if trashed_words:
-        if f_verbose:
-            tqdm.tqdm.write("\n")
-            tqdm.tqdm.write(
-                T_PINK + f"FOUND TRASHED WORD ... Skipping: {trashed_words}" + T_NORMAL
-            )
-            tqdm.tqdm.write(T_PINK + "\n".join(grid) + T_NORMAL)
+    if contains_bad_words(grid):
         return
 
     grid_str = "".join(grid)
@@ -693,10 +707,7 @@ def recursive_search(grid, level=0):
             raise ValueError("Should not get here")
             return
 
-        seen_temps = torus.json.load_json("liked_templates.json")
-        if gt_str not in seen_temps[str(MAX_WAL)]:
-            seen_temps[str(MAX_WAL)].append(gt_str)
-            torus.json.write_json("liked_templates.json", seen_temps)
+        add_to_grid_templates_if_not_seen(gt_str)
 
         new_grids = get_new_grids_from_filled(grid)
 
