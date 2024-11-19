@@ -20,11 +20,11 @@ mode = Mode.DA  # da on personal
 f_verbose = True
 f_save_words_used = False
 f_save_bounds = [0, 15]
-SLEEP_DURATION = -1
+SLEEP_DURATION = 120
 RESTART_AT_LEVEL = -1
 
-SLEEP_DURATION_GRID = 1000000000
-GRID_KILL_STEP = 8
+SLEEP_DURATION_GRID = 120
+GRID_KILL_STEP = 1000000
 
 
 class Source(enum.Enum):
