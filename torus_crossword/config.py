@@ -20,8 +20,8 @@ mode = Mode.DA  # da on personal
 f_verbose = True
 f_save_words_used = False
 f_save_bounds = [0, 15]
-SLEEP_DURATION = 70
-RESTART_AT_LEVEL = -1
+SLEEP_DURATION = 120
+RESTART_AT_LEVEL = 5
 
 SLEEP_DURATION_GRID = -1
 GRID_KILL_STEP = 1000000
@@ -49,7 +49,7 @@ if mode == Mode.AD:
 elif mode == Mode.DA:
     IC_TYPE = "DA"  # da = flipped
     SEARCH_W_FLIPPED = True
-    MAX_WAL = 42
+    MAX_WAL = 40
 elif mode == Mode.A:
     IC_TYPE = "A"  # A = flipped
     SEARCH_W_FLIPPED = True
