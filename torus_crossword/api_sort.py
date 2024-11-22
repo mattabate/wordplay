@@ -33,6 +33,66 @@ from config import (
 )
 
 
+import pickle
+import tqdm
+
+from config import EMB_PREF, EMB_MODL, PKL_MODL
+from openai import OpenAI
+from keys import doot
+import os
+
+os.environ["OPENAI_API_KEY"] = doot
+
+
+if True:
+    client = OpenAI()
+
+
+def infer(model_file, words):
+
+    with open(model_file, "rb") as file:
+        clf = pickle.load(file)
+
+    words_considered = [EMB_PREF + w for w in words]
+    step = 1000
+    good_vectors = []
+    for i in tqdm.tqdm(range(0, len(words_considered), step)):
+        good_vectors += client.embeddings.create(
+            input=words_considered[i : i + step], model=EMB_MODL
+        ).data
+        time.sleep(1)
+
+    out = [x.embedding for x in good_vectors]
+    predictions = clf.predict(out)
+    print("Predictions:", predictions)
+
+    # Compute decision function scores
+    scores = clf.decision_function(out)
+    word_scores = list(zip(words, scores))
+
+    # Sort words from most assumed bad to most assumed good
+    word_scores_sorted = sorted(word_scores, key=lambda x: x[1])
+    sorted_words = [word for word, _ in word_scores_sorted]
+
+    return sorted_words
+
+
+words_condiered = []
+if WORDS_SOURCE == Source.active_grids:
+    words_condiered = torus.json.load_json(ACTIVE_WORDS_JSON)
+elif WORDS_SOURCE == Source.in_consideration:
+    words_condiered = torus.json.load_json(WORDS_CONSIDERED_JSON)
+elif WORDS_SOURCE == Source.ics:
+    words_condiered = torus.json.load_json("filter_words/sorted_words_in_ics.json")
+elif WORDS_SOURCE == Source.ranked:
+    words_condiered = torus.json.load_json("filter_words/active_ranked.json")
+elif WORDS_SOURCE == Source.words_len_10:
+    words_condiered = torus.json.load_json(WOR_JSON)
+    words_condiered = [word for word in words_condiered if len(word) == 10]
+    if len(words_condiered) > 1000:
+        words_condiered = words_condiered[:1000]
+
+
 class WordSortingApp(QWidget):
     def __init__(self):
         super().__init__()
@@ -45,22 +105,8 @@ class WordSortingApp(QWidget):
         self.words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
         self.words_seen = set(self.words_omitted + self.words_approved)
 
-        if self.source == Source.active_grids:
-            t = torus.json.load_json(ACTIVE_WORDS_JSON)
-            t.sort(key=lambda x: len(x), reverse=True)
-            torus.json.write_json(WORDS_CONSIDERED_JSON, t)
-        elif self.source == Source.ics:
-            torus.json.write_json(
-                WORDS_CONSIDERED_JSON,
-                torus.json.load_json("filter_words/sorted_words_in_ics.json"),
-            )
-        elif self.source == Source.ranked:
-            torus.json.write_json(
-                WORDS_CONSIDERED_JSON,
-                torus.json.load_json("filter_words/active_ranked.json"),
-            )
-
-        self.words_considered = torus.json.load_json(WORDS_CONSIDERED_JSON)
+        self.words_considered = words_condiered
+        self.words_considered = infer(PKL_MODL, words_condiered)
         if self.f_delete_active:
             torus.json.write_json(ACTIVE_WORDS_JSON, [])
 
@@ -249,16 +295,8 @@ class WordSortingApp(QWidget):
 
 
 if __name__ == "__main__":
-    stuff = []
-    if WORDS_SOURCE == Source.active_grids:
-        stuff = torus.json.load_json(ACTIVE_WORDS_JSON)
-    elif WORDS_SOURCE == Source.in_consideration:
-        stuff = torus.json.load_json(WORDS_CONSIDERED_JSON)
-    elif WORDS_SOURCE == Source.ics:
-        stuff = torus.json.load_json("filter_words/sorted_words_in_ics.json")
-    elif WORDS_SOURCE == Source.ranked:
-        stuff = torus.json.load_json("filter_words/active_ranked.json")
-    if not stuff:
+
+    if not words_condiered:
         print("No words to process.")
         exit()
 

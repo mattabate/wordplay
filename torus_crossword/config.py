@@ -23,7 +23,7 @@ f_save_bounds = [0, 15]
 SLEEP_DURATION = -1
 RESTART_AT_LEVEL = -1
 
-SLEEP_DURATION_GRID = -1
+SLEEP_DURATION_GRID = 100
 GRID_KILL_STEP = 1000000
 
 
@@ -32,11 +32,12 @@ class Source(enum.Enum):
     active_grids = 1
     ics = 2
     ranked = 3
+    words_len_10 = 4
 
 
 # API Sort
 
-WORDS_SOURCE = Source.ranked
+WORDS_SOURCE = Source.words_len_10
 WITHOUT_CLUES_ONLY = False
 DELETE_ACTIVE = True
 
@@ -175,3 +176,9 @@ ROWLEN = 15
 COLLEN = 15
 GRIDCELLS = ROWLEN * ROWLEN
 C_WALL = "█"
+
+
+# for emb sep
+EMB_PREF = "ANSWER: "
+EMB_MODL = "text-embedding-3-small"
+PKL_MODL = "matts_preferences.pkl"

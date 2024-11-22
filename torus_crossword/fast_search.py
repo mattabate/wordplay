@@ -146,6 +146,10 @@ def initalize(grid):
     return words, square_to_word_map
 
 
+import math
+import json
+
+
 def get_new_grids(
     grid: list[str],
 ) -> list[list[str]]:
@@ -182,13 +186,13 @@ def get_new_grids(
             )
             continue
 
-        # NOTE: find the square with the fewest possibilities otherwise
+        # # NOTE: find the square with the fewest possibilities otherwise
         num_pos = len(v.possible_chars)
         if num_pos < min_possibilities:
             min_possibilities = num_pos
             min_square = s
 
-    if not min_square:
+    if "@" not in "".join(filled_grid):
         return [filled_grid]
 
     # TODO: make min square to influence
