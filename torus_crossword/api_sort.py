@@ -38,10 +38,10 @@ import tqdm
 
 from config import EMB_PREF, EMB_MODL, PKL_MODL
 from openai import OpenAI
-from keys import doot
+from keys import OPENAI_API_KEY
 import os
 
-os.environ["OPENAI_API_KEY"] = doot
+os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
 
 if True:
