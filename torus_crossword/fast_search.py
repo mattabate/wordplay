@@ -1,56 +1,10 @@
 """15x15 grids use █ and @, this script places the letters, and is typically used to solve crosswords."""
 
-import json
-import tqdm
-from torus.json import load_json, write_json
-from lib import Direction, Sqaure, Word, replace_char_in_grid, transpose
-import time
 import itertools
 
-# NOTE: instead we need to do somethign where "the letter a in this position implies the letter x in this position."
+from lib import Direction, Sqaure, Word, replace_char_in_grid, transpose
 
-INITIAL_TEMPLATE = [
-    "NAROCK█@@@@█ARE",
-    "ETABLE█@@@@█SID",
-    "RESSED█@@@@█UND",
-    "███E@@█@@@@@RAE",
-    "OOMS████LADIESR",
-    "@@@S█@@@@@@@███",
-    "@@@██@@@@@@@@@@",
-    "HNUT█TORUS█DOUG",
-    "@@@@@@@@@@██@@@",
-    "███@@@@@@@█R@@@",
-    "RSH@@@@████E@@@",
-    "ETA@@@@@█@@S███",
-    "TAT█@@@@█PHOTOS",
-    "ART█@@@@█STARCH",
-    "IDE█@@@@█TAKEAR",
-]
-
-
-id = int(time.time())
-BES_JSON = f"results/bests_{id}.json"
-SOL_JSON = f"solutions/solutions_{id}.json"
-FAI_JSON = "fails.json"
-
-ROWLEN = 15
-GRIDCELLS = ROWLEN * ROWLEN
-
-C_WALL = "█"
-
-T_NORMAL = "\033[0m"
-T_BLUE = "\033[94m"
-T_YELLOW = "\033[93m"
-T_GREEN = "\033[92m"
-T_PINK = "\033[95m"
-
-
-iterator = itertools.combinations(range(ROWLEN), 2)
-
-# bests
-v_best_score = 0
-v_best_grids = []
-solutions = []
+from config import C_WALL, ROWLEN
 
 
 def get_word_locations(grid: list[str], direction: Direction) -> list[Word]:
@@ -192,6 +146,10 @@ def initalize(grid):
     return words, square_to_word_map
 
 
+import math
+import json
+
+
 def get_new_grids(
     grid: list[str],
 ) -> list[list[str]]:
@@ -228,13 +186,13 @@ def get_new_grids(
             )
             continue
 
-        # NOTE: find the square with the fewest possibilities otherwise
+        # # NOTE: find the square with the fewest possibilities otherwise
         num_pos = len(v.possible_chars)
         if num_pos < min_possibilities:
             min_possibilities = num_pos
             min_square = s
 
-    if not min_square:
+    if "@" not in "".join(filled_grid):
         return [filled_grid]
 
     # TODO: make min square to influence
@@ -243,80 +201,3 @@ def get_new_grids(
         for p in square_to_word_map[min_square].possible_chars
     ]
     return output
-
-
-def count_letters(grid: list[str]) -> int:
-    return GRIDCELLS - sum(line.count("@") + line.count("█") for line in grid)
-
-
-def grid_filled(grid: list[str]) -> bool:
-    for l in grid:
-        if "@" in l:
-            return False
-    return True
-
-
-def recursive_search(grid, level=0):
-    global v_best_score
-    global v_best_grids
-    global solutions
-
-    if grid_filled(grid):
-        for l in solutions:
-            if l["grid"] == grid:
-                return
-
-        tqdm.tqdm.write(T_YELLOW + "Solution found")  # Green text indicating success
-        tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
-        tqdm.tqdm.write(T_NORMAL)
-        solutions.append({"level": level, "grid": grid})
-        write_json(SOL_JSON, solutions)
-
-        if len(solutions) > 10:
-            print(T_GREEN, "Found 10 solutions", T_NORMAL)
-            exit()
-        return
-
-    new_grids = get_new_grids(grid)
-
-    if not new_grids:
-        tqdm.tqdm.write(
-            T_PINK + "No solution found" + T_NORMAL
-        )  # Red text indicating failure
-        return
-
-    with tqdm.tqdm(new_grids, desc=f"Level {level}") as t:
-        l = count_letters(grid)
-        if l > v_best_score:
-            v_best_score = l
-            v_best_grids.append({"level": level, "score": l, "grid": grid})
-            write_json(BES_JSON, v_best_grids)
-
-        for new_grid in t:
-            recursive_search(new_grid.copy(), level + 1)
-
-
-if __name__ == "__main__":
-    grid = INITIAL_TEMPLATE.copy()
-
-    fails = load_json(FAI_JSON)
-
-    words = get_word_locations(grid, Direction.ACROSS) + get_word_locations(
-        grid, Direction.DOWN
-    )
-    print(T_YELLOW, "number of answers", len(words), T_NORMAL)
-    print(T_YELLOW, "number of black squares", "".join(grid).count(C_WALL), T_NORMAL)
-
-    if grid in fails:
-        print("Already failed")
-        exit()
-
-    recursive_search(grid, 0)
-
-    if not len(solutions):
-        print("No solution found")
-
-        fails.append(INITIAL_TEMPLATE)
-        write_json(FAI_JSON, fails)
-    else:
-        print(T_GREEN, f"Found {len(solutions)} solutions", T_NORMAL)

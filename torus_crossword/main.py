@@ -9,57 +9,70 @@ import random
 import os
 from collections import deque
 
-from fast_search import get_new_grids as get_new_grids_main
+import lib
+from lib import grid_filled
+from fast_search import get_new_grids as get_new_grids_from_filled
 
 from config import (
     WOR_JSON,
+    ACTIVE_WORDS_JSON,
     STARS_FOUND_JSON,
     STARS_FOUND_FLIPPED_JSON,
+    WORDS_APPROVED_JSON,
+    WORDS_OMITTED_JSON,
     ROWLEN,
     GRIDCELLS,
+    RESTART_AT_LEVEL,
     STAR_START,
     C_WALL,
     GRID_TEMPLATE,
     GRID_TEMPLATE_FLIPPED,
+    GRID_TEMPLATE_FLIPPED_MIN,
     get_failures_json,
     get_solutions_json,
     get_bad_solutions_json,
     IC_TYPE,
     MAX_WAL,
     SEARCH_W_FLIPPED,
-    ACTIVE_WORDS_JSON,
     f_verbose,
     f_save_words_used,
     f_save_bounds,
 )
 
-from torus.json import append_json, load_json, write_json
+import torus
 
 from lib import (
     transpose,
     replace_char_in_string,
     string_to_star,
+    get_words_in_partial_grid,
     T_BLUE,
     T_GREEN,
     T_NORMAL,
     T_PINK,
     T_YELLOW,
     add_theme_words,
+    get_star_from_grid,
 )
 
+
+# grids i dont like
 
 FAI_JSON = get_failures_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
 SOL_JSON = get_solutions_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
 BAD_SOL_JSON = get_bad_solutions_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
 if not os.path.exists(FAI_JSON):
-    write_json(FAI_JSON, [])
+    torus.json.write_json(FAI_JSON, [])
 if not os.path.exists(SOL_JSON):
-    write_json(SOL_JSON, [])
+    torus.json.write_json(SOL_JSON, [])
 if not os.path.exists(BAD_SOL_JSON):
-    write_json(BAD_SOL_JSON, [])
+    torus.json.write_json(BAD_SOL_JSON, [])
 
 
-if not SEARCH_W_FLIPPED:
+if not IC_TYPE:
+    STA_JSON = STARS_FOUND_FLIPPED_JSON
+    INITIAL_TEMPLATE = GRID_TEMPLATE_FLIPPED_MIN
+elif not SEARCH_W_FLIPPED:
     STA_JSON = STARS_FOUND_JSON
     INITIAL_TEMPLATE = GRID_TEMPLATE
 else:
@@ -68,15 +81,19 @@ else:
 
 
 # bests
-new_solutions = []  # tracks initial conditions solutions
+
 v_best_grids = []
 v_best_score = 0
 
-WORDLIST = load_json(WOR_JSON)
+WORDLIST = torus.json.load_json(WOR_JSON)
+if not f_save_words_used:
+    WORDLIST_SET = set(WORDLIST)
 
 for i, w in enumerate(WORDLIST):
     WORDLIST[i] = C_WALL + w + C_WALL
 random.shuffle(WORDLIST)
+
+BADGRIDTEMPLATES = torus.json.load_json("bad_templates.json")
 
 
 def add_star(grid, star):
@@ -90,21 +107,6 @@ def add_star(grid, star):
                 grid[r][c] = l
 
     return ["".join(row) for row in grid]
-
-
-def grid_filled(grid: list[str]) -> bool:
-    for l in grid:
-        if "_" in l or "@" in l:
-            return False
-    return True
-
-
-def count_letters_in_line(line: str) -> int:
-    return len([c for c in line if c.isalpha()])
-
-
-def count_letters(grid: list[str]) -> int:
-    return GRIDCELLS - sum([l.count("_") + l.count("@") + l.count("█") for l in grid])
 
 
 def check_line_for_short_words(line: str) -> bool:
@@ -214,47 +216,34 @@ def fill_small_holes_line(line: str) -> str:
         line = "███" + line[3:]
     if line.endswith("█__") or line.endswith("██_"):
         line = line[:-3] + "███"
-    return (
-        line.replace("█_█", "███")
-        .replace("█__█", "████")
-        .replace("█@__", "█@@@")
-        .replace("█@@_", "█@@@")
-        .replace("█@_@", "█@@@")
-        .replace("__@█", "@@@█")
-        .replace("@_@█", "@@@█")
-        .replace("_@@█", "@@@█")
-        .replace("█_@_█", "█@@@█")
-    )
-
-
-import re
+    return line.replace("█_█", "███").replace("█__█", "████")
 
 
 def add_letter_placeholders_line(line: str) -> str:
     """Add placeholders for letters in the line."""
-    double = line + line
 
+    double = line + line
     matches = re.finditer(r"█[A-Z@][A-Z@_][A-Z@_]", double)
     for match in matches:
         if line[(match.end() - 2) % ROWLEN] == "_":
             line = replace_char_in_string(line, "@", (match.end() - 2) % ROWLEN)
         if line[(match.end() - 1) % ROWLEN] == "_":
             line = replace_char_in_string(line, "@", (match.end() - 1) % ROWLEN)
-    double = line + line
 
+    double = line + line
     matches = re.finditer(r"█_[A-Z@]_", double)
     for match in matches:
         line = replace_char_in_string(line, "@", (match.end() - 1) % ROWLEN)
-    double = line + line
 
+    double = line + line
     matches = re.finditer(r"[A-Z@_][A-Z@_][A-Z@]█", double)
     for match in matches:
         if line[(match.start()) % ROWLEN] == "_":
             line = replace_char_in_string(line, "@", match.start() % ROWLEN)
         if line[(match.start() + 1) % ROWLEN] == "_":
             line = replace_char_in_string(line, "@", (match.start() + 1) % ROWLEN)
-    double = line + line
 
+    double = line + line
     matches = re.finditer(r"_[A-Z@]_█", double)
     for match in matches:
         line = replace_char_in_string(line, "@", match.start() % ROWLEN)
@@ -271,7 +260,7 @@ def fill_in_small_holes(grid: list[str]) -> list[str]:
 
 
 def add_letter_placeholders(grid: list[str]) -> list[str]:
-    """Add placeholders for letters in the grid."""
+    """Add placeholders for letters in the grid. like █[A-Z@][A-Z@_][A-Z@_] -> █@@@."""
     new_grid = [add_letter_placeholders_line(l) for l in grid]
     tr = transpose(new_grid)  # compute transpose matrix
     new_grid = [add_letter_placeholders_line(l) for l in tr]
@@ -282,13 +271,19 @@ def enforce_symmetry(grid: list[str]) -> list[str]:
     long_string = "".join(grid)
     for j, c in enumerate(long_string):
         rvs_idx = GRIDCELLS - 1 - j
-        if long_string[rvs_idx] != "_":
-            continue
+        rvs_c = long_string[rvs_idx]
 
+        # ENFORCE SYMETRY
         if c == C_WALL:
-            long_string = replace_char_in_string(long_string, C_WALL, rvs_idx)
+            if rvs_c != C_WALL and rvs_c != "_":  # check symetry
+                return False
+            if rvs_c == "_":  # enforce symetry
+                long_string = replace_char_in_string(long_string, C_WALL, rvs_idx)
         elif c != "_":
-            long_string = replace_char_in_string(long_string, "@", rvs_idx)
+            if rvs_c == C_WALL:  # check symetry
+                return False
+            if rvs_c == "_":  # enforce symetry
+                long_string = replace_char_in_string(long_string, "@", rvs_idx)
 
     return [long_string[j : j + ROWLEN] for j in range(0, GRIDCELLS, ROWLEN)]
 
@@ -302,6 +297,10 @@ def grid_contains_short_words(grid: list[str]) -> bool:
         if check_line_for_short_words(line):
             return True
     return False
+
+
+def is_only_at_and_block(s):
+    return all(char in {"@", "█"} for char in s)
 
 
 def get_fixtures(line: str) -> list[tuple[int, str]]:
@@ -339,6 +338,10 @@ def get_fixtures(line: str) -> list[tuple[int, str]]:
 
         if w.count(C_WALL) == 2 and "@" not in w:
             continue
+
+        if is_only_at_and_block(w):
+            continue
+
         fixtures.append((strt, w))
 
     return fixtures
@@ -391,7 +394,35 @@ def grid_contains_englosed_spaces(grid):
     return count != total_non_wall
 
 
-def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
+def check_center_row_sym(line: str) -> bool:
+    "Return true if line symetric in terms of C_WALL ie █@@█@█@@█"
+    return any(
+        [
+            ((line[k] == C_WALL) ^ (line[ROWLEN - 1 - k] == C_WALL))
+            for k in range(ROWLEN)
+        ]
+    )
+
+
+def num_walls(grid: list[str]) -> int:
+    "return number of wall characters in grid"
+    return "".join(grid).count(C_WALL)
+
+
+def grid_contains_unwalled_rows(grid: list[str]) -> bool:
+    for line in grid:
+        if C_WALL not in line:
+            return True
+    for line in transpose(grid):
+        if C_WALL not in line:
+            return True
+    return False
+
+
+import time
+
+
+def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str]]]:
     """Given a grid, find the best row to latch on to.
 
     Returns:
@@ -401,11 +432,11 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
     """
 
     K_INDEX = -1
-    K_BEST_SCORE = 1000000000000
-    K_MIN_BLANKS_SEEN = 1000000000000
-    K_MIN_GRIDS = 1000000000000
+    K_MIN_SCORE = 1000000000000
     K_BEST_GRIDS = []
     score = 0
+
+    FILL_INS_TEMPLATE = grid.copy()
 
     for row in range(ROWLEN):
         # for every row, compute the latch with the fewest fitting words
@@ -421,62 +452,71 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
         if not fixtures:
             continue
 
-        # TODO: get possible word lens from the grid:
         candidate_lines = get_new_lines(fixtures, line)
 
         if not candidate_lines:
             # no words fit template
             return row, 0, []
 
+        # get the squares that have letters in all of the candidate lines
+        for i in range(15):  # every letter location
+            if FILL_INS_TEMPLATE[row][i] != "_":
+                continue
+            all_fills = set(line[i] for line in candidate_lines)
+            if len(all_fills) == 1:
+                FILL_INS_TEMPLATE[row] = replace_char_in_string(
+                    FILL_INS_TEMPLATE[row], next(iter(all_fills)), i
+                )
+            elif C_WALL not in all_fills and "_" not in all_fills:
+                FILL_INS_TEMPLATE[row] = replace_char_in_string(
+                    FILL_INS_TEMPLATE[row], "@", i
+                )
+
         # TODO: DO THIS WITHOUT COMPUTING GRIDS EXPLICITLY
         # now that you have the words that fit, do any lead to a trvially bad grid?
         working_grids: list[list[str]] = []
-        min_new_grids = 0
+        num_new_grids_from_line = 0
         num_blanks = 0
         for l in candidate_lines:
+            if row == 7 and not check_center_row_sym(l):
+                continue
             candidate_grid = grid.copy()
-
-            if row == 7:
-                if any(
-                    [
-                        C_WALL in [l[k], l[14 - k]] and l[k] != l[14 - k]
-                        for k in range(ROWLEN)
-                    ]
-                ):
-                    continue
-
             candidate_grid[row] = l  # make line word from options
 
             candidate_grid = enforce_symmetry(candidate_grid)
+            if not candidate_grid:
+                continue
             candidate_grid = fill_in_small_holes(candidate_grid)
-            candidate_grid = add_letter_placeholders(candidate_grid)
 
-            # NOTE: This ensures not to many walls
-            num_walls = "".join(candidate_grid).count(C_WALL)
-            if num_walls > MAX_WAL:
+            total_num_walls = num_walls(candidate_grid)
+            if total_num_walls > MAX_WAL:
                 continue
 
             if grid_contains_englosed_spaces(candidate_grid):
                 continue
 
-            if num_walls == MAX_WAL:
-                for j in range(ROWLEN):
-                    if C_WALL in candidate_grid[j]:
-                        candidate_grid[j] = candidate_grid[j].replace("_", "@")
+            candidate_grid = add_letter_placeholders(candidate_grid)
 
-                passes = True
-                for line in grid:
-                    if C_WALL not in line:
-                        passes = False
-                        break
-
-                for line in transpose(grid):
-                    if C_WALL not in line:
-                        passes = False
-                        break
-
-                if not passes:
+            if lib.grid_template_filled(candidate_grid) or total_num_walls == MAX_WAL:
+                if grid_contains_unwalled_rows(candidate_grid):
                     continue
+
+                if rc:  # rc = c
+                    gt = get_grid_template_from_grid(transpose(candidate_grid))
+                else:  # rc = r
+                    gt = get_grid_template_from_grid(candidate_grid)
+                gt_str = "".join(gt)
+                if gt_str in BADGRIDTEMPLATES[str(total_num_walls)]:
+                    # tqdm.tqdm.write(
+                    #     "\n" + T_YELLOW + f"Grid is in bad templates" + T_NORMAL
+                    # )
+                    # tqdm.tqdm.write(
+                    #     print_grid(gt, (rc if rc == "c" else "r", row, T_BLUE))
+                    # )
+                    continue
+
+                for j in range(ROWLEN):
+                    candidate_grid[j] = candidate_grid[j].replace("_", "@")
 
             if grid_contains_short_words(candidate_grid):
                 continue
@@ -485,32 +525,49 @@ def get_best_row(grid: list[str]) -> tuple[int, int, list[list[str]]]:
             num_blanks += "".join(candidate_grid).count(
                 "_"
             )  # minimize number of total blanks
-            min_new_grids += 1  # minimize number of candidate lines
+
+            # grid is approved!
+            num_new_grids_from_line += 1
 
             # the idea us that i need -> 1000 grids with 0 blanks
             # less preferable then -> 10 grids with 100 blanks
             # 1000 grids with 0 blanks > 10 grids with 100 blanks
             # score = num_grids * (num_blanks + 1)
 
-            score = num_blanks + min_new_grids
-            # score = min_new_grids * (num_blanks + 1)
-            # score = num_blanks
-            if score > K_MIN_BLANKS_SEEN:  # minimize score
+            # score = num_new_grids_from_line * (num_blanks + 1)
+            score = num_blanks
+            # score = num_new_grids_from_line
+            # score = num_blanks + num_new_grids_from_line
+            if score > K_MIN_SCORE:  # minimize score
                 break
-
         else:
-            if K_MIN_BLANKS_SEEN == 0 and min_new_grids >= K_MIN_GRIDS:
+            if score >= K_MIN_SCORE:
                 continue
 
-            K_MIN_GRIDS = min_new_grids
-            K_MIN_BLANKS_SEEN = num_blanks
-
+            K_MIN_SCORE = score
             K_INDEX = row
-            K_BEST_SCORE = K_MIN_BLANKS_SEEN
             K_BEST_GRIDS = working_grids
 
-    # candidate_grid = [long_string[j:j+ROWLEN] for j in range(0, len(long_string), ROWLEN)]
-    return K_INDEX, K_BEST_SCORE, K_BEST_GRIDS
+    # check to make sure it is possible to make grid symetric from all row options
+    o = FILL_INS_TEMPLATE.copy()
+    FILL_INS_TEMPLATE = enforce_symmetry(FILL_INS_TEMPLATE)
+    if not FILL_INS_TEMPLATE:
+        if f_verbose:
+            tqdm.tqdm.write(T_YELLOW + "not actually doable" + T_NORMAL)
+            tqdm.tqdm.write(
+                T_YELLOW + json.dumps(o, indent=2, ensure_ascii=False) + T_NORMAL
+            )
+        return row, 0, []
+
+    betterd_grids = []
+    for g in K_BEST_GRIDS:
+        for i in range(ROWLEN):
+            for j in range(ROWLEN):
+                if g[i][j] == "_" and FILL_INS_TEMPLATE[i][j] != "_":
+                    g[i][j] == FILL_INS_TEMPLATE[i][j]
+        betterd_grids.append(g)
+
+    return K_INDEX, K_MIN_SCORE, K_BEST_GRIDS
 
 
 def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
@@ -518,10 +575,14 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
 
     # find the best row to latch on
     row_idx, best_row_score, best_row_grids = get_best_row(grid)
-    # transpose to find the best collum
-    col_idx, best_col_score, best_col_grids = get_best_row(transpose(grid))
+    if len(best_row_grids) == 0:
+        return "r", row_idx, best_row_grids
 
-    # TODO: SOMETHING WRONG HERE???
+    # transpose to find the best collum
+    col_idx, best_col_score, best_col_grids = get_best_row(
+        transpose(grid), "c"
+    )  # HACK: redundant
+
     # note you want to minimize scre
     if best_row_score < best_col_score:
         return "r", row_idx, best_row_grids
@@ -547,50 +608,117 @@ def print_grid(grid: list[str], h: tuple[str, int, str]):
     return "\n".join(grid_copy) + T_NORMAL
 
 
+def contains_bad_words(grid: str):
+    if f_save_words_used:
+        trashed_words = get_words_in_partial_grid(grid) - set(
+            torus.json.load_json(WOR_JSON)
+        )
+    else:
+        trashed_words = get_words_in_partial_grid(grid) - WORDLIST_SET
+
+    if trashed_words:
+        if f_verbose:
+            tqdm.tqdm.write(
+                T_PINK
+                + f"\nFOUND TRASHED WORD ... Skipping: {trashed_words}"
+                + T_NORMAL
+            )
+            tqdm.tqdm.write(T_PINK + "\n".join(grid) + T_NORMAL)
+        return True
+    return False
+
+
+def save_words_to_active(new_grids: list[list[str]]):
+    words_seen = set()
+    for l in new_grids:
+        words_seen |= set(lib.get_words_in_partial_grid(l))
+
+    words_active = set(torus.json.load_json(ACTIVE_WORDS_JSON))
+    # get all words in words approved, and add them to active words
+    words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
+    words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
+    for w in words_seen:
+        if w in words_active or w in words_approved or w in words_omitted:
+            continue
+        tqdm.tqdm.write(T_YELLOW + f"Adding {w} to active words" + T_NORMAL)
+        torus.json.append_json(ACTIVE_WORDS_JSON, w)
+
+
+def get_grid_template_from_grid(grid):
+    return ["".join("@" if c != C_WALL else C_WALL for c in s) for s in grid]
+
+
+def add_to_grid_templates_if_not_seen(gt_str):
+    seen_temps = torus.json.load_json("liked_templates.json")
+    if gt_str not in seen_temps[str(MAX_WAL)]:
+        seen_temps[str(MAX_WAL)].append(gt_str)
+        torus.json.write_json("liked_templates.json", seen_temps)
+
+
 def recursive_search(grid, level=0):
-    global new_solutions
     global v_best_score
     global v_best_grids
+
+    if 0 < RESTART_AT_LEVEL <= level - 2:
+        exit()
 
     if grid_filled(grid):
         tqdm.tqdm.write(T_GREEN + "Solution found")  # Green text indicating success
         tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
         tqdm.tqdm.write(T_NORMAL)
 
-        current_solutions = load_json(SOL_JSON)
-        current_bad_solutions = load_json(BAD_SOL_JSON)
+        current_solutions = torus.json.load_json(SOL_JSON)
+        current_bad_solutions = torus.json.load_json(BAD_SOL_JSON)
         if grid in current_solutions or grid in current_bad_solutions:
             tqdm.tqdm.write(T_PINK + "Already in solutions" + T_NORMAL)
             return
-        new_solutions.append(grid)
-        append_json(SOL_JSON, grid)
+        torus.json.append_json(SOL_JSON, grid)
+        return
+
+    if contains_bad_words(grid):
         return
 
     grid_str = "".join(grid)
     if grid_str.count("_") == 0:
         for i, line in enumerate(grid):
             if C_WALL not in line:
-                tqdm.tqdm.write(
-                    f"\nGrid has max walls but ROW {i} has no black squares."
-                )
+                tqdm.tqdm.write("\n")
+                tqdm.tqdm.write(f"Grid has max walls but ROW {i} has no black squares.")
                 tqdm.tqdm.write(print_grid(grid, ("r", i, T_BLUE)))
                 return
 
         for i, line in enumerate(transpose(grid)):
             if C_WALL not in line:
-                tqdm.tqdm.write(
-                    f"\nGrid has max walls but COL {i} has no black squares."
-                )
+                tqdm.tqdm.write("\n")
+                tqdm.tqdm.write(f"Grid has max walls but COL {i} has no black squares.")
                 tqdm.tqdm.write(print_grid(grid, ("c", i, T_BLUE)))
                 return
 
-        new_grids = get_new_grids_main(grid)
+        gt = get_grid_template_from_grid(grid)
+        gt_str = "".join(gt)
+        num_walls = gt_str.count(C_WALL)
+
+        if gt_str in BADGRIDTEMPLATES[str(num_walls)]:
+            tqdm.tqdm.write("\n")
+            tqdm.tqdm.write(
+                T_PINK + f"Should not get here - Grid is in bad templates" + T_NORMAL
+            )
+            tqdm.tqdm.write(print_grid(grid, ("c", i, T_BLUE)))
+            raise ValueError("Should not get here")
+            return
+
+        add_to_grid_templates_if_not_seen(gt_str)
+
+        new_grids = get_new_grids_from_filled(grid)
 
         if not new_grids:
             if f_verbose:
                 tqdm.tqdm.write(f"\nGrid disqualified by letter check")
                 tqdm.tqdm.write(T_BLUE + "\n".join(grid) + T_NORMAL)
             return
+
+        if f_save_words_used and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]:
+            save_words_to_active(new_grids)
 
         with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
             if f_verbose:
@@ -610,84 +738,38 @@ def recursive_search(grid, level=0):
         if not new_grids:
             if f_verbose:
                 out1 = (
-                    f"\nNo possibilities ROW {start}"
+                    f"No possibilities ROW {start}"
                     if row_or_col == "r"
                     else f"\nNo possibilities COL {start}"
                 )
+                tqdm.tqdm.write("\n")
                 tqdm.tqdm.write(out1)
                 tqdm.tqdm.write(print_grid(grid, (row_or_col, start, T_PINK)))
 
             return
 
-        if row_or_col == "r":
-            lines = [g[start] for g in new_grids]
-            # reorder longest first
-        else:
-            lines = [transpose(g)[start] for g in new_grids]
-
-        # reorder longest first
-        if False:
-            ind_w_line_sorted = sorted(
-                enumerate(lines),
-                key=lambda x: count_letters_in_line(x[1]),
-                reverse=True,
-            )
-            new_grids = [new_grids[i].copy() for i, _ in ind_w_line_sorted]
+        if f_save_words_used and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]:
+            save_words_to_active(new_grids)
 
         with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
             if f_verbose:
                 len_new_grids = len(new_grids)
                 out2 = (
-                    f"\nTesting {len_new_grids} possibilities for ROW {start}"
+                    f"Testing {len_new_grids} possibilities for ROW {start}"
                     if row_or_col == "r"
-                    else f"\nTesting {len_new_grids} possibilities for COL {start}"
+                    else f"Testing {len_new_grids} possibilities for COL {start}"
                 )
+                tqdm.tqdm.write("\n")
                 tqdm.tqdm.write(out2)
                 tqdm.tqdm.write(print_grid(grid, (row_or_col, start, T_GREEN)))
-                tqdm.tqdm.write("\n")
-
-            if (
-                f_save_words_used
-                and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]
-            ):
-                words_seen = set(load_json(ACTIVE_WORDS_JSON))
-                words_seen_inital = words_seen.copy()
-                if row_or_col == "r":
-                    for pp in new_grids:
-                        row = pp[start]
-                        tqdm.tqdm.write(T_BLUE + row + T_NORMAL)
-                        words_seen |= set(
-                            [
-                                l
-                                for l in (row + row).split(C_WALL)[1:-1]
-                                if l and "@" not in l and "_" not in l
-                            ]
-                        )
-                else:
-                    for pp in new_grids:
-                        row = transpose(pp)[start]
-                        tqdm.tqdm.write(T_BLUE + row + T_NORMAL)
-                        words_seen |= set(
-                            [
-                                l
-                                for l in (row + row).split(C_WALL)[1:-1]
-                                if l and "@" not in l and "_" not in l
-                            ]
-                        )
-
-                words_approved = set(load_json("wordlist/words_approved.json"))
-                words_seen = words_seen - words_approved
-                if words_seen != words_seen_inital:
-                    write_json(ACTIVE_WORDS_JSON, list(words_seen))
-                    tqdm.tqdm.write("\n")
 
             for new_grid in t:
                 recursive_search(new_grid, level + 1)
 
 
 if __name__ == "__main__":
-    stars_strings = load_json(STA_JSON)
-    fail_stars = load_json(FAI_JSON)
+    stars_strings = torus.json.load_json(STA_JSON)
+    fail_stars = torus.json.load_json(FAI_JSON)
 
     t0 = datetime.now()
     INITIAL_TEMPLATE = add_theme_words(INITIAL_TEMPLATE, IC_TYPE)
@@ -719,6 +801,10 @@ if __name__ == "__main__":
     print(T_YELLOW + "Saving Failures to: " + T_GREEN + FAI_JSON + T_NORMAL)
     print(T_YELLOW + "Current time: " + T_GREEN + f"{datetime_string_am_pm}" + T_NORMAL)
     print()
+    if not id_stars_of_interest:
+        print(T_PINK + "No stars to search" + T_NORMAL)
+        exit()
+
     for t, s in enumerate(id_stars_of_interest):
         init_id, star_str = s
         tqdm.tqdm.write(T_YELLOW + f"Trial {t} / {lsoi}  ({ls} tot)" + T_NORMAL)
@@ -726,20 +812,24 @@ if __name__ == "__main__":
         grid = INITIAL_TEMPLATE.copy()
 
         grid = add_star(grid, string_to_star(star_str))
-        fail_stars_str = load_json(FAI_JSON)
+        fail_stars_str = torus.json.load_json(FAI_JSON)
 
         if star_str in fail_stars_str:
             tqdm.tqdm.write(T_BLUE + "Already Failed - Skipping" + T_NORMAL)
             continue
 
-        new_solutions = []
         recursive_search(grid, 0)
 
-        if not new_solutions:
-            print(T_PINK + "No solution found." + T_NORMAL)
-            append_json(FAI_JSON, star_str)
+        all_solutions = torus.json.load_json(SOL_JSON)
+        for s in all_solutions:
+            star = get_star_from_grid(s, SEARCH_W_FLIPPED)
+            if star == star_str:
+                for _ in range(20):
+                    print(T_YELLOW + "TOTALLY COMPLETED GOOD GRID" + T_NORMAL)
+
+                print(T_PINK + star_str + T_NORMAL)
+                exit()
+                break
         else:
-            for _ in range(20):
-                print(T_YELLOW + "TOTALLY COMPLETED GOOD GRID" + T_NORMAL)
-            print(T_PINK + star_str + T_NORMAL)
-            exit()
+            print(T_PINK + "No solution found." + T_NORMAL)
+            torus.json.append_json(FAI_JSON, star_str)

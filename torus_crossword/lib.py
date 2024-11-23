@@ -1,7 +1,20 @@
 from enum import Enum
 import random
-from config import WOR_JSON, STAR_HEIGHT, STAR_WIDTH, ROWLEN
-from torus.json import load_json
+
+import torus
+from config import (
+    C_WALL,
+    WOR_JSON,
+    STAR_HEIGHT,
+    STAR_WIDTH,
+    ROWLEN,
+    STAR_FLIPPED_TEMPLATE,
+    STAR_TEMPLATE,
+    STAR_START,
+    STAR_HEIGHT,
+    STAR_WIDTH,
+    GRIDCELLS,
+)
 
 T_NORMAL = "\033[0m"
 T_BLUE = "\033[94m"
@@ -10,7 +23,7 @@ T_GREEN = "\033[92m"
 T_PINK = "\033[95m"
 
 
-WORDLIST = load_json(WOR_JSON)
+WORDLIST = torus.json.load_json(WOR_JSON)
 
 random.shuffle(WORDLIST)
 
@@ -38,6 +51,9 @@ class Word:
         self.direction = direction
         self.length = length
         self.possibilities = WORDLIST_BY_LEN[length]
+
+    def copy(self):
+        return Word(self.start, self.direction, self.length)
 
 
 class Sqaure:
@@ -100,25 +116,108 @@ def add_theme_words(template: list[str], type: str):
     """
     Add theme words to the initial 15x15 grid.
     """
-    if type == "AA":
-        template[7] = "HUNT█TORUS█DOUG"
+    template = template.copy()
+    t_holder = "____█TORUS█____"
+    d_holder = "HNUT█_____█DOUG"
+    if type == "A":
+        for i in range(ROWLEN):
+            if t_holder[i] != "_":
+                template[7] = replace_char_in_string(template[7], t_holder[i], i)
+    elif type == "AA":
+        template[7] = "HNUT█TORUS█DOUG"
     elif type == "AD":
-        col7 = "HNUT█_____█DOUG"
         for i in range(ROWLEN):
-            if col7[i] != "_":
-                template[i] = replace_char_in_string(template[i], col7[i], 7)
-        template[7] = "____█TORUS█____"
+            if d_holder[i] != "_":
+                template[i] = replace_char_in_string(template[i], d_holder[i], 7)
+
+        for i in range(ROWLEN):
+            if t_holder[i] != "_":
+                template[7] = replace_char_in_string(template[7], t_holder[i], i)
     elif type == "DA":
-        template[7] = "HNUT█_____█DOUG"
-        col7 = "____█TORUS█____"
         for i in range(ROWLEN):
-            if col7[i] != "_":
-                template[i] = replace_char_in_string(template[i], col7[i], 7)
+            if d_holder[i] != "_":
+                template[7] = replace_char_in_string(template[7], d_holder[i], i)
+        for i in range(ROWLEN):
+            if t_holder[i] != "_":
+                template[i] = replace_char_in_string(template[i], t_holder[i], 7)
     elif type == "DD":
-        col7 = "HUNT█TORUS█DOUG"
+        col7 = "HNUT█TORUS█DOUG"
         for i in range(ROWLEN):
             if col7[i] != "_":
                 template[i] = replace_char_in_string(template[i], col7[i], 7)
+    elif type == "":
+        pass
     else:
         raise ValueError(f"Invalid IC_TYPE: {type}")
     return template
+
+
+import json
+
+
+def get_star_from_grid(grid, f_flipped) -> list[list[str]]:
+    if f_flipped:
+        template = STAR_FLIPPED_TEMPLATE.copy()
+    else:
+        template = STAR_TEMPLATE.copy()
+
+    for i in range(STAR_HEIGHT):
+        for j in range(STAR_WIDTH):
+            if template[i][j] != "@":
+                continue
+
+            template = replace_char_in_grid(
+                template,
+                (i, j),
+                grid[(STAR_START[0] + i) % ROWLEN][(STAR_START[1] + j) % ROWLEN],
+            )
+
+    return template
+
+
+def get_words_in_partial_grid(grid: list[str]) -> set[str]:
+    across_words = set()
+    for l in grid:
+        bits = (l + l).split(C_WALL)[1:-1]
+
+        for b in bits:
+            if b and ("@" not in b) and ("_" not in b):
+                across_words.add(b)
+
+    down_words = set()
+    for l in transpose(grid):
+        bits = (l + l).split(C_WALL)[1:-1]
+        for b in bits:
+            if b and "@" not in b and "_" not in b:
+                down_words.add(b)
+
+    return across_words | down_words
+
+
+def grid_template_filled(grid: list[str]) -> bool:
+    """
+    Return True if the grid template is filled with letters and letter placeholders.
+    True if all letter locations are known, False otherwise.
+    """
+    for l in grid:
+        if "_" in l:
+            return False
+    return True
+
+
+def grid_filled(grid: list[str]) -> bool:
+    """
+    Return True if the grid is filled with letters
+    and there are no remaining placeholders, False otherwise.
+    """
+    for l in grid:
+        if "@" in l or "_" in l:
+            return False
+    return True
+
+
+def count_letters(grid: list[str]) -> int:
+    """
+    Count the number of letters in the grid.
+    """
+    return len([c for c in "".join(grid) if c.isalpha()])

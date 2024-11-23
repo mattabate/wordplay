@@ -1,7 +1,7 @@
 """Given a bad word, remove it from all stars and the word_list"""
 
+import os
 from config import (
-    WOR_JSON,
     STARS_FOUND_JSON,
     STARS_FOUND_FLIPPED_JSON,
     WORDS_OMITTED_JSON,
@@ -9,28 +9,49 @@ from config import (
     C_WALL,
     STAR_ROWS_OF_INTEREST,
     STAR_COLS_OF_INTEREST,
+    BAD_STAR_JSON,
+    BAD_STAR_FLIPPED_JSON,
+    get_failures_json,
 )
-from torus.json import load_json, write_json
+import torus
 from lib import transpose, string_to_star
 import tqdm
 
-words_ommitted = load_json(WORDS_OMITTED_JSON)
+from lib import T_YELLOW, T_NORMAL
+
+words_ommitted = torus.json.load_json(WORDS_OMITTED_JSON)
+
+f_remove_duplicates = False
+f_remove_fails = True
+
 
 print("(1) Remove Duplicate Stars")
-for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
-    star_sols = load_json(file)
-    initial_num = len(star_sols)
-    new_star_sols = list(set(star_sols))
-    final_num = len(new_star_sols)
-    print(f"number ics removed  from {file}:", initial_num - final_num)
-    if initial_num != final_num:
-        write_json(file, new_star_sols)
+if f_remove_duplicates:
+    for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
+        star_sols = torus.json.load_json(file)
+        initial_num = len(star_sols)
+        new_star_sols = []
+        for s in tqdm.tqdm(star_sols):
+            if s not in new_star_sols:
+                new_star_sols.append(s)
+        final_num = len(new_star_sols)
+        print(f"number ics removed  from {file}:", initial_num - final_num)
+        if initial_num != final_num:
+            torus.json.write_json(file, new_star_sols)
+else:
+    print("Skipping. Change flag to readd.\n")
 
 
 print("(2) Check for omitted words in stars")
-words_found = set()
-for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
-    star_sols = load_json(file)
+for is_flipped in [False, True]:
+    words_found = set()
+    if is_flipped:
+        file = STARS_FOUND_FLIPPED_JSON
+        bad_stars_json = BAD_STAR_FLIPPED_JSON
+    else:
+        file = STARS_FOUND_JSON
+        bad_stars_json = BAD_STAR_JSON
+    star_sols = torus.json.load_json(file)
     initial_num = len(star_sols)
     new_star_sols = []
 
@@ -57,15 +78,33 @@ for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
     print(f"number ics removed from {file}:", initial_num - final_num)
     print(f"words found in {file}:", words_found)
     if words_found:
-        write_json(file, new_star_sols)
+        old_bad_stars = torus.json.load_json(bad_stars_json)
+        for x in set(star_sols) - set(new_star_sols):
+            old_bad_stars.append(x)
+
+        torus.json.write_json(bad_stars_json, old_bad_stars)
+
+        # save the remaining stars
+        torus.json.write_json(file, new_star_sols)
 
 
 print("(3) collect all down words in stars")
-already_seen = load_json(WORDS_APPROVED_JSON)
+already_seen = torus.json.load_json(WORDS_APPROVED_JSON)
 across_words = dict()
-for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
-    star_sols = load_json(file)
-    for star_str in tqdm.tqdm(star_sols):
+for f_flipped in [False, True]:
+    if f_flipped:
+        file = STARS_FOUND_FLIPPED_JSON
+        filed_file = get_failures_json("DA", 42, True)
+    else:
+        file = STARS_FOUND_JSON
+        filed_file = get_failures_json("AD", 42, False)
+
+    star_sols = torus.json.load_json(file)
+    already_failed = torus.json.load_json(filed_file)
+
+    in_consideration = set(star_sols) - set(already_failed)
+
+    for star_str in tqdm.tqdm(in_consideration):
         star = string_to_star(star_str)
         for r in STAR_ROWS_OF_INTEREST:
             line = star[r]
@@ -75,7 +114,80 @@ for file in [STARS_FOUND_JSON, STARS_FOUND_FLIPPED_JSON]:
             entry = across_words.get(word_considered, 0)
             across_words[word_considered] = entry + 1
 
-write_json("wordlist/all_words_in_ics.json", across_words)
+    for star_str in tqdm.tqdm(in_consideration):
+        star = string_to_star(star_str)
+        star = transpose(star)
+        for r in STAR_COLS_OF_INTEREST:
+            line = star[r]
+            word_considered = line.replace(C_WALL, "")
+            if word_considered in already_seen:
+                continue
+            entry = across_words.get(word_considered, 0)
+            across_words[word_considered] = entry + 1
+
+torus.json.write_json("filter_words/all_words_in_ics.json", across_words)
 # sort the keys by value (largest to smallest) and then save as list of strings (just key, forget value)
 sorted_words = sorted(across_words, key=across_words.get, reverse=True)
-write_json("wordlist/sorted_words_in_ics.json", sorted_words)
+torus.json.write_json("filter_words/sorted_words_in_ics.json", sorted_words)
+
+
+# get all files in failures/
+
+# Specify the directory path
+directory_path = "failures/"
+
+# List all files in the directory
+file_names = [
+    f
+    for f in os.listdir(directory_path)
+    if os.path.isfile(os.path.join(directory_path, f))
+]
+print("(4) Remove Failures with Bad Words")
+if f_remove_fails:
+    for failed_file in file_names:
+        bad_path = directory_path + "bad/" + failed_file.replace(".json", "_bad.json")
+        if not os.path.exists(bad_path):
+            torus.json.write_json(bad_path, [])
+
+        if failed_file.endswith("_flipped.json"):
+            stars_allowed = torus.json.load_json(STARS_FOUND_FLIPPED_JSON)
+        else:
+            stars_allowed = torus.json.load_json(STARS_FOUND_JSON)
+
+        tot_removed = 0
+        tot_good_words = 0
+        failed_stars = torus.json.load_json(directory_path + failed_file)
+
+        new_fails = []
+        new_bad_fails = []
+
+        if not failed_stars:
+            tqdm.tqdm.write(
+                f"No stars in file {T_YELLOW}{failed_file}{T_NORMAL}: " + f"Skipping..."
+            )
+            continue
+        for failed_star in tqdm.tqdm(
+            failed_stars, leave=False
+        ):  # for every failed star weve seen
+            if (
+                not failed_star in stars_allowed
+            ):  # if we removed that ic from the ic pool
+                new_bad_fails.append(failed_star)  # add to new_bad_fails
+                tot_removed += 1
+            else:
+                new_fails.append(failed_star)  # add to failed with good words
+                tot_good_words += 1
+
+        torus.json.write_json(directory_path + failed_file, new_fails)
+        bad_fail_stars = torus.json.load_json(
+            bad_path
+        )  # ics with no solution and a bad word
+        for x in new_bad_fails:
+            if x not in bad_fail_stars:
+                bad_fail_stars.append(x)
+        torus.json.write_json(bad_path, bad_fail_stars)
+        tqdm.tqdm.write(
+            f"Number ics removed  from {T_YELLOW}{failed_file}{T_NORMAL}: "
+            + f"{T_YELLOW}{tot_removed}{T_NORMAL}"
+            + f" (was {T_YELLOW}{tot_removed + tot_good_words}{T_NORMAL} now {T_YELLOW}{tot_good_words}{T_NORMAL})",
+        )

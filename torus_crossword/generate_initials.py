@@ -3,20 +3,18 @@
 import json
 import time
 import tqdm
-from config import C_WALL
-from torus.json import append_json, load_json
+
+import torus
 from config import (
-    STAR_HEIGHT,
+    C_WALL,
     STARS_FOUND_JSON,
     STARS_FOUND_FLIPPED_JSON,
     STARS_CHECKED_JSON,
     STARS_CHECKED_FLIPPED_JSON,
-    STAR_TEMPLATE,
-    STAR_FLIPPED_TEMPLATE,
-    STAR_ROWS_OF_INTEREST,
-    STAR_COLS_OF_INTEREST,
     STAR_SEARCH_W_FLIPPED,
     STAR_SEARCH_VERBOSE,
+    STAR_TEMPLATE,
+    STAR_FLIPPED_TEMPLATE,
 )
 from lib import (
     Direction,
@@ -27,19 +25,21 @@ from lib import (
     replace_char_in_grid,
     T_NORMAL,
     T_GREEN,
+    T_PINK,
 )
+from torus.strings import get_prefix, get_suffix
 
-f_flipped = STAR_SEARCH_W_FLIPPED
 f_verbose = STAR_SEARCH_VERBOSE
 
-if not f_flipped:
+# across words length 9
+# down words length 8
+TEMPLATE = ["@@@@@@", "@@@@@@", "@@@@@@", "@@@@@@", "@@@@@@", "@@@@@@"]
+if not STAR_SEARCH_W_FLIPPED:
     SOL_JSON = STARS_FOUND_JSON
     CHE_JSON = STARS_CHECKED_JSON
-    TEMPLATE = STAR_TEMPLATE
 else:
     SOL_JSON = STARS_FOUND_FLIPPED_JSON
     CHE_JSON = STARS_CHECKED_FLIPPED_JSON
-    TEMPLATE = STAR_FLIPPED_TEMPLATE
 
 letter_locs = [
     (r, c)
@@ -52,6 +52,16 @@ letter_locs = [
 v_best_score = 0
 v_best_grids = []
 
+# testing these here for now
+words_for_across = WORDLIST_BY_LEN[9]
+words_for_down = WORDLIST_BY_LEN[8]
+
+across_pref_set = list(set(get_prefix(word=w, len_pref=6) for w in words_for_across))
+across_suff_set = list(set(get_suffix(word=w, len_suff=6) for w in words_for_across))
+
+down_pref_set = list(set(get_prefix(word=w, len_pref=6) for w in words_for_down))
+down_suff_set = list(set(get_suffix(word=w, len_suff=6) for w in words_for_down))
+
 
 def find_first_letter(input_string):
     l = len(input_string)
@@ -62,44 +72,65 @@ def find_first_letter(input_string):
 def get_word_locations(grid: list[list[str]], direction: Direction) -> list[Word]:
     words = []
     if direction == Direction.ACROSS:
-        for r in STAR_ROWS_OF_INTEREST:
+        for r in range(6):
             if not "@" in grid[r]:
                 continue
-            words.append(
-                Word(
-                    direction=Direction.ACROSS,
-                    start=(r, find_first_letter(grid[r])),
-                    length=len([s for s in grid[r] if s != C_WALL]),
-                )
+
+            word_holder = Word(
+                direction=Direction.ACROSS,
+                start=(r, find_first_letter(grid[r])),
+                length=6,
             )
+            if r in [0, 1, 2]:
+                if STAR_SEARCH_W_FLIPPED:
+                    word_holder.possibilities = across_pref_set
+                else:
+                    word_holder.possibilities = across_suff_set
+            elif r in [3, 4, 5]:
+                if STAR_SEARCH_W_FLIPPED:
+                    word_holder.possibilities = across_suff_set
+                else:
+                    word_holder.possibilities = across_pref_set
+            words.append(word_holder)
     else:
         it_t = transpose(grid)
-        for c in STAR_COLS_OF_INTEREST:
+        for c in range(6):
             if "@" in it_t[c]:
                 if not "@" in it_t[c]:
                     continue
 
-                words.append(
-                    Word(
-                        direction=Direction.DOWN,
-                        start=(find_first_letter(it_t[c]), c),
-                        length=len([s for s in it_t[c] if s != C_WALL]),
-                    )
+                word_holder = Word(
+                    direction=Direction.DOWN,
+                    start=(find_first_letter(it_t[c]), c),
+                    length=6,
                 )
+                if c in [0, 1, 2]:
+                    if STAR_SEARCH_W_FLIPPED:
+                        word_holder.possibilities = down_suff_set
+                    else:
+                        word_holder.possibilities = down_pref_set
+                elif c in [3, 4, 5]:
+                    if STAR_SEARCH_W_FLIPPED:
+                        word_holder.possibilities = down_pref_set
+                    else:
+                        word_holder.possibilities = down_suff_set
+
+                words.append(word_holder)
     return words
 
 
 def initalize(grid):
     # NOTE: initialize words
-    words = get_word_locations(grid, Direction.ACROSS) + get_word_locations(
-        grid, Direction.DOWN
-    )
+    unfilled_accross_words = get_word_locations(grid, Direction.ACROSS)
+    unfilled_down_words = get_word_locations(grid, Direction.DOWN)
+    words = unfilled_accross_words + unfilled_down_words
 
     # NOTE: initialize square_to_word_map
     square_to_word_map: dict[list[tuple[int, int]], Sqaure] = {}
     for i, j in letter_locs:
         letter = grid[i][j]
         square_to_word_map[(i, j)] = Sqaure(None, None)
+        # initialize square as empty (ABCDEFGHIJKLMNOPQRSTUVWXYZ possible)
         if letter != "@":
             square_to_word_map[(i, j)].possible_chars = {letter}
 
@@ -166,17 +197,19 @@ def update_word_possibilities(
                     else:
                         new_possibilities += "," + p
             case Direction.DOWN:
-                for p in w.possibilities:
-                    for i, c in enumerate(p):
+                for p in w.possibilities:  # for every possible word
+                    for i, c in enumerate(p):  # for every character in the word
                         if (
                             c
                             not in square_to_word_map[
                                 ((x_start + i), y_start)
                             ].possible_chars
-                        ):
+                        ):  # if the character is not in the possible characters for the square
                             break
                     else:
-                        new_possibilities += "," + p
+                        new_possibilities += (
+                            "," + p
+                        )  # if every characters in the word wordks, add the word!
 
         w.possibilities = new_possibilities.split(",")[1:]
 
@@ -243,31 +276,173 @@ def grid_filled(grid: list[str]) -> bool:
     return True
 
 
+def isolate_word(s) -> str:
+    return s.replace("█", "")
+
+
+def get_stars_from_seed_grids(grid: list[str]) -> list[list[str]]:
+    if STAR_SEARCH_W_FLIPPED:
+        new_temp = STAR_FLIPPED_TEMPLATE.copy()
+    else:
+        new_temp = STAR_TEMPLATE.copy()
+
+    for r in range(6):
+        new_temp[r + 2] = new_temp[r + 2][:3] + grid[r] + new_temp[r + 2][9:]
+    actual_ics = [new_temp]
+
+    if STAR_SEARCH_W_FLIPPED:
+        for r in [0, 1, 2]:
+            words = [w for w in WORDLIST_BY_LEN[9] if w.startswith(grid[r])]
+
+            new_actual_ics = []
+            for w in words:
+                for g in actual_ics:
+                    new = g.copy()
+                    new[2 + r] = C_WALL * 3 + w
+                    new_actual_ics.append(new)
+            actual_ics = new_actual_ics
+
+        for r in [3, 4, 5]:
+            words = [w for w in WORDLIST_BY_LEN[9] if w.endswith(grid[r])]
+
+            new_actual_ics = []
+            for w in words:
+                for g in actual_ics:
+                    new = g.copy()
+                    new[2 + r] = w + C_WALL * 3
+                    new_actual_ics.append(new)
+            actual_ics = new_actual_ics
+
+        grid_t = transpose(grid)
+        for c in [0, 1, 2]:
+            words = [w for w in WORDLIST_BY_LEN[8] if w.endswith(grid_t[c])]
+
+            new_actual_ics = []
+            for w in words:
+                for g in actual_ics:
+                    new = g.copy()
+                    new_t = transpose(new)
+                    new_t[c + 3] = w + C_WALL * 2
+                    new_actual_ics.append(transpose(new_t))
+            actual_ics = new_actual_ics
+
+        for c in [3, 4, 5]:
+            words = [w for w in WORDLIST_BY_LEN[8] if w.startswith(grid_t[c])]
+
+            new_actual_ics = []
+            for w in words:
+                for g in actual_ics:
+                    new = g.copy()
+                    new_t = transpose(new)
+                    new_t[c + 3] = C_WALL * 2 + w
+                    new_actual_ics.append(transpose(new_t))
+            actual_ics = new_actual_ics
+    else:
+        for r in [0, 1, 2]:
+            words = [w for w in WORDLIST_BY_LEN[9] if w.endswith(grid[r])]
+
+            new_actual_ics = []
+            for w in words:
+                for g in actual_ics:
+                    new = g.copy()
+                    new[2 + r] = w + C_WALL * 3
+                    new_actual_ics.append(new)
+            actual_ics = new_actual_ics
+
+        for r in [3, 4, 5]:
+            words = [w for w in WORDLIST_BY_LEN[9] if w.startswith(grid[r])]
+
+            new_actual_ics = []
+            for w in words:
+                for g in actual_ics:
+                    new = g.copy()
+                    new[2 + r] = C_WALL * 3 + w
+                    new_actual_ics.append(new)
+            actual_ics = new_actual_ics
+
+        grid_t = transpose(grid)
+        for c in [0, 1, 2]:
+            words = [w for w in WORDLIST_BY_LEN[8] if w.startswith(grid_t[c])]
+
+            new_actual_ics = []
+            for w in words:
+                for g in actual_ics:
+                    new = g.copy()
+                    new_t = transpose(new)
+                    new_t[c + 3] = C_WALL * 2 + w
+                    new_actual_ics.append(transpose(new_t))
+            actual_ics = new_actual_ics
+
+        for c in [3, 4, 5]:
+            words = [w for w in WORDLIST_BY_LEN[8] if w.endswith(grid_t[c])]
+
+            new_actual_ics = []
+            for w in words:
+                for g in actual_ics:
+                    new = g.copy()
+                    new_t = transpose(new)
+                    new_t[c + 3] = w + C_WALL * 2
+                    new_actual_ics.append(transpose(new_t))
+            actual_ics = new_actual_ics
+
+    return ["".join(s) for s in actual_ics]
+
+
 def recursive_search(grid, level=0):
     global v_best_score
     global v_best_grids
 
     if f_verbose:
         print(json.dumps(grid, indent=2, ensure_ascii=False))
+
     if grid_filled(grid):
-        # check to make sure rows of interest are valie words
-        for r in STAR_ROWS_OF_INTEREST:
-            candidate = grid[r].replace("█", "")
-            if candidate not in WORDLIST_BY_LEN[len(candidate)]:
-                return
+        # potential solution found
 
-        for c in STAR_COLS_OF_INTEREST:
-            candidate = "".join([grid[r][c] for r in range(STAR_HEIGHT)]).replace(
-                "█", ""
-            )
-            if candidate not in WORDLIST_BY_LEN[len(candidate)]:
-                return
+        # check to make sure rows of interest are valid words
+        if not STAR_SEARCH_W_FLIPPED:
+            for r in range(6):
+                if r in [0, 1, 2]:
+                    if grid[r] not in across_suff_set:
+                        return
+                elif r in [3, 4, 5]:
+                    if grid[r] not in across_pref_set:
+                        return
+            grid_t = transpose(grid)
+            for c in range(6):
+                if c in [0, 1, 2]:
+                    if grid_t[c] not in down_pref_set:
+                        return
+                elif c in [3, 4, 5]:
+                    if grid_t[c] not in down_suff_set:
+                        return
+        else:
+            for r in range(6):
+                if r in [0, 1, 2]:
+                    if grid[r] not in across_pref_set:
+                        return
+                elif r in [3, 4, 5]:
+                    if grid[r] not in across_suff_set:
+                        return
+            grid_t = transpose(grid)
+            for c in range(6):
+                if c in [0, 1, 2]:
+                    if grid_t[c] not in down_suff_set:
+                        return
+                elif c in [3, 4, 5]:
+                    if grid_t[c] not in down_pref_set:
+                        return
 
-        print("Solution found")  # Green text indicating success
+        # ok - so now what i have to do is generate the grids from the inital grid
 
-        solutions = load_json(SOL_JSON)
-        if grid not in solutions:
-            append_json(SOL_JSON, "".join(grid))
+        stars_from_grid = get_stars_from_seed_grids(grid)
+
+        print(
+            f"Found {T_PINK}{len(stars_from_grid)}{T_NORMAL} Solutions"
+        )  # Green text indicating success
+        solutions = torus.json.load_json(SOL_JSON)
+        for s in stars_from_grid:
+            if s not in solutions:
+                torus.json.append_json(SOL_JSON, s)
         return
 
     new_grids = get_new_grids(grid)
@@ -280,35 +455,33 @@ def recursive_search(grid, level=0):
 
 
 if __name__ == "__main__":
-    words = get_word_locations(TEMPLATE, Direction.ACROSS) + get_word_locations(
-        TEMPLATE, Direction.DOWN
-    )
-
-    print("number of answers", len(words))
-    print("direction:", "flipped" if f_flipped else "NOT flipped")
-
-    words_9_letter = WORDLIST_BY_LEN[9]
-    len_wln = len(words_9_letter)
     t0 = time.time()
 
-    for i, seed in enumerate(words_9_letter):
-        print(f"{i}/{len_wln}", "Seed word:", seed)
-        already_checked = load_json(CHE_JSON)
+    if STAR_SEARCH_W_FLIPPED:
+        words_now = across_pref_set
+    else:
+        words_now = across_suff_set
+
+    len_wln = len(words_now)
+    for i, seed in enumerate(words_now):
+        number_seen_so_far = len(list(set(torus.json.load_json(CHE_JSON))))
+        print(
+            "-----------\n"
+            + f"direction: {T_GREEN}{"flipped" if STAR_SEARCH_W_FLIPPED else "NOT flipped"}{T_NORMAL}\n"
+            + f"TOTAL PROGRESS: {T_GREEN}{number_seen_so_far} / {len_wln}{T_NORMAL}\n"
+            + f"LOCAL ITERATION {T_GREEN}{i}{T_NORMAL}\n"
+            + f"Seed word: {T_GREEN}{seed}{T_NORMAL}"
+        )
+        already_checked = torus.json.load_json(CHE_JSON)
         if seed in already_checked:
-            print(T_GREEN + "Already checked" + T_NORMAL)
+            print(T_PINK + "> Already checked" + T_NORMAL)
             continue
         grid = TEMPLATE.copy()
-        if not f_flipped:
-            grid[3] = seed + "███"
-        else:
-            grid[3] = "███" + seed
 
-        for seed2 in tqdm.tqdm(words_9_letter):
-            if not f_flipped:
-                grid[4] = seed2 + "███"
-            else:
-                grid[4] = "███" + seed2
-
+        # PERPLEXES███SPIRITUAL
+        grid[0] = seed
+        for seed2 in tqdm.tqdm(words_now):
+            grid[1] = seed2
             recursive_search(grid, 0)
 
-        append_json(CHE_JSON, seed)
+        torus.json.append_json(CHE_JSON, seed)

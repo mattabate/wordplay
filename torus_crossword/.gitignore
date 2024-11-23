@@ -1,5 +1,9 @@
 *.prof
+*.pkl
+embed_seperate.py
+filter_words/*
+fast_search/*
 
 nohup.out
-
+keys.py
 __pycache__/
