@@ -5,8 +5,18 @@ import time
 import json
 import tqdm
 import torus
-from lib import Direction, get_words_in_partial_grid, grid_filled, add_theme_words
 
+from lib import (
+    Direction,
+    get_words_in_partial_grid,
+    grid_filled,
+    add_theme_words,
+    T_BLUE,
+    T_YELLOW,
+    T_GREEN,
+    T_PINK,
+    T_NORMAL,
+)
 from config import (
     C_WALL,
     IC_TYPE,
@@ -15,31 +25,26 @@ from config import (
     f_save_words_used,
     MAX_WAL,
     f_verbose,
+    WOR_JSON,
+    WORDS_APPROVED_JSON,
+    ACTIVE_WORDS_JSON,
+    WORDS_OMITTED_JSON,
 )
-
-from lib import T_BLUE, T_YELLOW, T_GREEN, T_PINK, T_NORMAL
 
 WORDLIST = torus.json.load_json(WOR_JSON)
 if not f_save_words_used:
     WORDLIST_SET = set(WORDLIST)
 
 id = int(time.time())
-BES_JSON = f"fast_search/bests_{id}.json"
 SOL_JSON = f"solutions/solutions_{id}.json"
 
 
-solutions = []
-
-from config import WOR_JSON, WORDS_APPROVED_JSON, ACTIVE_WORDS_JSON, WORDS_OMITTED_JSON
-
 v_best_score = 0
-v_best_grids = []
 solutions = []
 
 
 def recursive_search(grid, level=0):
     global v_best_score
-    global v_best_grids
     global solutions
 
     if level >= GRID_KILL_STEP + 1:
@@ -88,12 +93,6 @@ def recursive_search(grid, level=0):
         return
 
     with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
-        l = count_letters(grid)
-        if l > v_best_score:
-            v_best_score = l
-            v_best_grids.append({"level": level, "score": l, "grid": grid})
-            torus.json.write_json(BES_JSON, v_best_grids)
-
         for new_grid in t:
             recursive_search(new_grid.copy(), level + 1)
 
