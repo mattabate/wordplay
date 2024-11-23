@@ -178,7 +178,7 @@ GRIDCELLS = ROWLEN * ROWLEN
 C_WALL = "█"
 
 
-# for emb sep
+# embed_seperate.py
 EMB_PREF = "ANSWER: "
 EMB_MODL = "text-embedding-3-small"
 PKL_MODL = "matts_preferences.pkl"
