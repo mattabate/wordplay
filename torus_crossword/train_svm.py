@@ -1,4 +1,7 @@
-import json
+"""Train an SVM to classify words as good or bad, based on their embeddings."""
+
+"""Warning: takes half an hour to run"""
+
 import numpy as np
 import os
 import pickle
@@ -30,6 +33,8 @@ else:
 
 good_words = migrations.database.get_words_by_status(ReviewStatus.APPROVED)
 bad_words = migrations.database.get_words_by_status(ReviewStatus.REJECTED)
+
+all_words = good_words + bad_words
 
 good_words = [EMB_PREF + g for g in good_words]
 bad_words = [EMB_PREF + b for b in bad_words]
@@ -67,3 +72,9 @@ print("Accuracy:", accuracy)
 
 with open(PKL_MODL, "wb") as file:
     pickle.dump(clf, file)
+
+# for every word in the input file, insert its score into the database
+for i in tqdm.tqdm(range(len(all_words))):
+    migrations.database.update_matt_score(
+        all_words[i], clf.decision_function([X[i]])[0]
+    )

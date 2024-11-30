@@ -30,7 +30,7 @@ def populate_words_from_json(
             score_dict = json.load(file)
 
         # Iterate over words and upsert them into the database
-        for word_entry in tqdm.tqdm(words):
+        for word_entry in tqdm.tqdm(words + omitted_words):
             review_status = ReviewStatus.NOT_REVIEWED
             if word_entry in approved_words:
                 review_status = ReviewStatus.APPROVED
@@ -49,6 +49,8 @@ def populate_words_from_json(
                 last_updated=datetime.datetime.now(),  # Placeholder for last_updates
                 clues=None,  # Column(String, nullable=True)
             )
+            stmt = stmt.on_conflict_do_nothing(index_elements=["word"])
+
             session.execute(stmt)
 
         # Commit the session
