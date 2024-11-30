@@ -33,6 +33,36 @@ def get_non_rejected_words():
         session.close()
 
 
+def get_nonrejected_from_list(words: list[str]):
+    """
+    Retrieve all words from a list that do not have a REJECTED status.
+
+    Args:
+        words (List[str]): A list of words to check.
+
+    Returns:
+        List[str]: A list of words that do not have a REJECTED status.
+    """
+    # Create a new session
+    session = Session()
+    try:
+        # Query the database for words that are not rejected
+        results = (
+            session.query(Word.word)
+            .filter(Word.word.in_(words))
+            .filter(Word.review_status != ReviewStatus.REJECTED)
+            .all()
+        )
+
+        # Extract the words from the query results
+        words = [result.word for result in results]
+
+        return words
+    finally:
+        # Close the session
+        session.close()
+
+
 def get_words_reviewed():
     """
     Retrieve all words where review_status is not NOT_REVIEWED.
@@ -253,6 +283,66 @@ def get_word_world_score(word: str):
 
         # Return the world score if found
         return result[0]
+    finally:
+        # Close the session
+        session.close()
+
+
+# function given a list of words, return the ones that dont have matt scores
+def list_no_matt_scores(words: list[str]) -> list[str]:
+    """
+    Retrieve all words from a list that do not have a Matt score.
+
+    Args:
+        words (List[str]): A list of words to check.
+
+    Returns:
+        List[str]: A list of words that do not have a Matt score.
+    """
+    # Create a new session
+    session = Session()
+    try:
+        # Query the database for words that do not have a Matt score
+        results = (
+            session.query(Word.word)
+            .filter(Word.word.in_(words))
+            .filter(Word.matt_score == None)
+            .all()
+        )
+
+        # Extract the words from the query results
+        words = [result.word for result in results]
+
+        return words
+    finally:
+        # Close the session
+        session.close()
+
+
+def sort_word_list_by_matt_score(words: list[str]) -> list[str]:
+    """
+    Sort a list of words by their Matt scores in descending order.
+
+    Args:
+        words (List[str]): A list of words to sort.
+
+    Returns:
+        List[str]: A list of words sorted by Matt score in descending order.
+    """
+    # Create a new session
+    session = Session()
+    try:
+        # Query the database for the Matt scores of the given words
+        results = (
+            session.query(Word.word, Word.matt_score).filter(Word.word.in_(words)).all()
+        )
+
+        # Sort the words by Matt score in descending order
+        sorted_words = [
+            result.word for result in sorted(results, key=lambda x: x[1], reverse=True)
+        ]
+
+        return sorted_words
     finally:
         # Close the session
         session.close()

@@ -506,12 +506,6 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
                     gt = get_grid_template_from_grid(candidate_grid)
                 gt_str = "".join(gt)
                 if gt_str in BADGRIDTEMPLATES[str(total_num_walls)]:
-                    # tqdm.tqdm.write(
-                    #     "\n" + T_YELLOW + f"Grid is in bad templates" + T_NORMAL
-                    # )
-                    # tqdm.tqdm.write(
-                    #     print_grid(gt, (rc if rc == "c" else "r", row, T_BLUE))
-                    # )
                     continue
 
                 for j in range(ROWLEN):

@@ -48,11 +48,20 @@ if True:
 
 
 def infer(model_file, words):
-
+    # Load the SVM model
     with open(model_file, "rb") as file:
         clf = pickle.load(file)
 
-    words_considered = [EMB_PREF + w for w in words]
+    words_to_process = migrations.database.get_nonrejected_from_list(words)
+
+    print(f"Words to process: {len(words_to_process)} out of {len(words)}")
+
+    # If no words need processing, return sorted words
+    if not words_to_process:
+        return migrations.database.sort_word_list_by_matt_score(words)
+
+    # Prepare embeddings for the words to process
+    words_considered = [EMB_PREF + w for w in words_to_process]
     step = 1000
     good_vectors = []
     for i in tqdm.tqdm(range(0, len(words_considered), step)):
@@ -61,23 +70,23 @@ def infer(model_file, words):
         ).data
         time.sleep(1)
 
+    # Extract embeddings and predict scores
     out = [x.embedding for x in good_vectors]
-    predictions = clf.predict(out)
-    print("Predictions:", predictions)
+    # predictions = clf.predict(out)
+    # print("Predictions:", predictions)
 
-    # Compute decision function scores
+    # Compute decision function scores for the new words
     scores = clf.decision_function(out)
-    word_scores = list(zip(words, scores))
+    word_scores = list(zip(words_to_process, scores))
 
+    # Update scores in the database for only the new words
     for word, score in word_scores:
         migrations.database.update_matt_score(word, score)
-    # Sort words from most assumed bad to most assumed good
-    word_scores_sorted = sorted(word_scores, key=lambda x: x[1])
-    sorted_words = [word for word, _ in word_scores_sorted]
 
-    return sorted_words
+    return migrations.database.sort_word_list_by_matt_score(words_to_process)
 
 
+non_rejected_words = migrations.database.get_non_rejected_words()
 words_condiered = []
 if WORDS_SOURCE == Source.active_grids:
     words_condiered = torus.json.load_json(ACTIVE_WORDS_JSON)
@@ -88,10 +97,11 @@ elif WORDS_SOURCE == Source.ics:
 elif WORDS_SOURCE == Source.ranked:
     words_condiered = torus.json.load_json("filter_words/active_ranked.json")
 elif WORDS_SOURCE == Source.words_len_10:
-    words_condiered = migrations.database.get_non_rejected_words()
-    words_condiered = [word for word in words_condiered if len(word) == 10]
+    words_condiered = [word for word in non_rejected_words if len(word) == 10]
     if len(words_condiered) > 1000:
         words_condiered = words_condiered[:1000]
+
+words_condiered = [w for w in words_condiered if w in non_rejected_words]
 
 
 class WordSortingApp(QWidget):
@@ -106,6 +116,7 @@ class WordSortingApp(QWidget):
 
         self.words_considered = words_condiered
         self.words_considered = infer(PKL_MODL, words_condiered)
+        self.words_considered.reverse()
         if self.f_delete_active:
             torus.json.write_json(ACTIVE_WORDS_JSON, [])
 

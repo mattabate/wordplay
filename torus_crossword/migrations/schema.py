@@ -29,3 +29,16 @@ class Word(Base):
     world_score = Column(Float, nullable=True)
     clues = Column(String, nullable=True)
     last_updated = Column(DateTime, nullable=True)
+
+
+from sqlalchemy import Boolean
+
+
+# Define the InitialCondition table
+class InitialCondition(Base):
+    __tablename__ = "initial_conditions"
+    initial_condition = Column(
+        String(120), primary_key=True, unique=True, nullable=False
+    )
+    contains_bad_words = Column(Boolean, nullable=True)
+    created_at = Column(DateTime, nullable=True)
