@@ -4,8 +4,6 @@ import os
 from config import (
     STARS_FOUND_JSON,
     STARS_FOUND_FLIPPED_JSON,
-    WORDS_OMITTED_JSON,
-    WORDS_APPROVED_JSON,
     C_WALL,
     STAR_ROWS_OF_INTEREST,
     STAR_COLS_OF_INTEREST,
@@ -18,8 +16,10 @@ from lib import transpose, string_to_star
 import tqdm
 
 from lib import T_YELLOW, T_NORMAL
+import migrations.database
+from migrations.schema import ReviewStatus
 
-words_ommitted = torus.json.load_json(WORDS_OMITTED_JSON)
+words_ommitted = migrations.database.get_words_by_status(ReviewStatus.REJECTED)
 
 f_remove_duplicates = False
 f_remove_fails = True
@@ -89,7 +89,7 @@ for is_flipped in [False, True]:
 
 
 print("(3) collect all down words in stars")
-already_seen = torus.json.load_json(WORDS_APPROVED_JSON)
+already_seen = migrations.database.get_words_by_status(ReviewStatus.APPROVED)
 across_words = dict()
 for f_flipped in [False, True]:
     if f_flipped:

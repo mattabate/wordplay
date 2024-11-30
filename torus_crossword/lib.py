@@ -1,10 +1,9 @@
 from enum import Enum
 import random
 
-import torus
+import migrations.database
 from config import (
     C_WALL,
-    WOR_JSON,
     STAR_HEIGHT,
     STAR_WIDTH,
     ROWLEN,
@@ -13,7 +12,6 @@ from config import (
     STAR_START,
     STAR_HEIGHT,
     STAR_WIDTH,
-    GRIDCELLS,
 )
 
 T_NORMAL = "\033[0m"
@@ -22,8 +20,7 @@ T_YELLOW = "\033[93m"
 T_GREEN = "\033[92m"
 T_PINK = "\033[95m"
 
-
-WORDLIST = torus.json.load_json(WOR_JSON)
+WORDLIST = migrations.database.get_non_rejected_words()
 
 random.shuffle(WORDLIST)
 

@@ -18,9 +18,9 @@ class Mode(enum.Enum):
 
 mode = Mode.DA  # da on personal
 f_verbose = True
-f_save_words_used = False
+f_save_words_used = True
 f_save_bounds = [0, 15]
-SLEEP_DURATION = 100
+SLEEP_DURATION = -1
 RESTART_AT_LEVEL = -1
 
 SLEEP_DURATION_GRID = -1
@@ -37,7 +37,7 @@ class Source(enum.Enum):
 
 # API Sort
 
-WORDS_SOURCE = Source.words_len_10
+WORDS_SOURCE = Source.active_grids
 WITHOUT_CLUES_ONLY = False
 DELETE_ACTIVE = True
 
@@ -50,7 +50,7 @@ if mode == Mode.AD:
 elif mode == Mode.DA:
     IC_TYPE = "DA"  # da = flipped
     SEARCH_W_FLIPPED = True
-    MAX_WAL = 40
+    MAX_WAL = 42
 elif mode == Mode.A:
     IC_TYPE = "A"  # A = flipped
     SEARCH_W_FLIPPED = True
@@ -155,11 +155,7 @@ def get_bad_solutions_json(type: str, max_walls: int, flipped: bool = False) -> 
 
 # the wordlist contains all words in consideration for the search
 # the format is a list of strings, about 100k total
-WOR_JSON = "wordlist/word_list.json"
-SCORES_DICT_JSON = "wordlist/scores_dict.json"
 ACTIVE_WORDS_JSON = "filter_words/words_in_active_grids.json"
-WORDS_OMITTED_JSON = "wordlist/words_omitted.json"
-WORDS_APPROVED_JSON = "wordlist/words_approved.json"
 WORDS_CONSIDERED_JSON = "filter_words/in_consideration.json"
 WORDS_IN_SOLUTIONS_JSON = "filter_words/words_in_valid_solutions.json"
 

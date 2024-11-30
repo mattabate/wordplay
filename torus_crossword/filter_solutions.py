@@ -5,23 +5,20 @@ from lib import Direction, T_YELLOW, T_NORMAL
 from fast_search import get_word_locations, ROWLEN
 
 from config import (
-    WOR_JSON,
     IC_TYPE,
     MAX_WAL,
     SEARCH_W_FLIPPED,
-    SCORES_DICT_JSON,
     WORDS_IN_SOLUTIONS_JSON,
-    WORDS_APPROVED_JSON,
     get_solutions_json,
     get_bad_solutions_json,
 )
-
+import migrations.database
 
 f_reomve_duplicates = False
 f_save_words_in_solutions = True
 f_reomve_duplicates_bad = False
 
-WORDLIST = torus.json.load_json(WOR_JSON)
+WORDLIST = migrations.database.get_non_rejected_words()
 SOLS_PATH = get_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
 BAD_SOLUTIONS = get_bad_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
 
@@ -75,7 +72,6 @@ if __name__ == "__main__":
     ############################
     # Step 2: ????
     ############################
-    scored_words = torus.json.load_json(SCORES_DICT_JSON)
 
     print("number solutions ever:", len(solutions) + len(passed))
     print("number solutions considered:", len(solutions))
@@ -97,7 +93,7 @@ if __name__ == "__main__":
             allowed_grids.append(s)
             for w in words:
                 if w not in scored_words_seen:
-                    scored_words_seen[w] = scored_words[w]
+                    scored_words_seen[w] = migrations.database.get_word_world_score(w)
 
     print("number solutions allowed:", len(allowed_grids))
     torus.json.write_json(BAD_SOLUTIONS, passed)
@@ -111,12 +107,7 @@ if __name__ == "__main__":
         scored_words_seen.keys(), key=lambda x: scored_words_seen[x], reverse=True
     )
 
-    words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
-    xx = []
-    for s in sorted_data:
-        if s not in words_approved:
-            xx.append(s)
-    sorted_data = xx
+    sorted_data = migrations.database.words_not_approved_from_list(sorted_data)
 
     if f_save_words_in_solutions:
         torus.json.write_json(WORDS_IN_SOLUTIONS_JSON, sorted_data)

@@ -14,12 +14,9 @@ from lib import grid_filled
 from fast_search import get_new_grids as get_new_grids_from_filled
 
 from config import (
-    WOR_JSON,
     ACTIVE_WORDS_JSON,
     STARS_FOUND_JSON,
     STARS_FOUND_FLIPPED_JSON,
-    WORDS_APPROVED_JSON,
-    WORDS_OMITTED_JSON,
     ROWLEN,
     GRIDCELLS,
     RESTART_AT_LEVEL,
@@ -85,7 +82,9 @@ else:
 v_best_grids = []
 v_best_score = 0
 
-WORDLIST = torus.json.load_json(WOR_JSON)
+import migrations.database
+
+WORDLIST = migrations.database.get_non_rejected_words()
 if not f_save_words_used:
     WORDLIST_SET = set(WORDLIST)
 
@@ -611,7 +610,7 @@ def print_grid(grid: list[str], h: tuple[str, int, str]):
 def contains_bad_words(grid: str):
     if f_save_words_used:
         trashed_words = get_words_in_partial_grid(grid) - set(
-            torus.json.load_json(WOR_JSON)
+            migrations.database.get_non_rejected_words()
         )
     else:
         trashed_words = get_words_in_partial_grid(grid) - WORDLIST_SET
@@ -635,10 +634,9 @@ def save_words_to_active(new_grids: list[list[str]]):
 
     words_active = set(torus.json.load_json(ACTIVE_WORDS_JSON))
     # get all words in words approved, and add them to active words
-    words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
-    words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
+    words_reviewed = migrations.database.get_words_reviewed()
     for w in words_seen:
-        if w in words_active or w in words_approved or w in words_omitted:
+        if w in words_active or w in words_reviewed:
             continue
         tqdm.tqdm.write(T_YELLOW + f"Adding {w} to active words" + T_NORMAL)
         torus.json.append_json(ACTIVE_WORDS_JSON, w)

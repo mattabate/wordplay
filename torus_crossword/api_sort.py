@@ -22,9 +22,6 @@ from PyQt5.QtWidgets import (
 import torus
 from config import (
     WORDS_CONSIDERED_JSON,
-    WORDS_APPROVED_JSON,
-    WOR_JSON,
-    WORDS_OMITTED_JSON,
     ACTIVE_WORDS_JSON,
     WORDS_SOURCE,
     WITHOUT_CLUES_ONLY,
@@ -32,6 +29,7 @@ from config import (
     Source,
 )
 
+import migrations.database
 
 import pickle
 import tqdm
@@ -40,6 +38,7 @@ from config import EMB_PREF, EMB_MODL, PKL_MODL
 from openai import OpenAI
 from keys import OPENAI_API_KEY
 import os
+from migrations.schema import Word, ReviewStatus, engine
 
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
@@ -70,6 +69,8 @@ def infer(model_file, words):
     scores = clf.decision_function(out)
     word_scores = list(zip(words, scores))
 
+    for word, score in word_scores:
+        migrations.database.update_matt_score(word, score)
     # Sort words from most assumed bad to most assumed good
     word_scores_sorted = sorted(word_scores, key=lambda x: x[1])
     sorted_words = [word for word, _ in word_scores_sorted]
@@ -87,7 +88,7 @@ elif WORDS_SOURCE == Source.ics:
 elif WORDS_SOURCE == Source.ranked:
     words_condiered = torus.json.load_json("filter_words/active_ranked.json")
 elif WORDS_SOURCE == Source.words_len_10:
-    words_condiered = torus.json.load_json(WOR_JSON)
+    words_condiered = migrations.database.get_non_rejected_words()
     words_condiered = [word for word in words_condiered if len(word) == 10]
     if len(words_condiered) > 1000:
         words_condiered = words_condiered[:1000]
@@ -101,9 +102,7 @@ class WordSortingApp(QWidget):
         self.without_clues_only = WITHOUT_CLUES_ONLY
         self.f_delete_active = DELETE_ACTIVE
 
-        self.words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
-        self.words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
-        self.words_seen = set(self.words_omitted + self.words_approved)
+        self.words_seen = set(migrations.database.get_words_reviewed())
 
         self.words_considered = words_condiered
         self.words_considered = infer(PKL_MODL, words_condiered)
@@ -267,16 +266,13 @@ class WordSortingApp(QWidget):
 
     def accept_word(self):
         word = self.current_word
-        torus.json.append_json(WORDS_APPROVED_JSON, word)
-        torus.json.remove_from_json_list(WORDS_CONSIDERED_JSON, word)
+        migrations.database.change_word_review(word, ReviewStatus.APPROVED)
         self.word_index += 1
         self.process_next_word()
 
     def reject_word(self):
         word = self.current_word
-        torus.json.append_json(WORDS_OMITTED_JSON, word)
-        torus.json.remove_from_json_list(WOR_JSON, word)
-        torus.json.remove_from_json_list(WORDS_CONSIDERED_JSON, word)
+        migrations.database.change_word_review(word, ReviewStatus.REJECTED)
         self.word_index += 1
         self.process_next_word()
 

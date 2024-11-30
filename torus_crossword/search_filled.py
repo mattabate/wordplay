@@ -1,5 +1,6 @@
+import migrations.schema
 import torus
-from lib import Direction, count_letters
+from lib import Direction
 from fast_search import get_word_locations, get_new_grids
 import time
 import json
@@ -20,18 +21,15 @@ from lib import (
 from config import (
     C_WALL,
     IC_TYPE,
-    WOR_JSON,
     GRID_KILL_STEP,
     f_save_words_used,
     MAX_WAL,
     f_verbose,
-    WOR_JSON,
-    WORDS_APPROVED_JSON,
     ACTIVE_WORDS_JSON,
-    WORDS_OMITTED_JSON,
 )
+import migrations.database
 
-WORDLIST = torus.json.load_json(WOR_JSON)
+WORDLIST = migrations.database.get_non_rejected_words()
 if not f_save_words_used:
     WORDLIST_SET = set(WORDLIST)
 
@@ -57,7 +55,9 @@ def recursive_search(grid, level=0):
 
     if f_save_words_used:
         words_contained = get_words_in_partial_grid(grid)
-        trashed_words = words_contained - set(torus.json.load_json(WOR_JSON))
+        trashed_words = words_contained - set(
+            migrations.database.get_non_rejected_words()
+        )
     else:
         trashed_words = get_words_in_partial_grid(grid) - WORDLIST_SET
 
@@ -69,11 +69,10 @@ def recursive_search(grid, level=0):
         tqdm.tqdm.write(T_PINK + "\n".join(grid) + T_NORMAL)
         return
     elif f_save_words_used:
-        words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
         words_active = torus.json.load_json(ACTIVE_WORDS_JSON)
-        words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
+        words_reviewed = migrations.database.get_words_reviewed()
         for w in words_contained:
-            if w in words_active or w in words_approved or w in words_omitted:
+            if w in words_active or w in words_reviewed:
                 continue
             tqdm.tqdm.write(T_YELLOW + f"Adding {w} to active words" + T_NORMAL)
             torus.json.append_json(ACTIVE_WORDS_JSON, w)

@@ -4,12 +4,11 @@ from lib import Direction, transpose
 from fast_search import get_word_locations, ROWLEN
 
 import matplotlib.pyplot as plt
-
+import migrations.database
 import torus
 
 from config import (
     get_solutions_json,
-    SCORES_DICT_JSON,
     SEARCH_W_FLIPPED,
     IC_TYPE,
     MAX_WAL,
@@ -18,7 +17,6 @@ from main import T_PINK, T_NORMAL, T_YELLOW
 
 
 SOLS_PATH = get_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
-scored_words_dict = torus.json.load_json(SCORES_DICT_JSON)
 
 
 def reduce_to_unique_solutions():
@@ -66,11 +64,7 @@ def score_words(grid: list[str]):
             else:
                 string_word += grid[(w.start[0] + i) % ROWLEN][w.start[1]]
 
-        word_strings.append(string_word)
-        for wr, sc in scored_words_dict.items():
-            if wr == string_word:
-                scores.append(sc)
-                break
+        scores.append(migrations.database.get_word_world_score(string_word))
 
     return word_strings, scores
 

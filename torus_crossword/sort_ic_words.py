@@ -12,13 +12,13 @@ from config import (
     STAR_COLS_OF_INTEREST,
     STARS_FOUND_JSON,
     STARS_FOUND_FLIPPED_JSON,
-    WORDS_APPROVED_JSON,
     get_failures_json,
-    SCORES_DICT_JSON,
     IC_TYPE,
     MAX_WAL,
     SEARCH_W_FLIPPED,
 )
+import migrations.database
+from migrations.schema import ReviewStatus
 
 
 def get_words_in_star(star):
@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     good_star_strs = [s for s in sol_strs if s not in fails_set]
 
-    words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
+    words_approved = migrations.database.get_words_by_status(ReviewStatus.APPROVED)
 
     print("number words in all ics", len(good_star_strs))
     all_words = set()
@@ -56,13 +56,14 @@ if __name__ == "__main__":
 
     all_words = all_words - set(words_approved)
 
-    word_scores = torus.json.load_json(SCORES_DICT_JSON)
-
     # Filter words to include only those in all_words, sort by score
     # highest to lowest
     sorted_words = sorted(
-        ([word, float(word_scores[word])] for word in all_words if word in word_scores),
-        key=lambda w: word_scores[w[0]],
+        (
+            [word, float(migrations.database.get_word_world_score(word))]
+            for word in all_words
+        ),
+        key=lambda w: w[1],
         reverse=True,
     )
 
