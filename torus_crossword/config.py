@@ -50,7 +50,7 @@ if mode == Mode.AD:
 elif mode == Mode.DA:
     IC_TYPE = "DA"  # da = flipped
     SEARCH_W_FLIPPED = True
-    MAX_WAL = 40
+    MAX_WAL = 42
 elif mode == Mode.A:
     IC_TYPE = "A"  # A = flipped
     SEARCH_W_FLIPPED = True
