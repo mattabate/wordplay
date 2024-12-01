@@ -61,7 +61,7 @@ def propegate_fails_to_lower_files():
         files = os.listdir("failures/")
         numbers = []
         for file in files:
-            if file.startswith(f"15x15_stars_failures_{TYPE}_") and not file.endswith(
+            if file.startswith(f"square_failures_{TYPE}_") and not file.endswith(
                 "_flipped.json"
             ):
                 numbers.append(int(file.split("_")[-1].split(".")[0]))
@@ -110,7 +110,7 @@ def propegate_fails_to_lower_files():
         files = os.listdir("failures/")
         numbers = []
         for file in files:
-            if file.startswith(f"15x15_stars_failures_{TYPE}_") and file.endswith(
+            if file.startswith(f"square_failures_{TYPE}_") and file.endswith(
                 "_flipped.json"
             ):
                 file.replace("_flipped.json", ".json")

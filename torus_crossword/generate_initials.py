@@ -281,6 +281,7 @@ def isolate_word(s) -> str:
 
 
 def get_stars_from_seed_grids(grid: list[str]) -> list[list[str]]:
+    """not used, but keep"""
     if STAR_SEARCH_W_FLIPPED:
         new_temp = STAR_FLIPPED_TEMPLATE.copy()
     else:
@@ -434,15 +435,8 @@ def recursive_search(grid, level=0):
 
         # ok - so now what i have to do is generate the grids from the inital grid
 
-        stars_from_grid = get_stars_from_seed_grids(grid)
-
-        print(
-            f"Found {T_PINK}{len(stars_from_grid)}{T_NORMAL} Solutions"
-        )  # Green text indicating success
-        solutions = torus.json.load_json(SOL_JSON)
-        for s in stars_from_grid:
-            if s not in solutions:
-                torus.json.append_json(SOL_JSON, s)
+        print(T_PINK + "FOUND A SOLUTION" + T_NORMAL)
+        torus.json.append_json_list(SOL_JSON, "".join(grid))
         return
 
     new_grids = get_new_grids(grid)
