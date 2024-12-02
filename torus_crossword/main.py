@@ -419,9 +419,6 @@ def grid_contains_unwalled_rows(grid: list[str]) -> bool:
     return False
 
 
-import time
-
-
 def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str]]]:
     """Given a grid, find the best row to latch on to.
 
@@ -507,12 +504,7 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
                     gt = get_grid_template_from_grid(candidate_grid)
                 gt_str = "".join(gt)
                 if gt_str in BADGRIDTEMPLATES[str(total_num_walls)]:
-                    # tqdm.tqdm.write(
-                    #     "\n" + T_YELLOW + f"Grid is in bad templates" + T_NORMAL
-                    # )
-                    # tqdm.tqdm.write(
-                    #     print_grid(gt, (rc if rc == "c" else "r", row, T_BLUE))
-                    # )
+                    # it is known that black squares can not appear in this configuration
                     continue
 
                 for j in range(ROWLEN):
@@ -538,6 +530,7 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
             score = num_blanks
             # score = num_new_grids_from_line
             # score = num_blanks + num_new_grids_from_line
+
             if score > K_MIN_SCORE:  # minimize score
                 break
         else:
@@ -547,6 +540,8 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
             K_MIN_SCORE = score
             K_INDEX = row
             K_BEST_GRIDS = working_grids
+            if len(K_BEST_GRIDS) == 1:
+                return get_best_row(K_BEST_GRIDS[0], rc)
 
     # check to make sure it is possible to make grid symetric from all row options
     o = FILL_INS_TEMPLATE.copy()

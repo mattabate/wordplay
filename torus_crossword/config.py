@@ -20,8 +20,8 @@ mode = Mode.DA  # da on personal
 f_verbose = True
 f_save_words_used = False
 f_save_bounds = [0, 15]
-SLEEP_DURATION = 100
-RESTART_AT_LEVEL = -1
+SLEEP_DURATION = 10000
+RESTART_AT_LEVEL = 5
 
 SLEEP_DURATION_GRID = -1
 GRID_KILL_STEP = 100000000000
@@ -50,7 +50,7 @@ if mode == Mode.AD:
 elif mode == Mode.DA:
     IC_TYPE = "DA"  # da = flipped
     SEARCH_W_FLIPPED = True
-    MAX_WAL = 40
+    MAX_WAL = 42
 elif mode == Mode.A:
     IC_TYPE = "A"  # A = flipped
     SEARCH_W_FLIPPED = True
@@ -62,10 +62,10 @@ elif mode == Mode.MIN:
 
 
 GRID_TEMPLATE = [
-    "______█@@@_█___",
-    "______█@@@@█___",
-    "______█@@@@█___",
-    "███__@_________",
+    "___@@@█@@@_█___",
+    "___@@@█@@@@█___",
+    "___@@@█@@@@█___",
+    "███__@______@@@",
     "@@@________@@@@",
     "@@@_________███",
     "@@@_________@@@",
@@ -73,10 +73,10 @@ GRID_TEMPLATE = [
     "@@@_________@@@",
     "███_________@@@",
     "@@@@________@@@",
-    "_________@__███",
-    "___█@@@@█______",
-    "___█@@@@█______",
-    "___█_@@@█______",
+    "@@@______@__███",
+    "___█@@@@█@@@___",
+    "___█@@@@█@@@___",
+    "___█_@@@█@@@___",
 ]
 
 GRID_TEMPLATE_FLIPPED = [s[::-1] for s in GRID_TEMPLATE]
@@ -111,22 +111,18 @@ BAD_STAR_FLIPPED_JSON = "ic_data/bad_stars_flipped.json"
 
 # location of start of the star
 # note that stars wrap around the grid, touching all corners
-STAR_HEIGHT = 10  # DO NOT CHANGE
-STAR_WIDTH = 12  # DO NOT CHANGE
-STAR_START = (10, 9)  # DO NOT CHANGE
+STAR_HEIGHT = 6  # DO NOT CHANGE
+STAR_WIDTH = 6  # DO NOT CHANGE
+STAR_START = (12, 12)  # DO NOT CHANGE
 
 
 STAR_TEMPLATE = [
-    "██████@@@███",
-    "██████@@@███",
-    "@@@@@@@@@███",
-    "@@@@@@@@@███",
-    "@@@@@@@@@███",
-    "███@@@@@@@@@",
-    "███@@@@@@@@@",
-    "███@@@@@@@@@",
-    "███@@@██████",
-    "███@@@██████",
+    "@@@@@@",
+    "@@@@@@",
+    "@@@@@@",
+    "@@@@@@",
+    "@@@@@@",
+    "@@@@@@",
 ]
 
 STAR_FLIPPED_TEMPLATE = [s[::-1] for s in STAR_TEMPLATE]
@@ -137,8 +133,8 @@ STAR_COLS_OF_INTEREST = [3, 4, 5, 6, 7, 8]
 
 def get_failures_json(type: str, max_walls: int, flipped: bool = False) -> str:
     if flipped:
-        return f"failures/15x15_stars_failures_{type}_{max_walls}_flipped.json"
-    return f"failures/15x15_stars_failures_{type}_{max_walls}.json"
+        return f"failures/square_failures_{type}_{max_walls}_flipped.json"
+    return f"failures/square_failures_{type}_{max_walls}.json"
 
 
 def get_solutions_json(type: str, max_walls: int, flipped: bool = False) -> str:
@@ -166,8 +162,8 @@ WORDS_IN_SOLUTIONS_JSON = "filter_words/words_in_valid_solutions.json"
 # initial conditions for the search are refered to as stars
 # stars come in two flavors: normal and flipped
 # files where the stars are stored are named star_sols.json and star_sols_flipped.json
-STARS_FOUND_JSON = "ic_data/star_sols.json"
-STARS_FOUND_FLIPPED_JSON = "ic_data/star_sols_flipped.json"
+STARS_FOUND_JSON = "ic_data/corner_squares.json"
+STARS_FOUND_FLIPPED_JSON = "ic_data/corner_squares_flipped.json"
 STARS_CHECKED_JSON = "ic_data/stars_checked.json"
 STARS_CHECKED_FLIPPED_JSON = "ic_data/stars_checked_flipped.json"
 

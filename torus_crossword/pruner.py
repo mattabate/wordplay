@@ -61,48 +61,47 @@ def propegate_fails_to_lower_files():
         files = os.listdir("failures/")
         numbers = []
         for file in files:
-            if file.startswith(f"15x15_stars_failures_{TYPE}_") and not file.endswith(
+            if file.startswith(f"square_failures_{TYPE}_") and not file.endswith(
                 "_flipped.json"
             ):
                 numbers.append(int(file.split("_")[-1].split(".")[0]))
 
-        if not numbers:
-            continue
-        # find the highest number
+        if numbers:
+            # find the highest number
 
-        # sorted highest first
-        numbers.sort(reverse=True)
-        len_numbers = len(numbers)
+            # sorted highest first
+            numbers.sort(reverse=True)
+            len_numbers = len(numbers)
 
-        for i in range(len_numbers - 1):
-            highest_number = numbers[i]
-            file1 = get_failures_json(
-                type=TYPE, max_walls=highest_number, flipped=False
-            )
-            higher_data: list[list[str]] = torus.json.load_json(file1)
-
-            for j in range(i + 1, len_numbers):
-                lower_number = numbers[j]
-                file2 = get_failures_json(
-                    type=TYPE, max_walls=lower_number, flipped=False
+            for i in range(len_numbers - 1):
+                highest_number = numbers[i]
+                file1 = get_failures_json(
+                    type=TYPE, max_walls=highest_number, flipped=False
                 )
-                lower_data: list[list[str]] = torus.json.load_json(file2)
+                higher_data: list[list[str]] = torus.json.load_json(file1)
 
-                tqdm.tqdm.write(
-                    "adding grids from num "
-                    + T_GREEN
-                    + str(highest_number)
-                    + T_NORMAL
-                    + " to "
-                    + T_GREEN
-                    + str(lower_number)
-                    + T_NORMAL
-                )
-                for grid in tqdm.tqdm(higher_data):
-                    if grid not in lower_data:
-                        lower_data.append(grid)
+                for j in range(i + 1, len_numbers):
+                    lower_number = numbers[j]
+                    file2 = get_failures_json(
+                        type=TYPE, max_walls=lower_number, flipped=False
+                    )
+                    lower_data: list[list[str]] = torus.json.load_json(file2)
 
-                torus.json.write_json(file2, lower_data)
+                    tqdm.tqdm.write(
+                        "adding grids from num "
+                        + T_GREEN
+                        + str(highest_number)
+                        + T_NORMAL
+                        + " to "
+                        + T_GREEN
+                        + str(lower_number)
+                        + T_NORMAL
+                    )
+                    for grid in tqdm.tqdm(higher_data):
+                        if grid not in lower_data:
+                            lower_data.append(grid)
+
+                    torus.json.write_json(file2, lower_data)
 
         print()
         print(f"{T_YELLOW}Starting flipped: {T_NORMAL}")
@@ -110,49 +109,52 @@ def propegate_fails_to_lower_files():
         files = os.listdir("failures/")
         numbers = []
         for file in files:
-            if file.startswith(f"15x15_stars_failures_{TYPE}_") and file.endswith(
+            if file.startswith(f"square_failures_{TYPE}_") and file.endswith(
                 "_flipped.json"
             ):
                 file.replace("_flipped.json", ".json")
                 numbers.append(int(file.split("_")[-2].split(".")[0]))
 
-        # find the highest number
-        highest_number = max(numbers)
-        remove_number = highest_number - 2
+        if numbers:
+            # find the highest number
+            highest_number = max(numbers)
+            remove_number = highest_number - 2
 
-        # sorted highest first
-        numbers.sort(reverse=True)
-        highest_number = numbers[0]
-        lower_numbers = numbers[1:]
+            # sorted highest first
+            numbers.sort(reverse=True)
+            highest_number = numbers[0]
+            lower_numbers = numbers[1:]
 
-        len_numbers = len(numbers)
-        for i in range(len_numbers - 1):
-            highest_number = numbers[i]
-            file1 = get_failures_json(type=TYPE, max_walls=highest_number, flipped=True)
-            higher_data = torus.json.load_json(file1)
-
-            for j in range(i + 1, len_numbers):
-                lower_number = numbers[j]
-                file2 = get_failures_json(
-                    type=TYPE, max_walls=lower_number, flipped=True
+            len_numbers = len(numbers)
+            for i in range(len_numbers - 1):
+                highest_number = numbers[i]
+                file1 = get_failures_json(
+                    type=TYPE, max_walls=highest_number, flipped=True
                 )
-                lower_data: list[list[str]] = torus.json.load_json(file2)
+                higher_data = torus.json.load_json(file1)
 
-                tqdm.tqdm.write(
-                    "adding grids from num "
-                    + T_GREEN
-                    + str(highest_number)
-                    + T_NORMAL
-                    + " to "
-                    + T_GREEN
-                    + str(lower_number)
-                    + T_NORMAL
-                )
-                for grid in tqdm.tqdm(higher_data):
-                    if grid not in lower_data:
-                        lower_data.append(grid)
+                for j in range(i + 1, len_numbers):
+                    lower_number = numbers[j]
+                    file2 = get_failures_json(
+                        type=TYPE, max_walls=lower_number, flipped=True
+                    )
+                    lower_data: list[list[str]] = torus.json.load_json(file2)
 
-                torus.json.write_json(file2, lower_data)
+                    tqdm.tqdm.write(
+                        "adding grids from num "
+                        + T_GREEN
+                        + str(highest_number)
+                        + T_NORMAL
+                        + " to "
+                        + T_GREEN
+                        + str(lower_number)
+                        + T_NORMAL
+                    )
+                    for grid in tqdm.tqdm(higher_data):
+                        if grid not in lower_data:
+                            lower_data.append(grid)
+
+                    torus.json.write_json(file2, lower_data)
 
         print()
 
