@@ -20,8 +20,8 @@ mode = Mode.DA  # da on personal
 f_verbose = True
 f_save_words_used = False
 f_save_bounds = [0, 15]
-SLEEP_DURATION = 55
-RESTART_AT_LEVEL = 6
+SLEEP_DURATION = -1
+RESTART_AT_LEVEL = -1
 
 SLEEP_DURATION_GRID = 10000
 GRID_KILL_STEP = 5
