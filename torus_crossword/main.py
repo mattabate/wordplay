@@ -267,27 +267,6 @@ def add_letter_placeholders(grid: list[str]) -> list[str]:
     return transpose(new_grid)
 
 
-def enforce_symmetry(grid: list[str]) -> list[str]:
-    long_string = "".join(grid)
-    for j, c in enumerate(long_string):
-        rvs_idx = GRIDCELLS - 1 - j
-        rvs_c = long_string[rvs_idx]
-
-        # ENFORCE SYMETRY
-        if c == C_WALL:
-            if rvs_c != C_WALL and rvs_c != "_":  # check symetry
-                return False
-            if rvs_c == "_":  # enforce symetry
-                long_string = replace_char_in_string(long_string, C_WALL, rvs_idx)
-        elif c != "_":
-            if rvs_c == C_WALL:  # check symetry
-                return False
-            if rvs_c == "_":  # enforce symetry
-                long_string = replace_char_in_string(long_string, "@", rvs_idx)
-
-    return [long_string[j : j + ROWLEN] for j in range(0, GRIDCELLS, ROWLEN)]
-
-
 def grid_contains_short_words(grid: list[str]) -> bool:
     for line in grid:
         if check_line_for_short_words(line):
@@ -347,53 +326,6 @@ def get_fixtures(line: str) -> list[tuple[int, str]]:
     return fixtures
 
 
-def grid_contains_englosed_spaces(grid):
-    rows = len(grid)
-    cols = len(grid[0])
-    visited = [[False] * cols for _ in range(rows)]
-
-    # Directions for moving up, down, left, right
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-
-    # Find the starting point for a non-wall character
-    start = None
-    for r in range(rows):
-        for c in range(cols):
-            if grid[r][c] != "█":
-                start = (r, c)
-                break
-        if start:
-            break
-
-    if not start:
-        return False  # No white squares
-
-    # BFS to check connectivity
-    queue = deque([start])
-    visited[start[0]][start[1]] = True
-    count = 1  # Number of visited white squares
-
-    while queue:
-        r, c = queue.popleft()
-        for dr, dc in directions:
-            nr, nc = r + dr, c + dc
-            if (
-                0 <= nr < rows
-                and 0 <= nc < cols
-                and not visited[nr][nc]
-                and grid[nr][nc] != "█"
-            ):
-                visited[nr][nc] = True
-                queue.append((nr, nc))
-                count += 1
-
-    # Count all non-wall squares
-    total_non_wall = sum(row.count("█") for row in grid)
-    total_non_wall = rows * cols - total_non_wall  # Total non-wall characters
-
-    return count != total_non_wall
-
-
 def check_center_row_sym(line: str) -> bool:
     "Return true if line symetric in terms of C_WALL ie █@@█@█@@█"
     return any(
@@ -416,6 +348,14 @@ def grid_contains_unwalled_rows(grid: list[str]) -> bool:
     for line in transpose(grid):
         if C_WALL not in line:
             return True
+    return False
+
+
+def grid_string_known_bad_wall_locs(grid_str: str) -> bool:
+    t_str = "".join("@" if c != C_WALL else C_WALL for c in grid_str)
+    if t_str in BADGRIDTEMPLATES[str(MAX_WAL)]:
+        # it is known that black squares can not appear in this configuration
+        return True
     return False
 
 
@@ -480,7 +420,7 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
             candidate_grid = grid.copy()
             candidate_grid[row] = l  # make line word from options
 
-            candidate_grid = enforce_symmetry(candidate_grid)
+            candidate_grid = torus.checks.enforce_symmetry(candidate_grid)
             if not candidate_grid:
                 continue
             candidate_grid = fill_in_small_holes(candidate_grid)
@@ -489,7 +429,7 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
             if total_num_walls > MAX_WAL:
                 continue
 
-            if grid_contains_englosed_spaces(candidate_grid):
+            if torus.checks.grid_contains_englosed_spaces(candidate_grid):
                 continue
 
             candidate_grid = add_letter_placeholders(candidate_grid)
@@ -499,11 +439,10 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
                     continue
 
                 if rc:  # rc = c
-                    gt = get_grid_template_from_grid(transpose(candidate_grid))
+                    gt_str = "".join(transpose(candidate_grid))
                 else:  # rc = r
-                    gt = get_grid_template_from_grid(candidate_grid)
-                gt_str = "".join(gt)
-                if gt_str in BADGRIDTEMPLATES[str(total_num_walls)]:
+                    gt_str = "".join(candidate_grid)
+                if grid_string_known_bad_wall_locs(gt_str):
                     # it is known that black squares can not appear in this configuration
                     continue
 
@@ -545,7 +484,7 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
 
     # check to make sure it is possible to make grid symetric from all row options
     o = FILL_INS_TEMPLATE.copy()
-    FILL_INS_TEMPLATE = enforce_symmetry(FILL_INS_TEMPLATE)
+    FILL_INS_TEMPLATE = torus.checks.enforce_symmetry(FILL_INS_TEMPLATE)
     if not FILL_INS_TEMPLATE:
         if f_verbose:
             tqdm.tqdm.write(T_YELLOW + "not actually doable" + T_NORMAL)
@@ -561,6 +500,7 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
                 if g[i][j] == "_" and FILL_INS_TEMPLATE[i][j] != "_":
                     g[i][j] == FILL_INS_TEMPLATE[i][j]
         betterd_grids.append(g)
+    K_BEST_GRIDS = betterd_grids
 
     return K_INDEX, K_MIN_SCORE, K_BEST_GRIDS
 

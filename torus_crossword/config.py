@@ -21,7 +21,7 @@ f_verbose = True
 f_save_words_used = False
 f_save_bounds = [0, 15]
 SLEEP_DURATION = 10000
-RESTART_AT_LEVEL = 5
+RESTART_AT_LEVEL = 100
 
 SLEEP_DURATION_GRID = -1
 GRID_KILL_STEP = 100000000000
