@@ -353,7 +353,10 @@ def grid_contains_unwalled_rows(grid: list[str]) -> bool:
 
 def grid_string_known_bad_wall_locs(grid_str: str) -> bool:
     t_str = "".join("@" if c != C_WALL else C_WALL for c in grid_str)
-    if t_str in BADGRIDTEMPLATES[str(MAX_WAL)]:
+    if "_" in t_str:
+        raise ValueError("Should not get here")
+    num_walls = t_str.count(C_WALL)
+    if t_str in BADGRIDTEMPLATES[str(num_walls)]:
         # it is known that black squares can not appear in this configuration
         return True
     return False
