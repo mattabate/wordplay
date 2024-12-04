@@ -37,9 +37,9 @@ class Source(enum.Enum):
 
 # API Sort
 
-WORDS_SOURCE = Source.words_len_10
+WORDS_SOURCE = Source.active_grids
 WITHOUT_CLUES_ONLY = False
-DELETE_ACTIVE = True
+DELETE_ACTIVE = False
 
 
 if mode == Mode.AD:
