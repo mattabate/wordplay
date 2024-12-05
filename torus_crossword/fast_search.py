@@ -146,10 +146,6 @@ def initalize(grid):
     return words, square_to_word_map
 
 
-import math
-import json
-
-
 def get_new_grids(
     grid: list[str],
 ) -> list[list[str]]:

@@ -56,6 +56,9 @@ class Word:
         return Word(self.start, self.direction, self.length)
 
 
+import random
+
+
 class Sqaure:
     across: Word
     down: Word
@@ -64,7 +67,9 @@ class Sqaure:
     def __init__(self, across: Word, down: Word):
         self.across = across
         self.down = down
-        self.possible_chars = set(l for l in "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        letter_set = [c for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
+        random.shuffle(letter_set)
+        self.possible_chars = set(letter_set)
 
 
 def transpose(grid: list[str]) -> list[str]:

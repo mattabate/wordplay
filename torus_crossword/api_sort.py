@@ -63,8 +63,8 @@ def infer(model_file, words):
         time.sleep(1)
 
     out = [x.embedding for x in good_vectors]
-    predictions = clf.predict(out)
-    print("Predictions:", predictions)
+    # predictions = clf.predict(out)
+    # print("Predictions:", predictions)
 
     # Compute decision function scores
     scores = clf.decision_function(out)
@@ -73,6 +73,8 @@ def infer(model_file, words):
     # Sort words from most assumed bad to most assumed good
     word_scores_sorted = sorted(word_scores, key=lambda x: x[1])
     sorted_words = [word for word, _ in word_scores_sorted]
+    print("best words:", [(word, s) for word, s in word_scores_sorted][:5])
+    print("worst words:", [(word, s) for word, s in word_scores_sorted][-5:])
 
     return sorted_words
 
@@ -89,8 +91,8 @@ elif WORDS_SOURCE == Source.ranked:
 elif WORDS_SOURCE == Source.words_len_10:
     words_condiered = torus.json.load_json(WOR_JSON)
     words_condiered = [word for word in words_condiered if len(word) == 10]
-    if len(words_condiered) > 1000:
-        words_condiered = words_condiered[:1000]
+if len(words_condiered) > 1000:
+    words_condiered = words_condiered[:1000]
 
 
 class WordSortingApp(QWidget):

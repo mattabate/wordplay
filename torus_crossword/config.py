@@ -19,9 +19,9 @@ class Mode(enum.Enum):
 mode = Mode.DA  # da on personal
 f_verbose = True
 f_save_words_used = False
-f_save_bounds = [0, 15]
-SLEEP_DURATION = 1000
-RESTART_AT_LEVEL = 10
+f_save_bounds = [0, 3]
+SLEEP_DURATION = 120
+RESTART_AT_LEVEL = 3
 
 SLEEP_DURATION_GRID = 1000
 GRID_KILL_STEP = 7
@@ -39,7 +39,7 @@ class Source(enum.Enum):
 
 WORDS_SOURCE = Source.active_grids
 WITHOUT_CLUES_ONLY = False
-DELETE_ACTIVE = False
+DELETE_ACTIVE = True
 
 
 if mode == Mode.AD:
