@@ -1,3 +1,10 @@
+"""
+idea:
+- run this (builds up failed templates)
+- then run main
+- keep the failed ics, but the restore the failed templates (bad)
+"""
+
 import torus
 from lib import Direction
 from fast_search import get_word_locations, get_new_grids
@@ -6,6 +13,7 @@ import json
 import tqdm
 import torus
 
+from main import add_star
 from lib import (
     Direction,
     get_words_in_partial_grid,
@@ -27,8 +35,11 @@ from config import (
     f_verbose,
     WOR_JSON,
     WORDS_APPROVED_JSON,
+    STARS_FOUND_FLIPPED_JSON,
     ACTIVE_WORDS_JSON,
     WORDS_OMITTED_JSON,
+    SEARCH_W_FLIPPED,
+    get_failures_json,
 )
 
 WORDLIST = torus.json.load_json(WOR_JSON)
@@ -46,37 +57,6 @@ solutions = []
 def recursive_search(grid, level=0):
     global v_best_score
     global solutions
-
-    if level >= GRID_KILL_STEP + 1:
-        exit()
-
-    if f_verbose:
-        tqdm.tqdm.write(
-            T_BLUE + f"{json.dumps(grid, indent=2, ensure_ascii=False)}" + T_NORMAL
-        )
-
-    if f_save_words_used:
-        words_contained = get_words_in_partial_grid(grid)
-        trashed_words = words_contained - set(torus.json.load_json(WOR_JSON))
-    else:
-        trashed_words = get_words_in_partial_grid(grid) - WORDLIST_SET
-
-    if trashed_words:
-        tqdm.tqdm.write("\n")
-        tqdm.tqdm.write(
-            T_PINK + f"FOUND TRASHED WORD ... Skipping: {trashed_words}" + T_NORMAL
-        )
-        tqdm.tqdm.write(T_PINK + "\n".join(grid) + T_NORMAL)
-        return
-    elif f_save_words_used:
-        words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
-        words_active = torus.json.load_json(ACTIVE_WORDS_JSON)
-        words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
-        for w in words_contained:
-            if w in words_active or w in words_approved or w in words_omitted:
-                continue
-            tqdm.tqdm.write(T_YELLOW + f"Adding {w} to active words" + T_NORMAL)
-            torus.json.append_json(ACTIVE_WORDS_JSON, w)
 
     if grid_filled(grid):
         tqdm.tqdm.write(T_YELLOW + "Solution found")  # Green text indicating success
@@ -111,29 +91,44 @@ if __name__ == "__main__":
 
     import random
 
+    ic_all = torus.json.load_json(STARS_FOUND_FLIPPED_JSON)
+    ic_failures = torus.json.load_json(
+        get_failures_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
+    )
+    ics_of_interest = [ic for ic in ic_all if ic not in ic_failures]
+
+    print("total templates to check:", len(templates_of_interest))
+    print("total ic to check:", len(ics_of_interest))
+
     # templats of interest are those not in the chat
 
-    ls = len(tamplates[str(MAX_WAL)])
     lsoi = len(templates_of_interest)
     random.shuffle(templates_of_interest)
 
     for i, t in enumerate(templates_of_interest):
-        tqdm.tqdm.write(T_YELLOW + f"Trial {i} / {lsoi}  ({ls} tot)" + T_NORMAL)
-
-        grid = add_theme_words(t, IC_TYPE)
-
-        words = get_word_locations(grid, Direction.ACROSS) + get_word_locations(
-            grid, Direction.DOWN
+        words = get_word_locations(t, Direction.ACROSS) + get_word_locations(
+            t, Direction.DOWN
         )
         tqdm.tqdm.write(T_YELLOW + f"> max wall {MAX_WAL}" + T_NORMAL)
         tqdm.tqdm.write(T_YELLOW + f"> number of answers {len(words)}" + T_NORMAL)
         tqdm.tqdm.write(
             T_YELLOW
-            + f"> number of black squares {"".join(grid).count(C_WALL)}"
+            + f"> number of black squares {"".join(t).count(C_WALL)}"
             + T_NORMAL
         )
 
-        recursive_search(grid, 0)
+        failed_templates = torus.json.load_json("bad_templates.json")
+        if "".join(t) in failed_templates[str(MAX_WAL)]:
+            print(T_BLUE + "> already failed, skipping" + T_NORMAL)
+            continue
+
+        tqdm.tqdm.write(T_YELLOW + f"Trial {i} / {lsoi}" + T_NORMAL)
+        for ic in tqdm.tqdm(ics_of_interest):
+            t_i_care_about = add_star(t, [ic[v : v + 6] for v in range(0, 36, 6)])
+
+            grid = add_theme_words(t_i_care_about, IC_TYPE)
+
+            recursive_search(grid, 0)
 
         if not len(solutions):
             print("No solution found")
@@ -143,6 +138,8 @@ if __name__ == "__main__":
             if t_str not in failed_templates[str(n_w)]:
                 failed_templates[str(n_w)].append("".join(t))
                 torus.json.write_json("bad_templates.json", failed_templates)
-        else:
+
+        if len(solutions):
             print(T_GREEN, f"Found {len(solutions)} solutions", T_NORMAL)
+            exit()
         solutions = []

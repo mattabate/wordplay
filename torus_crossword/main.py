@@ -97,16 +97,16 @@ BADGRIDTEMPLATES = torus.json.load_json("bad_templates.json")
 
 
 def add_star(grid, star):
-    grid = [list(row) for row in grid]
+    grid_n = [list(row) for row in grid]
 
     for i, line in enumerate(star):
         r = (STAR_START[0] + i) % ROWLEN
         for j, l in enumerate(line):
             if l != "█":
                 c = (STAR_START[1] + j) % ROWLEN
-                grid[r][c] = l
+                grid_n[r][c] = l
 
-    return ["".join(row) for row in grid]
+    return ["".join(row) for row in grid_n]
 
 
 def check_line_for_short_words(line: str) -> bool:
@@ -469,8 +469,8 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
             # score = num_grids * (num_blanks + 1)
 
             # score = num_new_grids_from_line * (num_blanks + 1)
-            score = num_blanks
-            # score = num_new_grids_from_line
+            # score = num_blanks
+            score = num_new_grids_from_line
             # score = num_blanks + num_new_grids_from_line
 
             if score > K_MIN_SCORE:  # minimize score
@@ -588,8 +588,9 @@ def get_grid_template_from_grid(grid):
 
 def add_to_grid_templates_if_not_seen(gt_str):
     seen_temps = torus.json.load_json("liked_templates.json")
-    if gt_str not in seen_temps[str(MAX_WAL)]:
-        seen_temps[str(MAX_WAL)].append(gt_str)
+    num_walls = "".join(gt_str).count(C_WALL)
+    if gt_str not in seen_temps[str(num_walls)]:
+        seen_temps[str(num_walls)].append(gt_str)
         torus.json.write_json("liked_templates.json", seen_temps)
 
 
