@@ -21,7 +21,7 @@ from config import (
     WORDS_APPROVED_JSON,
     WORDS_OMITTED_JSON,
     ROWLEN,
-    GRIDCELLS,
+    MAX_LEVEL_FOR_ACTIVE_ADD,
     RESTART_AT_LEVEL,
     STAR_START,
     C_WALL,
@@ -656,7 +656,11 @@ def recursive_search(grid, level=0):
                 tqdm.tqdm.write(T_BLUE + "\n".join(grid) + T_NORMAL)
             return
 
-        if f_save_words_used and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]:
+        if (
+            f_save_words_used
+            and level < MAX_LEVEL_FOR_ACTIVE_ADD
+            and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]
+        ):
             save_words_to_active(new_grids)
 
         with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
@@ -687,7 +691,11 @@ def recursive_search(grid, level=0):
 
             return
 
-        if f_save_words_used and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]:
+        if (
+            f_save_words_used
+            and level < MAX_LEVEL_FOR_ACTIVE_ADD
+            and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]
+        ):
             save_words_to_active(new_grids)
 
         with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
