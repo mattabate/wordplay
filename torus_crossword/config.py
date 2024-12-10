@@ -1,4 +1,5 @@
 import enum
+import yaml
 
 ###############################################
 # main.py config
@@ -16,18 +17,6 @@ class Mode(enum.Enum):
     MIN = 3
 
 
-mode = Mode.DA  # da on personal
-f_verbose = True
-f_save_words_used = False
-f_save_bounds = [0, 3]
-SLEEP_DURATION = 900
-RESTART_AT_LEVEL = -1
-MAX_LEVEL_FOR_ACTIVE_ADD = -1
-
-SLEEP_DURATION_GRID = 1000
-GRID_KILL_STEP = 7
-
-
 class Source(enum.Enum):
     in_consideration = 0
     active_grids = 1
@@ -36,30 +25,53 @@ class Source(enum.Enum):
     words_len_10 = 4
 
 
+# Load the YAML file
+with open("config.yaml", "r") as file:
+    config = yaml.safe_load(file)
+
+# Access the configuration values
+forward_search = config["forward_search"]
+backward_search = config["backward_search"]
+sort_parameters = config["api_sort_parameters"]
+
+# Use the values in your code
+IC_TYPE = forward_search["mode"]
+if IC_TYPE == "AD":
+    mode = Mode.AD
+elif IC_TYPE == "DA":
+    mode = Mode.DA
+elif IC_TYPE == "A":
+    mode = Mode.A
+elif IC_TYPE == "":
+    mode = Mode.MIN
+
+f_verbose = forward_search["f_verbose"]
+f_save_words_used = forward_search["f_save_words_used"]
+f_save_bounds = forward_search["f_save_bounds"]
+SLEEP_DURATION = forward_search["sleep_duration"]
+RESTART_AT_LEVEL = forward_search["restart_at_level"]
+MAX_LEVEL_FOR_ACTIVE_ADD = forward_search["max_level_for_active_add"]
+SEARCH_W_FLIPPED = forward_search["f_search_with_flipped"]
+MAX_WAL = forward_search["max_walls"]
+
+
+SLEEP_DURATION_GRID = backward_search["sleep_duration_grid"]
+GRID_KILL_STEP = backward_search["grid_kill_step"]
+
+
 # API Sort
-
-WORDS_SOURCE = Source.active_grids
-WITHOUT_CLUES_ONLY = False
-DELETE_ACTIVE = True
-
-
-if mode == Mode.AD:
-    IC_TYPE = "AD"
-    SEARCH_W_FLIPPED = False
-    MAX_WAL = 42
-    # note - WE HAVE GOOD for AD, 42, not flipped [but no solutions for 40]
-elif mode == Mode.DA:
-    IC_TYPE = "DA"  # da = flipped
-    SEARCH_W_FLIPPED = True
-    MAX_WAL = 40
-elif mode == Mode.A:
-    IC_TYPE = "A"  # A = flipped
-    SEARCH_W_FLIPPED = True
-    MAX_WAL = 42
-elif mode == Mode.MIN:
-    IC_TYPE = ""
-    SEARCH_W_FLIPPED = True
-    MAX_WAL = 42
+if sort_parameters["word_source"] == "in_consideration":
+    WORDS_SOURCE = Source.in_consideration
+elif sort_parameters["word_source"] == "active_grids":
+    WORDS_SOURCE = Source.active_grids
+elif sort_parameters["word_source"] == "ics":
+    WORDS_SOURCE = Source.ics
+elif sort_parameters["word_source"] == "ranked":
+    WORDS_SOURCE = Source.ranked
+elif sort_parameters["word_source"] == "words_len_10":
+    WORDS_SOURCE = Source.words_len_10
+WITHOUT_CLUES_ONLY = sort_parameters["without_clues_only"]
+DELETE_ACTIVE = sort_parameters["delete_active"]
 
 
 GRID_TEMPLATE = [

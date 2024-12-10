@@ -1,0 +1,22 @@
+forward_search:
+  # mode
+  mode: DA
+  max_walls: 40
+  f_search_with_flipped: true
+  f_verbose: true
+  # timer
+  sleep_duration: 55
+  restart_at_level: -1
+  max_level_for_active_add: 1
+  # word save
+  f_save_words_used: True
+  f_save_bounds: [0, 1000000]
+
+backward_search:
+  sleep_duration_grid: 1000
+  grid_kill_step: 7
+
+api_sort_parameters:
+  word_source: active_grids
+  without_clues_only: false
+  delete_active: true
