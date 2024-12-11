@@ -21,6 +21,9 @@ from PyQt5.QtWidgets import (
 
 import torus
 from config import (
+    IC_TYPE,
+    MAX_WAL,
+    SEARCH_W_FLIPPED,
     WORDS_CONSIDERED_JSON,
     WORDS_APPROVED_JSON,
     WOR_JSON,
@@ -30,8 +33,9 @@ from config import (
     WITHOUT_CLUES_ONLY,
     DELETE_ACTIVE,
     Source,
+    get_solutions_json,
 )
-
+from filter_solutions import get_words_in_filled_grid
 
 import pickle
 import tqdm
@@ -91,6 +95,16 @@ elif WORDS_SOURCE == Source.ranked:
 elif WORDS_SOURCE == Source.words_len_10:
     words_condiered = torus.json.load_json(WOR_JSON)
     words_condiered = [word for word in words_condiered if len(word) == 10]
+elif WORDS_SOURCE == Source.solutions:
+    sol_grids = torus.json.load_json(
+        get_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
+    )
+    word_set = set()
+    for grid in sol_grids:
+        for word in get_words_in_filled_grid(grid):
+            word_set.add(word)
+    words_condiered = list(word_set)
+
 if len(words_condiered) > 1000:
     words_condiered = words_condiered[:1000]
 

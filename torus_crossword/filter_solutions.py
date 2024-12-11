@@ -82,10 +82,12 @@ if __name__ == "__main__":
     allowed_grids = []
     scored_words_seen = {}
     bad_words_seens = set()
+    double_words_seen = []
     for s in tqdm.tqdm(solutions):
         words = get_words_in_filled_grid(s)
         if len(words) != len(set(words)):
             passed.append(s)
+            double_words_seen.append(s)
             continue
 
         for w in words:
@@ -99,7 +101,9 @@ if __name__ == "__main__":
                 if w not in scored_words_seen:
                     scored_words_seen[w] = scored_words[w]
 
-    print("number solutions allowed:", len(allowed_grids))
+    print("number solutions with duplicate words: ", len(double_words_seen))
+
+    print("number solutions allowed: ", len(allowed_grids))
     torus.json.write_json(BAD_SOLUTIONS, passed)
     torus.json.write_json(SOLS_PATH, allowed_grids)
 

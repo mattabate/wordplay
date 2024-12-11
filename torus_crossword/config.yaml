@@ -1,22 +1,22 @@
 forward_search:
   # mode
   mode: DA
-  max_walls: 40
+  max_walls: 42
   f_search_with_flipped: true
-  f_verbose: true
+  f_verbose: false
   # timer
-  sleep_duration: 55
+  sleep_duration: 120
   restart_at_level: -1
   max_level_for_active_add: 1
   # word save
-  f_save_words_used: True
+  f_save_words_used: False
   f_save_bounds: [0, 1000000]
 
-backward_search:
+backward_search: # for ./last which converts grid templates to bad templates
   sleep_duration_grid: 1000
   grid_kill_step: 7
 
 api_sort_parameters:
-  word_source: active_grids
+  word_source: solutions
   without_clues_only: false
   delete_active: true

@@ -23,6 +23,7 @@ class Source(enum.Enum):
     ics = 2
     ranked = 3
     words_len_10 = 4
+    solutions = 5
 
 
 # Load the YAML file
@@ -70,6 +71,8 @@ elif sort_parameters["word_source"] == "ranked":
     WORDS_SOURCE = Source.ranked
 elif sort_parameters["word_source"] == "words_len_10":
     WORDS_SOURCE = Source.words_len_10
+elif sort_parameters["word_source"] == "solutions":
+    WORDS_SOURCE = Source.solutions
 WITHOUT_CLUES_ONLY = sort_parameters["without_clues_only"]
 DELETE_ACTIVE = sort_parameters["delete_active"]
 
