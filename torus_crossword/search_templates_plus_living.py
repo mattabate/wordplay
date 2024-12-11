@@ -5,41 +5,36 @@ idea:
 - keep the failed ics, but the restore the failed templates (bad)
 """
 
-import torus
+import json
+import random
+import time
+import tqdm
+
 from lib import Direction
 from fast_search import get_word_locations, get_new_grids
-import time
-import json
-import tqdm
 import torus
 
 from main import add_star
 from lib import (
     Direction,
-    get_words_in_partial_grid,
     grid_filled,
     add_theme_words,
     T_BLUE,
     T_YELLOW,
     T_GREEN,
-    T_PINK,
     T_NORMAL,
 )
 from config import (
     C_WALL,
     IC_TYPE,
     WOR_JSON,
-    GRID_KILL_STEP,
     f_save_words_used,
     MAX_WAL,
-    f_verbose,
     WOR_JSON,
-    WORDS_APPROVED_JSON,
     STARS_FOUND_FLIPPED_JSON,
-    ACTIVE_WORDS_JSON,
-    WORDS_OMITTED_JSON,
     SEARCH_W_FLIPPED,
     get_failures_json,
+    get_solutions_json,
 )
 
 WORDLIST = torus.json.load_json(WOR_JSON)
@@ -47,8 +42,7 @@ if not f_save_words_used:
     WORDLIST_SET = set(WORDLIST)
 
 id = int(time.time())
-SOL_JSON = f"solutions/solutions_{id}.json"
-
+SOL_JSON = get_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
 
 v_best_score = 0
 solutions = []
@@ -59,11 +53,15 @@ def recursive_search(grid, level=0):
     global solutions
 
     if grid_filled(grid):
-        tqdm.tqdm.write(T_YELLOW + "Solution found")  # Green text indicating success
-        tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
-        tqdm.tqdm.write(T_NORMAL)
         solutions.append(grid)
-        torus.json.write_json(SOL_JSON, solutions)
+        if torus.json.append_json_list(SOL_JSON, grid):
+            tqdm.tqdm.write(
+                T_GREEN + "New Solution found"
+            )  # Green text indicating success
+            tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
+            tqdm.tqdm.write(T_NORMAL)
+        else:
+            tqdm.tqdm.write(T_YELLOW + "Solution already found" + T_NORMAL)
 
         return
 
@@ -88,8 +86,6 @@ if __name__ == "__main__":
         for t in tamplates[str(MAX_WAL)]
         if t not in failed_templates[str(MAX_WAL)]
     ]
-
-    import random
 
     ic_all = torus.json.load_json(STARS_FOUND_FLIPPED_JSON)
     ic_failures = torus.json.load_json(

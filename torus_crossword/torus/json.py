@@ -35,19 +35,23 @@ def append_json(json_name, grid):
             fcntl.flock(f, fcntl.LOCK_UN)
 
 
-def append_json_list(json_name, grid):
+def append_json_list(json_name, grid) -> bool:
     # only append if not in
+    is_in = True
     with open(json_name, "r+") as f:
         fcntl.flock(f, fcntl.LOCK_EX)
         try:
             data = json.load(f)
             if grid not in data:
+                is_in = False
                 data.append(grid)
-            f.seek(0)
-            json.dump(data, f, indent=4, ensure_ascii=False)
-            f.truncate()
+                f.seek(0)
+                json.dump(data, f, indent=4, ensure_ascii=False)
+                f.truncate()
         finally:
             fcntl.flock(f, fcntl.LOCK_UN)
+
+    return not is_in
 
 
 def remove_duplicates(json_name):
