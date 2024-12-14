@@ -607,7 +607,7 @@ def recursive_search(grid, level=0):
         tqdm.tqdm.write(T_NORMAL)
 
         current_solutions = torus.json.load_json(SOL_JSON)
-        if grid in current_solutions or grid in current_bad_solutions:
+        if grid in current_solutions or "".join(grid) in current_bad_solutions:
             tqdm.tqdm.write(T_PINK + "Already in solutions" + T_NORMAL)
             return
         torus.json.append_json(SOL_JSON, grid)

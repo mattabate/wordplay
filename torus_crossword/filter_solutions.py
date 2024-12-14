@@ -64,10 +64,10 @@ if __name__ == "__main__":
     if f_reomve_duplicates_bad:
         print(
             "Number of bad solutions in json:",
-            len(torus.json.load_json(bad_solutions)),
+            len(bad_solutions),
         )
         passed = torus.json.remove_duplicates(BAD_SOLUTIONS)
-        print("Number of unique bad solutions:", len(passed))
+        print("Number of unique bad solutions saved:", len(passed))
     else:
         passed = bad_solutions
 
@@ -86,13 +86,13 @@ if __name__ == "__main__":
 
         words = get_words_in_filled_grid(s)
         if len(words) != len(set(words)):
-            passed.append(s)
+            passed.append("".join(s))
             double_words_seen.append(s)
             continue
 
         for w in words:
             if w not in WORDLIST:
-                passed.append(s)
+                passed.append("".join(s))
                 bad_words_seens.add(w)
                 break
         else:
