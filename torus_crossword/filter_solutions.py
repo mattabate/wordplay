@@ -55,22 +55,21 @@ if __name__ == "__main__":
     print(T_YELLOW, "Reducing Solutions to Unique", T_NORMAL)
     if f_reomve_duplicates:
         print("Number of solutions in json:", len(torus.json.load_json(SOLS_PATH)))
-        torus.json.remove_duplicates(SOLS_PATH)
-        solutions = torus.json.load_json(SOLS_PATH)
+        solutions = torus.json.remove_duplicates(SOLS_PATH)
         print("Number of unique solutions:", len(solutions))
     else:
         solutions = torus.json.load_json(SOLS_PATH)
 
+    bad_solutions = torus.json.load_json(BAD_SOLUTIONS)
     if f_reomve_duplicates_bad:
         print(
             "Number of bad solutions in json:",
-            len(torus.json.load_json(BAD_SOLUTIONS)),
+            len(torus.json.load_json(bad_solutions)),
         )
-        torus.json.remove_duplicates(BAD_SOLUTIONS)
-        passed = torus.json.load_json(BAD_SOLUTIONS)
+        passed = torus.json.remove_duplicates(BAD_SOLUTIONS)
         print("Number of unique bad solutions:", len(passed))
     else:
-        passed = torus.json.load_json(BAD_SOLUTIONS)
+        passed = bad_solutions
 
     ############################
     # Step 2: ????
@@ -84,6 +83,7 @@ if __name__ == "__main__":
     bad_words_seens = set()
     double_words_seen = []
     for s in tqdm.tqdm(solutions):
+
         words = get_words_in_filled_grid(s)
         if len(words) != len(set(words)):
             passed.append(s)

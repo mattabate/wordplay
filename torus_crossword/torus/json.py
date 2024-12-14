@@ -62,6 +62,7 @@ def remove_duplicates(json_name):
         if s not in unique:
             unique.append(s)
     write_json(json_name, unique)
+    return unique
 
 
 def remove_from_json_list(json_file: str, entry):

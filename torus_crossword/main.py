@@ -67,7 +67,7 @@ if not os.path.exists(SOL_JSON):
     torus.json.write_json(SOL_JSON, [])
 if not os.path.exists(BAD_SOL_JSON):
     torus.json.write_json(BAD_SOL_JSON, [])
-
+current_bad_solutions = torus.json.load_json(BAD_SOL_JSON)
 
 if not IC_TYPE:
     STA_JSON = STARS_FOUND_FLIPPED_JSON
@@ -607,7 +607,6 @@ def recursive_search(grid, level=0):
         tqdm.tqdm.write(T_NORMAL)
 
         current_solutions = torus.json.load_json(SOL_JSON)
-        current_bad_solutions = torus.json.load_json(BAD_SOL_JSON)
         if grid in current_solutions or grid in current_bad_solutions:
             tqdm.tqdm.write(T_PINK + "Already in solutions" + T_NORMAL)
             return
