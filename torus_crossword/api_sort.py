@@ -105,7 +105,7 @@ elif WORDS_SOURCE == Source.solutions:
             word_set.add(word)
     words_condiered = list(word_set)
 
-if len(words_condiered) > 1000:
+if len(words_condiered) > 800:
     words_condiered = words_condiered[:1000]
 
 

@@ -3,18 +3,20 @@ forward_search:
   mode: DA
   max_walls: 42
   f_search_with_flipped: true
-  f_verbose: false
+  f_verbose: true
   # timer
-  sleep_duration: 120
+  sleep_duration: 110
   restart_at_level: -1
-  max_level_for_active_add: 1
   # word save
   f_save_words_used: False
   f_save_bounds: [0, 1000000]
+  max_level_for_active_add: 1
 
 backward_search: # for ./last which converts grid templates to bad templates
   sleep_duration_grid: 1000
-  grid_kill_step: 7
+  grid_kill_step: -1
+
+
 
 api_sort_parameters:
   word_source: solutions
