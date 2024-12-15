@@ -14,7 +14,7 @@ forward_search:
 
 backward_search: # for ./last which converts grid templates to bad templates
   sleep_duration_grid: 1000
-  grid_kill_step: -1
+  grid_kill_step: 2
 
 
 
