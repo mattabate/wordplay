@@ -96,17 +96,10 @@ elif WORDS_SOURCE == Source.words_len_10:
     words_condiered = torus.json.load_json(WOR_JSON)
     words_condiered = [word for word in words_condiered if len(word) == 10]
 elif WORDS_SOURCE == Source.solutions:
-    sol_grids = torus.json.load_json(
-        get_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
-    )
-    word_set = set()
-    for grid in sol_grids:
-        for word in get_words_in_filled_grid(grid):
-            word_set.add(word)
-    words_condiered = list(word_set)
+    words_condiered = torus.json.load_json("filter_words/words_in_valid_solutions.json")
 
 if len(words_condiered) > 800:
-    words_condiered = words_condiered[:1000]
+    words_condiered = words_condiered[:800]
 
 
 class WordSortingApp(QWidget):
