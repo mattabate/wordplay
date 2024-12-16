@@ -5,8 +5,8 @@ forward_search:
   f_search_with_flipped: true
   f_verbose: true
   # timer
-  sleep_duration: 1000
-  restart_at_level: 6
+  sleep_duration: -1
+  restart_at_level: -1
   # word save
   f_save_words_used: False
   f_save_bounds: [0, 1000000]
