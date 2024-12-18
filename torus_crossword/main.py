@@ -15,14 +15,13 @@ from fast_search import get_new_grids as get_new_grids_from_filled
 
 from config import (
     WOR_JSON,
+    Mode,
     ACTIVE_WORDS_JSON,
     STARS_FOUND_JSON,
     STARS_FOUND_FLIPPED_JSON,
     WORDS_APPROVED_JSON,
     WORDS_OMITTED_JSON,
     ROWLEN,
-    MAX_LEVEL_FOR_ACTIVE_ADD,
-    RESTART_AT_LEVEL,
     STAR_START,
     C_WALL,
     GRID_TEMPLATE,
@@ -31,19 +30,12 @@ from config import (
     get_failures_json,
     get_solutions_json,
     get_bad_solutions_json,
-    IC_TYPE,
-    MAX_WAL,
-    SEARCH_W_FLIPPED,
-    f_verbose,
-    f_save_words_used,
-    f_save_bounds,
 )
-
+import yaml
 import torus
 
 from lib import (
     transpose,
-    replace_char_in_string,
     string_to_star,
     get_words_in_partial_grid,
     T_BLUE,
@@ -54,6 +46,20 @@ from lib import (
     add_theme_words,
     get_star_from_grid,
 )
+
+with open("config.yaml", "r") as file:
+    config = yaml.safe_load(file)
+
+# Use the values in your code
+forward_search = config["main"]
+f_verbose = forward_search["f_verbose"]
+f_save_words_used = forward_search["f_save_words_used"]
+f_save_bounds = forward_search["f_save_bounds"]
+IC_TYPE = forward_search["mode"]
+RESTART_AT_LEVEL = forward_search["restart_at_level"]
+MAX_LEVEL_FOR_ACTIVE_ADD = forward_search["max_level_for_active_add"]
+SEARCH_W_FLIPPED = forward_search["f_search_with_flipped"]
+MAX_WAL = forward_search["max_walls"]
 
 
 # grids i dont like
@@ -226,27 +232,37 @@ def add_letter_placeholders_line(line: str) -> str:
     matches = re.finditer(r"█[A-Z@][A-Z@_][A-Z@_]", double)
     for match in matches:
         if line[(match.end() - 2) % ROWLEN] == "_":
-            line = replace_char_in_string(line, "@", (match.end() - 2) % ROWLEN)
+            line = torus.strings.replace_char_in_string(
+                line, "@", (match.end() - 2) % ROWLEN
+            )
         if line[(match.end() - 1) % ROWLEN] == "_":
-            line = replace_char_in_string(line, "@", (match.end() - 1) % ROWLEN)
+            line = torus.strings.replace_char_in_string(
+                line, "@", (match.end() - 1) % ROWLEN
+            )
 
     double = line + line
     matches = re.finditer(r"█_[A-Z@]_", double)
     for match in matches:
-        line = replace_char_in_string(line, "@", (match.end() - 1) % ROWLEN)
+        line = torus.strings.replace_char_in_string(
+            line, "@", (match.end() - 1) % ROWLEN
+        )
 
     double = line + line
     matches = re.finditer(r"[A-Z@_][A-Z@_][A-Z@]█", double)
     for match in matches:
         if line[(match.start()) % ROWLEN] == "_":
-            line = replace_char_in_string(line, "@", match.start() % ROWLEN)
+            line = torus.strings.replace_char_in_string(
+                line, "@", match.start() % ROWLEN
+            )
         if line[(match.start() + 1) % ROWLEN] == "_":
-            line = replace_char_in_string(line, "@", (match.start() + 1) % ROWLEN)
+            line = torus.strings.replace_char_in_string(
+                line, "@", (match.start() + 1) % ROWLEN
+            )
 
     double = line + line
     matches = re.finditer(r"_[A-Z@]_█", double)
     for match in matches:
-        line = replace_char_in_string(line, "@", match.start() % ROWLEN)
+        line = torus.strings.replace_char_in_string(line, "@", match.start() % ROWLEN)
 
     return line
 
@@ -404,11 +420,11 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
                 continue
             all_fills = set(line[i] for line in candidate_lines)
             if len(all_fills) == 1:
-                FILL_INS_TEMPLATE[row] = replace_char_in_string(
+                FILL_INS_TEMPLATE[row] = torus.strings.replace_char_in_string(
                     FILL_INS_TEMPLATE[row], next(iter(all_fills)), i
                 )
             elif C_WALL not in all_fills and "_" not in all_fills:
-                FILL_INS_TEMPLATE[row] = replace_char_in_string(
+                FILL_INS_TEMPLATE[row] = torus.strings.replace_char_in_string(
                     FILL_INS_TEMPLATE[row], "@", i
                 )
 
@@ -530,22 +546,6 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
         return "c", col_idx, transposed_col_grids
 
 
-def print_grid(grid: list[str], h: tuple[str, int, str]):
-
-    grid_copy = grid.copy()
-
-    h_color = h[2]
-    if h[0] == "r":
-        grid_copy[h[1]] = h_color + grid_copy[h[1]] + T_NORMAL
-    else:
-        for i in range(ROWLEN):
-            grid_copy[i] = replace_char_in_string(
-                grid_copy[i], h_color + grid_copy[i][h[1]] + T_NORMAL, h[1]
-            )
-
-    return "\n".join(grid_copy) + T_NORMAL
-
-
 def contains_bad_words(grid: str):
     if f_save_words_used:
         trashed_words = get_words_in_partial_grid(grid) - set(
@@ -622,14 +622,14 @@ def recursive_search(grid, level=0):
             if C_WALL not in line:
                 tqdm.tqdm.write("\n")
                 tqdm.tqdm.write(f"Grid has max walls but ROW {i} has no black squares.")
-                tqdm.tqdm.write(print_grid(grid, ("r", i, T_BLUE)))
+                tqdm.tqdm.write(torus.grid.print_grid(grid, ("r", i, T_BLUE)))
                 return
 
         for i, line in enumerate(transpose(grid)):
             if C_WALL not in line:
                 tqdm.tqdm.write("\n")
                 tqdm.tqdm.write(f"Grid has max walls but COL {i} has no black squares.")
-                tqdm.tqdm.write(print_grid(grid, ("c", i, T_BLUE)))
+                tqdm.tqdm.write(torus.grid.print_grid(grid, ("c", i, T_BLUE)))
                 return
 
         gt = get_grid_template_from_grid(grid)
@@ -641,7 +641,7 @@ def recursive_search(grid, level=0):
             tqdm.tqdm.write(
                 T_PINK + f"Should not get here - Grid is in bad templates" + T_NORMAL
             )
-            tqdm.tqdm.write(print_grid(grid, ("c", i, T_BLUE)))
+            tqdm.tqdm.write(torus.grid.print_grid(grid, ("c", i, T_BLUE)))
             raise ValueError("Should not get here")
             return
 
@@ -686,7 +686,9 @@ def recursive_search(grid, level=0):
                 )
                 tqdm.tqdm.write("\n")
                 tqdm.tqdm.write(out1)
-                tqdm.tqdm.write(print_grid(grid, (row_or_col, start, T_PINK)))
+                tqdm.tqdm.write(
+                    torus.grid.print_grid(grid, (row_or_col, start, T_PINK))
+                )
 
             return
 
@@ -707,7 +709,9 @@ def recursive_search(grid, level=0):
                 )
                 tqdm.tqdm.write("\n")
                 tqdm.tqdm.write(out2)
-                tqdm.tqdm.write(print_grid(grid, (row_or_col, start, T_GREEN)))
+                tqdm.tqdm.write(
+                    torus.grid.print_grid(grid, (row_or_col, start, T_GREEN))
+                )
 
             for new_grid in t:
                 recursive_search(new_grid, level + 1)

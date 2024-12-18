@@ -30,12 +30,8 @@ class Source(enum.Enum):
 with open("config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
-# Access the configuration values
-forward_search = config["forward_search"]
-backward_search = config["backward_search"]
-sort_parameters = config["api_sort_parameters"]
-
 # Use the values in your code
+forward_search = config["main"]
 IC_TYPE = forward_search["mode"]
 if IC_TYPE == "AD":
     mode = Mode.AD
@@ -54,6 +50,11 @@ RESTART_AT_LEVEL = forward_search["restart_at_level"]
 MAX_LEVEL_FOR_ACTIVE_ADD = forward_search["max_level_for_active_add"]
 SEARCH_W_FLIPPED = forward_search["f_search_with_flipped"]
 MAX_WAL = forward_search["max_walls"]
+
+# Access the configuration values
+
+backward_search = config["backward_search"]
+sort_parameters = config["api_sort_parameters"]
 
 
 SLEEP_DURATION_GRID = backward_search["sleep_duration_grid"]

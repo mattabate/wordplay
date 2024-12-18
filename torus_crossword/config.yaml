@@ -1,14 +1,14 @@
-forward_search:
+main: # for ./run
   # mode
   mode: DA
   max_walls: 42
   f_search_with_flipped: true
   f_verbose: true
   # timer
-  sleep_duration: 120
-  restart_at_level: 7
+  sleep_duration: -1
+  restart_at_level: -1
   # word save
-  f_save_words_used: true
+  f_save_words_used: false
   f_save_bounds: [0, 1000000]
   max_level_for_active_add: 1
 
@@ -22,3 +22,11 @@ api_sort_parameters:
   word_source: active_grids # solutions 
   without_clues_only: false
   delete_active: true
+
+search_templates_plus_living:
+  mode: DA 
+  max_walls: 42
+  f_search_with_flipped: true
+  f_save_words_used: false
+  f_verbose: false
+  restart_at_level: -1

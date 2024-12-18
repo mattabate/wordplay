@@ -26,7 +26,6 @@ from lib import (
 )
 from config import (
     C_WALL,
-    IC_TYPE,
     WOR_JSON,
     f_save_words_used,
     MAX_WAL,
@@ -36,6 +35,19 @@ from config import (
     get_failures_json,
     get_solutions_json,
 )
+import yaml
+
+with open("config.yaml", "r") as file:
+    config = yaml.safe_load(file)
+
+# Use the values in your code
+forward_search = config["search_templates_plus_living"]
+f_verbose = forward_search["f_verbose"]
+IC_TYPE = forward_search["mode"]
+RESTART_AT_LEVEL = forward_search["restart_at_level"]
+SEARCH_W_FLIPPED = forward_search["f_search_with_flipped"]
+MAX_WAL = forward_search["max_walls"]
+
 
 WORDLIST = torus.json.load_json(WOR_JSON)
 if not f_save_words_used:

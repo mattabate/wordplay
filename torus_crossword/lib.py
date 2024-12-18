@@ -13,7 +13,6 @@ from config import (
     STAR_START,
     STAR_HEIGHT,
     STAR_WIDTH,
-    GRIDCELLS,
 )
 
 T_NORMAL = "\033[0m"
@@ -77,26 +76,6 @@ def transpose(grid: list[str]) -> list[str]:
     return ["".join(row) for row in zip(*grid)]
 
 
-def replace_char_in_string(string, char, index):
-    """Replace a character at a specific index in a string.
-
-    Args:
-        string (str): The original string
-        char (str): The character to replace with
-        index (int): The index at which to replace the character
-
-    Returns:
-        str: The modified string
-    """
-    l = len(string)
-    if index < 0:
-        index += l
-    if index >= l or index < 0:
-        return string  # Return the original string if index is out of bounds
-
-    return string[:index] + char + string[index + 1 :]
-
-
 def replace_char_in_grid(grid: list[str], loc: tuple[int, int], c: str) -> list[str]:
     """Replace the character at the given location in the grid."""
     row = grid[loc[0]]
@@ -127,29 +106,41 @@ def add_theme_words(template: list[str], type: str):
     if type == "A":
         for i in range(ROWLEN):
             if t_holder[i] != "_":
-                template[7] = replace_char_in_string(template[7], t_holder[i], i)
+                template[7] = torus.strings.replace_char_in_string(
+                    template[7], t_holder[i], i
+                )
     elif type == "AA":
         template[7] = "HNUT█TORUS█DOUG"
     elif type == "AD":
         for i in range(ROWLEN):
             if d_holder[i] != "_":
-                template[i] = replace_char_in_string(template[i], d_holder[i], 7)
+                template[i] = torus.strings.replace_char_in_string(
+                    template[i], d_holder[i], 7
+                )
 
         for i in range(ROWLEN):
             if t_holder[i] != "_":
-                template[7] = replace_char_in_string(template[7], t_holder[i], i)
+                template[7] = torus.strings.replace_char_in_string(
+                    template[7], t_holder[i], i
+                )
     elif type == "DA":
         for i in range(ROWLEN):
             if d_holder[i] != "_":
-                template[7] = replace_char_in_string(template[7], d_holder[i], i)
+                template[7] = torus.strings.replace_char_in_string(
+                    template[7], d_holder[i], i
+                )
         for i in range(ROWLEN):
             if t_holder[i] != "_":
-                template[i] = replace_char_in_string(template[i], t_holder[i], 7)
+                template[i] = torus.strings.replace_char_in_string(
+                    template[i], t_holder[i], 7
+                )
     elif type == "DD":
         col7 = "HNUT█TORUS█DOUG"
         for i in range(ROWLEN):
             if col7[i] != "_":
-                template[i] = replace_char_in_string(template[i], col7[i], 7)
+                template[i] = torus.strings.replace_char_in_string(
+                    template[i], col7[i], 7
+                )
     elif type == "":
         pass
     else:
