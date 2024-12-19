@@ -5,8 +5,8 @@ main: # for ./run
   f_search_with_flipped: true
   f_verbose: true
   # timer
-  sleep_duration: 18000
-  restart_at_level: 7
+  sleep_duration: 100000
+  restart_at_level: 18
   # word save
   f_save_words_used: false
   f_save_bounds: [0, 1000000]
