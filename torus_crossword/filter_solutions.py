@@ -86,8 +86,14 @@ if __name__ == "__main__":
 
         words = get_words_in_filled_grid(s)
         if len(words) != len(set(words)):
+            # print("duplicate words in solution")
             passed.append("".join(s))
             double_words_seen.append(s)
+            continue
+
+        if "OPENDATES" in words and "TOURDATES" in words:
+            # print("OPENDATES and OPEN in solution")
+            passed.append("".join(s))
             continue
 
         for w in words:

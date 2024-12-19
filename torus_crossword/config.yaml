@@ -5,8 +5,8 @@ main: # for ./run
   f_search_with_flipped: true
   f_verbose: true
   # timer
-  sleep_duration: -1
-  restart_at_level: -1
+  sleep_duration: 18000
+  restart_at_level: 7
   # word save
   f_save_words_used: false
   f_save_bounds: [0, 1000000]
@@ -19,7 +19,7 @@ backward_search: # for ./last which converts grid templates to bad templates
 
 
 api_sort_parameters:
-  word_source: active_grids # solutions 
+  word_source: solutions # active_grids # solutions 
   without_clues_only: false
   delete_active: true
 

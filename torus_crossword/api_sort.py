@@ -98,8 +98,9 @@ elif WORDS_SOURCE == Source.words_len_10:
 elif WORDS_SOURCE == Source.solutions:
     words_condiered = torus.json.load_json("filter_words/words_in_valid_solutions.json")
 
-if len(words_condiered) > 800:
-    words_condiered = words_condiered[:800]
+MAX_WORDS = 2000
+if len(words_condiered) > MAX_WORDS:
+    words_condiered = words_condiered[:MAX_WORDS]
 
 
 class WordSortingApp(QWidget):
