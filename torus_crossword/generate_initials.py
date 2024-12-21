@@ -21,7 +21,6 @@ from lib import (
     Sqaure,
     Word,
     WORDLIST_BY_LEN,
-    transpose,
     replace_char_in_grid,
     T_NORMAL,
     T_GREEN,
@@ -93,7 +92,7 @@ def get_word_locations(grid: list[list[str]], direction: Direction) -> list[Word
                     word_holder.possibilities = across_pref_set
             words.append(word_holder)
     else:
-        it_t = transpose(grid)
+        it_t = torus.grid.transpose(grid)
         for c in range(6):
             if "@" in it_t[c]:
                 if not "@" in it_t[c]:
@@ -314,7 +313,7 @@ def get_stars_from_seed_grids(grid: list[str]) -> list[list[str]]:
                     new_actual_ics.append(new)
             actual_ics = new_actual_ics
 
-        grid_t = transpose(grid)
+        grid_t = torus.grid.transpose(grid)
         for c in [0, 1, 2]:
             words = [w for w in WORDLIST_BY_LEN[8] if w.endswith(grid_t[c])]
 
@@ -322,9 +321,9 @@ def get_stars_from_seed_grids(grid: list[str]) -> list[list[str]]:
             for w in words:
                 for g in actual_ics:
                     new = g.copy()
-                    new_t = transpose(new)
+                    new_t = torus.grid.transpose(new)
                     new_t[c + 3] = w + C_WALL * 2
-                    new_actual_ics.append(transpose(new_t))
+                    new_actual_ics.append(torus.grid.transpose(new_t))
             actual_ics = new_actual_ics
 
         for c in [3, 4, 5]:
@@ -334,9 +333,9 @@ def get_stars_from_seed_grids(grid: list[str]) -> list[list[str]]:
             for w in words:
                 for g in actual_ics:
                     new = g.copy()
-                    new_t = transpose(new)
+                    new_t = torus.grid.transpose(new)
                     new_t[c + 3] = C_WALL * 2 + w
-                    new_actual_ics.append(transpose(new_t))
+                    new_actual_ics.append(torus.grid.transpose(new_t))
             actual_ics = new_actual_ics
     else:
         for r in [0, 1, 2]:
@@ -361,7 +360,7 @@ def get_stars_from_seed_grids(grid: list[str]) -> list[list[str]]:
                     new_actual_ics.append(new)
             actual_ics = new_actual_ics
 
-        grid_t = transpose(grid)
+        grid_t = torus.grid.transpose(grid)
         for c in [0, 1, 2]:
             words = [w for w in WORDLIST_BY_LEN[8] if w.startswith(grid_t[c])]
 
@@ -369,9 +368,9 @@ def get_stars_from_seed_grids(grid: list[str]) -> list[list[str]]:
             for w in words:
                 for g in actual_ics:
                     new = g.copy()
-                    new_t = transpose(new)
+                    new_t = torus.grid.transpose(new)
                     new_t[c + 3] = C_WALL * 2 + w
-                    new_actual_ics.append(transpose(new_t))
+                    new_actual_ics.append(torus.grid.transpose(new_t))
             actual_ics = new_actual_ics
 
         for c in [3, 4, 5]:
@@ -381,9 +380,9 @@ def get_stars_from_seed_grids(grid: list[str]) -> list[list[str]]:
             for w in words:
                 for g in actual_ics:
                     new = g.copy()
-                    new_t = transpose(new)
+                    new_t = torus.grid.transpose(new)
                     new_t[c + 3] = w + C_WALL * 2
-                    new_actual_ics.append(transpose(new_t))
+                    new_actual_ics.append(torus.grid.transpose(new_t))
             actual_ics = new_actual_ics
 
     return ["".join(s) for s in actual_ics]
@@ -408,7 +407,7 @@ def recursive_search(grid, level=0):
                 elif r in [3, 4, 5]:
                     if grid[r] not in across_pref_set:
                         return
-            grid_t = transpose(grid)
+            grid_t = torus.grid.transpose(grid)
             for c in range(6):
                 if c in [0, 1, 2]:
                     if grid_t[c] not in down_pref_set:
@@ -424,7 +423,7 @@ def recursive_search(grid, level=0):
                 elif r in [3, 4, 5]:
                     if grid[r] not in across_suff_set:
                         return
-            grid_t = transpose(grid)
+            grid_t = torus.grid.transpose(grid)
             for c in range(6):
                 if c in [0, 1, 2]:
                     if grid_t[c] not in down_suff_set:

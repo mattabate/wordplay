@@ -131,11 +131,10 @@ if __name__ == "__main__":
             continue
 
         tqdm.tqdm.write(T_YELLOW + f"Trial {i} / {lsoi}" + T_NORMAL)
+        random.shuffle(ics_of_interest)
         for ic in tqdm.tqdm(ics_of_interest):
             t_i_care_about = add_star(t, [ic[v : v + 6] for v in range(0, 36, 6)])
-
             grid = add_theme_words(t_i_care_about, IC_TYPE)
-
             recursive_search(grid, 0)
 
         if not len(solutions):

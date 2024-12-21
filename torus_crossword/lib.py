@@ -71,11 +71,6 @@ class Sqaure:
         self.possible_chars = set(letter_set)
 
 
-def transpose(grid: list[str]) -> list[str]:
-    """transpose a 15x15 character grid, represented as a list of strings"""
-    return ["".join(row) for row in zip(*grid)]
-
-
 def replace_char_in_grid(grid: list[str], loc: tuple[int, int], c: str) -> list[str]:
     """Replace the character at the given location in the grid."""
     row = grid[loc[0]]
@@ -181,7 +176,7 @@ def get_words_in_partial_grid(grid: list[str]) -> set[str]:
                 across_words.add(b)
 
     down_words = set()
-    for l in transpose(grid):
+    for l in torus.grid.transpose(grid):
         bits = (l + l).split(C_WALL)[1:-1]
         for b in bits:
             if b and "@" not in b and "_" not in b:

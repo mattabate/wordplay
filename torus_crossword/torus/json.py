@@ -67,5 +67,8 @@ def remove_duplicates(json_name):
 
 def remove_from_json_list(json_file: str, entry):
     current_list = load_json(json_file)
+    if entry not in current_list:
+        return False
     reduced_json = [e for e in current_list if e != entry]
     write_json(json_file, reduced_json)
+    return True

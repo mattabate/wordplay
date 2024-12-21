@@ -21,9 +21,6 @@ from PyQt5.QtWidgets import (
 
 import torus
 from config import (
-    IC_TYPE,
-    MAX_WAL,
-    SEARCH_W_FLIPPED,
     WORDS_CONSIDERED_JSON,
     WORDS_APPROVED_JSON,
     WOR_JSON,
@@ -33,54 +30,7 @@ from config import (
     WITHOUT_CLUES_ONLY,
     DELETE_ACTIVE,
     Source,
-    get_solutions_json,
 )
-from filter_solutions import get_words_in_filled_grid
-
-import pickle
-import tqdm
-
-from config import EMB_PREF, EMB_MODL, PKL_MODL
-from openai import OpenAI
-from keys import OPENAI_API_KEY
-import os
-
-os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
-
-
-if True:
-    client = OpenAI()
-
-
-def infer(model_file, words):
-
-    with open(model_file, "rb") as file:
-        clf = pickle.load(file)
-
-    words_considered = [EMB_PREF + w for w in words]
-    step = 1000
-    good_vectors = []
-    for i in tqdm.tqdm(range(0, len(words_considered), step)):
-        good_vectors += client.embeddings.create(
-            input=words_considered[i : i + step], model=EMB_MODL
-        ).data
-        time.sleep(1)
-
-    out = [x.embedding for x in good_vectors]
-    # predictions = clf.predict(out)
-    # print("Predictions:", predictions)
-
-    # Compute decision function scores
-    scores = clf.decision_function(out)
-    word_scores = list(zip(words, scores))
-
-    # Sort words from most assumed bad to most assumed good
-    word_scores_sorted = sorted(word_scores, key=lambda x: x[1])
-    sorted_words = [word for word, _ in word_scores_sorted]
-    print("best words:", [(word, s) for word, s in word_scores_sorted][:5])
-    print("worst words:", [(word, s) for word, s in word_scores_sorted][-5:])
-
-    return sorted_words
 
 
 words_condiered = []
@@ -116,7 +66,7 @@ class WordSortingApp(QWidget):
         self.words_seen = set(self.words_omitted + self.words_approved)
 
         self.words_considered = words_condiered
-        self.words_considered = infer(PKL_MODL, words_condiered)
+        self.words_considered = torus.svm.infer(words_condiered)
         if self.f_delete_active:
             torus.json.write_json(ACTIVE_WORDS_JSON, [])
 
@@ -193,6 +143,21 @@ class WordSortingApp(QWidget):
         self.google_button.clicked.connect(self.google_word)  # Connected Google button
         self.exit_button.clicked.connect(self.exit_app)
 
+        # Undo input field and button
+        self.undo_input = QTextEdit(self)
+        self.undo_input.setFont(QFont("Arial", 12))
+        self.undo_input.setStyleSheet(
+            "background-color: #ffffff; border: 1px solid #cccccc; padding: 5px;"
+        )
+        self.undo_input.setPlaceholderText("Enter word to undo rejection...")
+        self.undo_input.setFixedHeight(40)
+
+        self.undo_button = QPushButton("Undo Rejection", self)
+        self.undo_button.setStyleSheet(
+            "background-color: #FFD700; color: black; padding: 10px; font-size: 14px;"
+        )
+        self.undo_button.clicked.connect(self.undo_rejection)
+
         # Layouts
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.accept_button)
@@ -201,12 +166,17 @@ class WordSortingApp(QWidget):
         button_layout.addWidget(self.google_button)  # Added Google button to layout
         button_layout.addWidget(self.exit_button)
 
+        undo_layout = QHBoxLayout()
+        undo_layout.addWidget(self.undo_input)
+        undo_layout.addWidget(self.undo_button)
+
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.progress_label)
         main_layout.addWidget(self.word_label)
         main_layout.addWidget(line)
         main_layout.addWidget(self.clues_text)
         main_layout.addLayout(button_layout)
+        main_layout.addLayout(undo_layout)
 
         self.setLayout(main_layout)
         self.show()
@@ -299,6 +269,20 @@ class WordSortingApp(QWidget):
         query = word
         url = f"https://www.google.com/search?q={query}"
         webbrowser.open_new_tab(url)
+
+    def undo_rejection(self):
+        entered_word = self.undo_input.toPlainText().strip().upper()
+        print("word to undo:", entered_word)
+        if torus.json.remove_from_json_list(WORDS_OMITTED_JSON, entered_word):
+            torus.json.append_json(WOR_JSON, entered_word)
+            torus.json.append_json(WORDS_APPROVED_JSON, entered_word)
+            QMessageBox.information(
+                self, "Undo Successful", f"'{entered_word}' has been restored."
+            )
+        else:
+            QMessageBox.warning(
+                self, "Undo Failed", f"'{entered_word}' was not found in omitted words."
+            )
 
     def exit_app(self):
         self.close()

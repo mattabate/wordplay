@@ -1,8 +1,7 @@
 import tqdm
 import torus
 
-from lib import Direction, T_YELLOW, T_NORMAL
-from fast_search import get_word_locations, ROWLEN
+from lib import T_YELLOW, T_NORMAL
 
 from config import (
     WOR_JSON,
@@ -24,26 +23,6 @@ f_reomve_duplicates_bad = False
 WORDLIST = torus.json.load_json(WOR_JSON)
 SOLS_PATH = get_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
 BAD_SOLUTIONS = get_bad_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
-
-
-def get_words_in_filled_grid(grid: list[str]) -> list[str]:
-    """returns a list of words in a filled grid"""
-    words = get_word_locations(
-        grid=grid, direction=Direction.ACROSS
-    ) + get_word_locations(grid=grid, direction=Direction.DOWN)
-
-    word_strings = []
-    for w in words:
-        string_word = ""
-        for i in range(w.length):
-            if w.direction == Direction.ACROSS:
-                string_word += grid[w.start[0]][(w.start[1] + i) % ROWLEN]
-            else:
-                string_word += grid[(w.start[0] + i) % ROWLEN][w.start[1]]
-
-        word_strings.append(string_word)
-
-    return word_strings
 
 
 if __name__ == "__main__":
@@ -84,7 +63,7 @@ if __name__ == "__main__":
     double_words_seen = []
     for s in tqdm.tqdm(solutions):
 
-        words = get_words_in_filled_grid(s)
+        words = torus.grid.get_words_in_filled_grid(s)
         if len(words) != len(set(words)):
             # print("duplicate words in solution")
             passed.append("".join(s))

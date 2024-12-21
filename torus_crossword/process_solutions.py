@@ -1,6 +1,6 @@
 import numpy as np
 import tqdm
-from lib import Direction, transpose
+from lib import Direction
 from fast_search import get_word_locations, ROWLEN
 
 import matplotlib.pyplot as plt
@@ -126,7 +126,7 @@ for i, s in enumerate(best_s):
     if SEARCH_W_FLIPPED:
         print("\n".join([" ".join(l) for l in s]))
     else:
-        print("\n".join([" ".join(l) for l in transpose(s)]))
+        print("\n".join([" ".join(l) for l in torus.grid.transpose(s)]))
     word_strings, scores = score_words(s)
     print()
 

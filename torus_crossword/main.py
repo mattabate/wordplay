@@ -35,7 +35,6 @@ import yaml
 import torus
 
 from lib import (
-    transpose,
     string_to_star,
     get_words_in_partial_grid,
     T_BLUE,
@@ -270,17 +269,17 @@ def add_letter_placeholders_line(line: str) -> str:
 def fill_in_small_holes(grid: list[str]) -> list[str]:
     """Return a grid with holes filled like █_█ -> "███" or "█@__" -> "█@@@"."""
     new_grid = [fill_small_holes_line(l) for l in grid]
-    tr = transpose(new_grid)  # compute transpose matrix
+    tr = torus.grid.transpose(new_grid)  # compute transpose matrix
     new_grid = [fill_small_holes_line(l) for l in tr]
-    return transpose(new_grid)
+    return torus.grid.transpose(new_grid)
 
 
 def add_letter_placeholders(grid: list[str]) -> list[str]:
     """Add placeholders for letters in the grid. like █[A-Z@][A-Z@_][A-Z@_] -> █@@@."""
     new_grid = [add_letter_placeholders_line(l) for l in grid]
-    tr = transpose(new_grid)  # compute transpose matrix
+    tr = torus.grid.transpose(new_grid)  # compute transpose matrix
     new_grid = [add_letter_placeholders_line(l) for l in tr]
-    return transpose(new_grid)
+    return torus.grid.transpose(new_grid)
 
 
 def grid_contains_short_words(grid: list[str]) -> bool:
@@ -288,7 +287,7 @@ def grid_contains_short_words(grid: list[str]) -> bool:
         if check_line_for_short_words(line):
             return True
 
-    for line in transpose(grid):
+    for line in torus.grid.transpose(grid):
         if check_line_for_short_words(line):
             return True
     return False
@@ -361,7 +360,7 @@ def grid_contains_unwalled_rows(grid: list[str]) -> bool:
     for line in grid:
         if C_WALL not in line:
             return True
-    for line in transpose(grid):
+    for line in torus.grid.transpose(grid):
         if C_WALL not in line:
             return True
     return False
@@ -369,8 +368,6 @@ def grid_contains_unwalled_rows(grid: list[str]) -> bool:
 
 def grid_string_known_bad_wall_locs(grid_str: str) -> bool:
     t_str = "".join("@" if c != C_WALL else C_WALL for c in grid_str)
-    if "_" in t_str:
-        raise ValueError("Should not get here")
     num_walls = t_str.count(C_WALL)
     if t_str in BADGRIDTEMPLATES[str(num_walls)]:
         # it is known that black squares can not appear in this configuration
@@ -458,7 +455,7 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
                     continue
 
                 if rc:  # rc = c
-                    gt_str = "".join(transpose(candidate_grid))
+                    gt_str = "".join(torus.grid.transpose(candidate_grid))
                 else:  # rc = r
                     gt_str = "".join(candidate_grid)
                 if grid_string_known_bad_wall_locs(gt_str):
@@ -534,7 +531,7 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
 
     # transpose to find the best collum
     col_idx, best_col_score, best_col_grids = get_best_row(
-        transpose(grid), "c"
+        torus.grid.transpose(grid), "c"
     )  # HACK: redundant
 
     # note you want to minimize scre
@@ -542,7 +539,7 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
         return "r", row_idx, best_row_grids
     else:
         # transform back all of the column grids
-        transposed_col_grids = [transpose(g) for g in best_col_grids]
+        transposed_col_grids = [torus.grid.transpose(g) for g in best_col_grids]
         return "c", col_idx, transposed_col_grids
 
 
@@ -566,40 +563,15 @@ def contains_bad_words(grid: str):
     return False
 
 
-def save_words_to_active(new_grids: list[list[str]]):
-    words_seen = set()
-    for l in new_grids:
-        words_seen |= set(lib.get_words_in_partial_grid(l))
-
-    words_active = set(torus.json.load_json(ACTIVE_WORDS_JSON))
-    # get all words in words approved, and add them to active words
-    words_approved = torus.json.load_json(WORDS_APPROVED_JSON)
-    words_omitted = torus.json.load_json(WORDS_OMITTED_JSON)
-    for w in words_seen:
-        if w in words_active or w in words_approved or w in words_omitted:
-            continue
-        tqdm.tqdm.write(T_YELLOW + f"Adding {w} to active words" + T_NORMAL)
-        torus.json.append_json(ACTIVE_WORDS_JSON, w)
-
-
-def get_grid_template_from_grid(grid):
-    return ["".join("@" if c != C_WALL else C_WALL for c in s) for s in grid]
-
-
-def add_to_grid_templates_if_not_seen(gt_str):
-    seen_temps = torus.json.load_json("liked_templates.json")
-    num_walls = "".join(gt_str).count(C_WALL)
-    if gt_str not in seen_temps[str(num_walls)]:
-        seen_temps[str(num_walls)].append(gt_str)
-        torus.json.write_json("liked_templates.json", seen_temps)
-
-
 def recursive_search(grid, level=0):
     global v_best_score
     global v_best_grids
 
     if 0 < RESTART_AT_LEVEL <= level - 2:
         exit()
+
+    if contains_bad_words(grid):
+        return
 
     if grid_filled(grid):
         tqdm.tqdm.write(T_GREEN + "Solution found")  # Green text indicating success
@@ -613,9 +585,6 @@ def recursive_search(grid, level=0):
         torus.json.append_json(SOL_JSON, grid)
         return
 
-    if contains_bad_words(grid):
-        return
-
     grid_str = "".join(grid)
     if grid_str.count("_") == 0:
         for i, line in enumerate(grid):
@@ -625,15 +594,14 @@ def recursive_search(grid, level=0):
                 tqdm.tqdm.write(torus.grid.print_grid(grid, ("r", i, T_BLUE)))
                 return
 
-        for i, line in enumerate(transpose(grid)):
+        for i, line in enumerate(torus.grid.transpose(grid)):
             if C_WALL not in line:
                 tqdm.tqdm.write("\n")
                 tqdm.tqdm.write(f"Grid has max walls but COL {i} has no black squares.")
                 tqdm.tqdm.write(torus.grid.print_grid(grid, ("c", i, T_BLUE)))
                 return
 
-        gt = get_grid_template_from_grid(grid)
-        gt_str = "".join(gt)
+        gt_str = torus.grid.get_grid_template_str_from_grid_str(grid_str)
         num_walls = gt_str.count(C_WALL)
 
         if gt_str in BADGRIDTEMPLATES[str(num_walls)]:
@@ -645,7 +613,7 @@ def recursive_search(grid, level=0):
             raise ValueError("Should not get here")
             return
 
-        add_to_grid_templates_if_not_seen(gt_str)
+        torus.cache.add_to_grid_templates_if_not_seen(gt_str)
 
         new_grids = get_new_grids_from_filled(grid)
 
@@ -660,7 +628,7 @@ def recursive_search(grid, level=0):
             and level < MAX_LEVEL_FOR_ACTIVE_ADD
             and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]
         ):
-            save_words_to_active(new_grids)
+            torus.cache.save_words_to_active(new_grids)
 
         with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
             if f_verbose:
@@ -697,7 +665,7 @@ def recursive_search(grid, level=0):
             and level < MAX_LEVEL_FOR_ACTIVE_ADD
             and f_save_bounds[0] <= len(new_grids) <= f_save_bounds[1]
         ):
-            save_words_to_active(new_grids)
+            torus.cache.save_words_to_active(new_grids)
 
         with tqdm.tqdm(new_grids, desc=f"Level {level}", leave=False) as t:
             if f_verbose:
@@ -759,15 +727,14 @@ if __name__ == "__main__":
         init_id, star_str = s
         tqdm.tqdm.write(T_YELLOW + f"Trial {t} / {lsoi}  ({ls} tot)" + T_NORMAL)
         tqdm.tqdm.write(T_YELLOW + f"Star id: " + T_NORMAL + f"{init_id}")
-        grid = INITIAL_TEMPLATE.copy()
-
-        grid = add_star(grid, string_to_star(star_str))
         fail_stars_str = torus.json.load_json(FAI_JSON)
 
         if star_str in fail_stars_str:
             tqdm.tqdm.write(T_BLUE + "Already Failed - Skipping" + T_NORMAL)
             continue
 
+        grid = INITIAL_TEMPLATE.copy()
+        grid = add_star(grid, string_to_star(star_str))
         recursive_search(grid, 0)
 
         all_solutions = torus.json.load_json(SOL_JSON)

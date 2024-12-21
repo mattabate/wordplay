@@ -2,7 +2,9 @@
 
 import itertools
 
-from lib import Direction, Sqaure, Word, replace_char_in_grid, transpose
+import torus
+
+from lib import Direction, Sqaure, Word, replace_char_in_grid
 
 from config import C_WALL, ROWLEN
 
@@ -23,7 +25,7 @@ def get_word_locations(grid: list[str], direction: Direction) -> list[Word]:
     """
 
     if direction == Direction.DOWN:
-        grid_T = transpose(grid)
+        grid_T = torus.grid.transpose(grid)
 
     output = []  # 1 "accross" or "down", (row, colum) of first word, length of word
     # across
