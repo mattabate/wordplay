@@ -72,7 +72,8 @@ if not os.path.exists(SOL_JSON):
     torus.json.write_json(SOL_JSON, [])
 if not os.path.exists(BAD_SOL_JSON):
     torus.json.write_json(BAD_SOL_JSON, [])
-current_bad_solutions = torus.json.load_json(BAD_SOL_JSON)
+# current_bad_solutions = torus.json.load_json(BAD_SOL_JSON)
+current_bad_solutions = []
 
 if not IC_TYPE:
     STA_JSON = STARS_FOUND_FLIPPED_JSON
@@ -503,7 +504,7 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
     FILL_INS_TEMPLATE = torus.checks.enforce_symmetry(FILL_INS_TEMPLATE)
     if not FILL_INS_TEMPLATE:
         if f_verbose:
-            tqdm.tqdm.write(T_YELLOW + "not actually doable" + T_NORMAL)
+            tqdm.tqdm.write(T_YELLOW + "cant be made symetric" + T_NORMAL)
             tqdm.tqdm.write(
                 T_YELLOW + json.dumps(o, indent=2, ensure_ascii=False) + T_NORMAL
             )
@@ -525,14 +526,24 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
     """Given a grid, find the best row or column to latch on to."""
 
     # find the best row to latch on
-    row_idx, best_row_score, best_row_grids = get_best_row(grid)
+    row_idx, _, best_row_grids = get_best_row(grid)
     if len(best_row_grids) == 0:
         return "r", row_idx, best_row_grids
 
     # transpose to find the best collum
-    col_idx, best_col_score, best_col_grids = get_best_row(
-        torus.grid.transpose(grid), "c"
-    )  # HACK: redundant
+    col_idx, _, best_col_grids = get_best_row(torus.grid.transpose(grid), "c")
+    if len(best_col_grids) == 0:
+        return "c", col_idx, best_col_grids
+
+    best_row_score = 0
+    for g in best_row_grids:
+        best_row_score += "".join(g).count("_")
+    best_row_score = best_row_score / len(best_row_grids)
+
+    best_col_score = 0
+    for g in best_col_grids:
+        best_col_score += "".join(g).count("_")
+    best_col_score = best_col_score / len(best_col_grids)
 
     # note you want to minimize scre
     if best_row_score < best_col_score:

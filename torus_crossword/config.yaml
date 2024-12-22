@@ -4,13 +4,13 @@ main: # for ./run
   max_walls: 42
   f_search_with_flipped: true
   # timer
-  f_verbose: True
-  sleep_duration: 900
-  restart_at_level: -1
+  f_verbose: False
+  sleep_duration: 120
+  restart_at_level: 2
   # word save
   f_save_words_used: false
   f_save_bounds: [0, 100]
-  max_level_for_active_add: 3
+  max_level_for_active_add: 1
 
 backward_search: # for ./last which converts grid templates to bad templates
   sleep_duration_grid: 1000
@@ -19,7 +19,7 @@ backward_search: # for ./last which converts grid templates to bad templates
 
 
 api_sort_parameters:
-  word_source: solutions # active_grids # solutions 
+  word_source: active_grids # active_grids # solutions 
   without_clues_only: false
   delete_active: true
 
