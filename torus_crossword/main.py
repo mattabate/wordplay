@@ -7,7 +7,6 @@ import re
 import tqdm
 import random
 import os
-from collections import deque
 
 import lib
 from lib import grid_filled
@@ -15,12 +14,8 @@ from fast_search import get_new_grids as get_new_grids_from_filled
 
 from config import (
     WOR_JSON,
-    Mode,
-    ACTIVE_WORDS_JSON,
     STARS_FOUND_JSON,
     STARS_FOUND_FLIPPED_JSON,
-    WORDS_APPROVED_JSON,
-    WORDS_OMITTED_JSON,
     ROWLEN,
     STAR_START,
     C_WALL,
@@ -72,8 +67,8 @@ if not os.path.exists(SOL_JSON):
     torus.json.write_json(SOL_JSON, [])
 if not os.path.exists(BAD_SOL_JSON):
     torus.json.write_json(BAD_SOL_JSON, [])
-# current_bad_solutions = torus.json.load_json(BAD_SOL_JSON)
-current_bad_solutions = []
+current_bad_solutions = torus.json.load_json(BAD_SOL_JSON)
+# current_bad_solutions = []
 
 if not IC_TYPE:
     STA_JSON = STARS_FOUND_FLIPPED_JSON
@@ -497,7 +492,7 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
             K_INDEX = row
             K_BEST_GRIDS = working_grids
             if len(K_BEST_GRIDS) == 1:
-                return get_best_row(K_BEST_GRIDS[0], rc)
+                break
 
     # check to make sure it is possible to make grid symetric from all row options
     o = FILL_INS_TEMPLATE.copy()
@@ -526,24 +521,32 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
     """Given a grid, find the best row or column to latch on to."""
 
     # find the best row to latch on
-    row_idx, _, best_row_grids = get_best_row(grid)
+    row_idx, best_row_score, best_row_grids = get_best_row(grid)
     if len(best_row_grids) == 0:
         return "r", row_idx, best_row_grids
+    elif len(best_row_grids) == 1:
+        return get_new_grids(best_row_grids[0])
 
     # transpose to find the best collum
-    col_idx, _, best_col_grids = get_best_row(torus.grid.transpose(grid), "c")
+    col_idx, best_col_score, best_col_grids = get_best_row(
+        torus.grid.transpose(grid), "c"
+    )
     if len(best_col_grids) == 0:
         return "c", col_idx, best_col_grids
+    elif len(best_col_grids) == 1:
+        return get_new_grids(torus.grid.transpose(best_col_grids[0]))
 
-    best_row_score = 0
-    for g in best_row_grids:
-        best_row_score += "".join(g).count("_")
-    best_row_score = best_row_score / len(best_row_grids)
+    # best_row_score = 0
+    # for g in best_row_grids:
+    #     g_str = "".join(g)
+    #     best_row_score += g_str.count("_") + g_str.count("@")
+    # best_row_score = best_row_score / len(best_row_grids)
 
-    best_col_score = 0
-    for g in best_col_grids:
-        best_col_score += "".join(g).count("_")
-    best_col_score = best_col_score / len(best_col_grids)
+    # best_col_score = 0
+    # for g in best_col_grids:
+    #     g_str = "".join(g)
+    #     best_col_score += g_str.count("_") + g_str.count("@")
+    # best_col_score = best_col_score / len(best_col_grids)
 
     # note you want to minimize scre
     if best_row_score < best_col_score:

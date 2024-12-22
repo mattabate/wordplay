@@ -5,12 +5,12 @@ main: # for ./run
   f_search_with_flipped: true
   # timer
   f_verbose: False
-  sleep_duration: 120
-  restart_at_level: 2
+  sleep_duration: 300
+  restart_at_level: 10
   # word save
   f_save_words_used: false
-  f_save_bounds: [0, 100]
-  max_level_for_active_add: 1
+  f_save_bounds: [0, 300]
+  max_level_for_active_add: 2
 
 backward_search: # for ./last which converts grid templates to bad templates
   sleep_duration_grid: 1000
