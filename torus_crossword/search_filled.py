@@ -21,15 +21,21 @@ from config import (
     C_WALL,
     IC_TYPE,
     WOR_JSON,
-    GRID_KILL_STEP,
     f_save_words_used,
     MAX_WAL,
-    f_verbose,
     WOR_JSON,
     WORDS_APPROVED_JSON,
     ACTIVE_WORDS_JSON,
     WORDS_OMITTED_JSON,
 )
+import yaml
+
+with open("config.yaml", "r") as file:
+    config = yaml.safe_load(file)
+
+SLEEP_DURATION_GRID = config["backward_search"]["sleep_duration_grid"]
+GRID_KILL_STEP = config["backward_search"]["grid_kill_step"]
+f_verbose = config["backward_search"]["f_verbose"]
 
 WORDLIST = torus.json.load_json(WOR_JSON)
 if not f_save_words_used:

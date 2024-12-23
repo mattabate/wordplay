@@ -1,12 +1,12 @@
 main: # for ./run
   # mode
   mode: DA
-  max_walls: 42
+  max_walls: 40
   f_search_with_flipped: true
   # timer
   f_verbose: False
-  sleep_duration: 300
-  restart_at_level: 10
+  sleep_duration: 240
+  restart_at_level: 8
   # word save
   f_save_words_used: false
   f_save_bounds: [0, 300]
@@ -14,7 +14,8 @@ main: # for ./run
 
 backward_search: # for ./last which converts grid templates to bad templates
   sleep_duration_grid: 1000
-  grid_kill_step: 2
+  f_verbose: false
+  grid_kill_step: 5
 
 
 

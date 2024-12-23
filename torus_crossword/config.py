@@ -52,14 +52,9 @@ SEARCH_W_FLIPPED = forward_search["f_search_with_flipped"]
 MAX_WAL = forward_search["max_walls"]
 
 # Access the configuration values
-
-backward_search = config["backward_search"]
 sort_parameters = config["api_sort_parameters"]
 
-
-SLEEP_DURATION_GRID = backward_search["sleep_duration_grid"]
-GRID_KILL_STEP = backward_search["grid_kill_step"]
-
+SLEEP_DURATION_GRID = config["backward_search"]["sleep_duration_grid"]
 
 # API Sort
 if sort_parameters["word_source"] == "in_consideration":
