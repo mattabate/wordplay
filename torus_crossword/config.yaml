@@ -1,12 +1,12 @@
 main: # for ./run
   # mode
   mode: DA
-  max_walls: 40
+  max_walls: 42
   f_search_with_flipped: true
   # timer
   f_verbose: False
-  sleep_duration: 240
-  restart_at_level: 8
+  sleep_duration: 120
+  restart_at_level: 4
   # word save
   f_save_words_used: false
   f_save_bounds: [0, 300]
@@ -15,12 +15,20 @@ main: # for ./run
 backward_search: # for ./last which converts grid templates to bad templates
   sleep_duration_grid: 1000
   f_verbose: false
+  f_save_words_used: false
   grid_kill_step: 5
 
 
+filter_solutions:
+  mode: DA
+  max_walls: 42
+  f_search_with_flipped: true
+  f_reomve_duplicates: False
+  f_save_words_in_solutions: True
+  f_reomve_duplicates_bad: False 
 
 api_sort_parameters:
-  word_source: active_grids # active_grids # solutions 
+  word_source: solutions # active_grids # solutions 
   without_clues_only: false
   delete_active: true
 
@@ -29,5 +37,5 @@ search_templates_plus_living:
   max_walls: 42
   f_search_with_flipped: true
   f_save_words_used: false
-  f_verbose: false
+  f_verbose: true
   restart_at_level: -1

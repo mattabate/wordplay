@@ -42,18 +42,12 @@ elif IC_TYPE == "A":
 elif IC_TYPE == "":
     mode = Mode.MIN
 
-f_verbose = forward_search["f_verbose"]
-f_save_words_used = forward_search["f_save_words_used"]
-f_save_bounds = forward_search["f_save_bounds"]
-SLEEP_DURATION = forward_search["sleep_duration"]
-RESTART_AT_LEVEL = forward_search["restart_at_level"]
-MAX_LEVEL_FOR_ACTIVE_ADD = forward_search["max_level_for_active_add"]
 SEARCH_W_FLIPPED = forward_search["f_search_with_flipped"]
 MAX_WAL = forward_search["max_walls"]
 
 # Access the configuration values
 sort_parameters = config["api_sort_parameters"]
-
+SLEEP_DURATION = config["main"]["sleep_duration"]
 SLEEP_DURATION_GRID = config["backward_search"]["sleep_duration_grid"]
 
 # API Sort

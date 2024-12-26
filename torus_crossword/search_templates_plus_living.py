@@ -27,9 +27,6 @@ from lib import (
 from config import (
     C_WALL,
     WOR_JSON,
-    f_save_words_used,
-    MAX_WAL,
-    WOR_JSON,
     STARS_FOUND_FLIPPED_JSON,
     SEARCH_W_FLIPPED,
     get_failures_json,
@@ -41,12 +38,12 @@ with open("config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
 # Use the values in your code
-forward_search = config["search_templates_plus_living"]
-f_verbose = forward_search["f_verbose"]
-IC_TYPE = forward_search["mode"]
-RESTART_AT_LEVEL = forward_search["restart_at_level"]
-SEARCH_W_FLIPPED = forward_search["f_search_with_flipped"]
-MAX_WAL = forward_search["max_walls"]
+f_verbose = config["search_templates_plus_living"]["f_verbose"]
+f_save_words_used = config["search_templates_plus_living"]["f_save_words_used"]
+IC_TYPE = config["search_templates_plus_living"]["mode"]
+RESTART_AT_LEVEL = config["search_templates_plus_living"]["restart_at_level"]
+SEARCH_W_FLIPPED = config["search_templates_plus_living"]["f_search_with_flipped"]
+MAX_WAL = config["search_templates_plus_living"]["max_walls"]
 
 
 WORDLIST = torus.json.load_json(WOR_JSON)
@@ -63,6 +60,9 @@ solutions = []
 def recursive_search(grid, level=0):
     global v_best_score
     global solutions
+
+    if 0 < RESTART_AT_LEVEL <= level - 2:
+        exit()
 
     if grid_filled(grid):
         solutions.append(grid)

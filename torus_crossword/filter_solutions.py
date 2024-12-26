@@ -5,20 +5,23 @@ from lib import T_YELLOW, T_NORMAL
 
 from config import (
     WOR_JSON,
-    IC_TYPE,
-    MAX_WAL,
-    SEARCH_W_FLIPPED,
     SCORES_DICT_JSON,
     WORDS_IN_SOLUTIONS_JSON,
     WORDS_APPROVED_JSON,
     get_solutions_json,
     get_bad_solutions_json,
 )
+import yaml
 
+with open("config.yaml", "r") as file:
+    config = yaml.safe_load(file)
 
-f_reomve_duplicates = False
-f_save_words_in_solutions = True
-f_reomve_duplicates_bad = False
+f_reomve_duplicates = config["filter_solutions"]["f_reomve_duplicates"]
+f_save_words_in_solutions = config["filter_solutions"]["f_save_words_in_solutions"]
+f_reomve_duplicates_bad = config["filter_solutions"]["f_reomve_duplicates_bad"]
+IC_TYPE = config["filter_solutions"]["mode"]
+MAX_WAL = config["filter_solutions"]["max_walls"]
+SEARCH_W_FLIPPED = config["filter_solutions"]["f_search_with_flipped"]
 
 WORDLIST = torus.json.load_json(WOR_JSON)
 SOLS_PATH = get_solutions_json(IC_TYPE, MAX_WAL, SEARCH_W_FLIPPED)
@@ -70,7 +73,9 @@ if __name__ == "__main__":
             double_words_seen.append(s)
             continue
 
-        if "OPENDATES" in words and "TOURDATES" in words:
+        if ("OPENDATES" in words and "TOURDATES" in words) or (
+            "SKA" in words and "SKABANDS" in words
+        ):
             # print("OPENDATES and OPEN in solution")
             passed.append("".join(s))
             continue
