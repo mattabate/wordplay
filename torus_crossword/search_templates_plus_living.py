@@ -124,6 +124,8 @@ if __name__ == "__main__":
             + f"> number of black squares {"".join(t).count(C_WALL)}"
             + T_NORMAL
         )
+        print("Template:")
+        print("\n".join(t))
 
         failed_templates = torus.json.load_json("bad_templates.json")
         if "".join(t) in failed_templates[str(MAX_WAL)]:
