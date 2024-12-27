@@ -128,3 +128,13 @@ def get_words_in_filled_grid(grid: list[str]) -> list[str]:
         word_strings.append(string_word)
 
     return word_strings
+
+
+def contains_bad_word_pairs(words):
+    if (
+        ("OPENDATES" in words and "TOURDATES" in words)
+        or ("SKA" in words and "SKABANDS" in words)
+        or ("NOTSMART" in words and "NOTATRACE" in words)
+    ):
+        return True
+    return False

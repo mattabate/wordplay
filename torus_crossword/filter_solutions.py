@@ -40,9 +40,9 @@ if __name__ == "__main__":
         solutions = torus.json.remove_duplicates(SOLS_PATH)
         print("Number of unique solutions:", len(solutions))
     else:
-        solutions = torus.json.load_json(SOLS_PATH)
+        solutions: list[list[str]] = torus.json.load_json(SOLS_PATH)
 
-    bad_solutions = torus.json.load_json(BAD_SOLUTIONS)
+    bad_solutions: list[str] = torus.json.load_json(BAD_SOLUTIONS)
     if f_reomve_duplicates_bad:
         print(
             "Number of bad solutions in json:",
@@ -65,7 +65,6 @@ if __name__ == "__main__":
     bad_words_seens = set()
     double_words_seen = []
     for s in tqdm.tqdm(solutions):
-
         words = torus.grid.get_words_in_filled_grid(s)
         if len(words) != len(set(words)):
             # print("duplicate words in solution")
@@ -73,9 +72,7 @@ if __name__ == "__main__":
             double_words_seen.append(s)
             continue
 
-        if ("OPENDATES" in words and "TOURDATES" in words) or (
-            "SKA" in words and "SKABANDS" in words
-        ):
+        if torus.grid.contains_bad_word_pairs(words):
             # print("OPENDATES and OPEN in solution")
             passed.append("".join(s))
             continue

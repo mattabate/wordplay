@@ -464,6 +464,10 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
             if grid_contains_short_words(candidate_grid):
                 continue
 
+            words = torus.grid.get_words_in_partial_grid(candidate_grid)
+            if torus.grid.contains_bad_word_pairs(words):
+                continue
+
             working_grids.append(candidate_grid)
             num_blanks += "".join(candidate_grid).count(
                 "_"
