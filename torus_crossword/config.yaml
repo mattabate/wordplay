@@ -6,7 +6,7 @@ main: # for ./run
   # timer
   f_verbose: False
   sleep_duration: 120
-  restart_at_level: 4
+  restart_at_level: 7
   # word save
   f_save_words_used: false
   f_save_bounds: [0, 300]
