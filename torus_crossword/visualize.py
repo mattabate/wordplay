@@ -207,6 +207,20 @@ def main():
     with open(JSON_FILE, "r", encoding="utf-8") as f:
         crosswords = json.load(f)  # List of 15x15 grids
 
+    new_crosswords = []
+    for cw in crosswords:
+        sol_template = torus.grid.get_grid_template_str_from_grid_str("".join(cw))
+        if sol_template in [
+            "@@@██@@@█@@@@@@@@@█@@@@█@@@@@@@@@█@@@@█@@@@@@@@@@@█@@@@@@███@@@@@@@█@@@█@@@███@@@@@@█@@@@@@@@██@@@█@@@@@@@@@@█@@@@@█@@@@@@@@@@█@@@██@@@@@@@@█@@@@@@███@@@█@@@█@@@@@@@███@@@@@@█@@@@@@@@@@@█@@@@█@@@@@@@@@█@@@@█@@@@@@@@@█@@@██@@@",
+            "@@@█@@@@█@@@@@@@@@█@@@@█@@@@@@@@@█@@@@█@@@@@@@@@@█@@@@@@@███@@@@@███@@@█@@@███@@@@@@█@@@@@@@@█@@@@@@█@@@@@@@@█@@@@@█@@@@@@@@█@@@@@@█@@@@@@@@█@@@@@@███@@@█@@@███@@@@@███@@@@@@@█@@@@@@@@@@█@@@@█@@@@@@@@@█@@@@█@@@@@@@@@█@@@@█@@@",
+        ]:
+            continue
+        # words = torus.grid.get_words_in_filled_grid(cw)
+        # if "ABATEMENT" not in words:
+        #     continue
+        new_crosswords.append(cw)
+
+    crosswords = new_crosswords
     # 2) Compute scores for each crossword, then sort them descending
     scored_crosswords = []
     scored_crosswords = torus.svm.grids_av_score(crosswords)
