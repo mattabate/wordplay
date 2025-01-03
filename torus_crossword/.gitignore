@@ -9,3 +9,5 @@ keys.py
 bad_solutions/15x15_grid_solutions_DA_42_bad_flipped.json
 __pycache__/
 *.pyc
+
+delete.py

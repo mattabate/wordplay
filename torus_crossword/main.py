@@ -540,18 +540,6 @@ def get_new_grids(grid: list[str]) -> tuple[str, int, list[list[str]]]:
     elif len(best_col_grids) == 1:
         return get_new_grids(torus.grid.transpose(best_col_grids[0]))
 
-    # best_row_score = 0
-    # for g in best_row_grids:
-    #     g_str = "".join(g)
-    #     best_row_score += g_str.count("_") + g_str.count("@")
-    # best_row_score = best_row_score / len(best_row_grids)
-
-    # best_col_score = 0
-    # for g in best_col_grids:
-    #     g_str = "".join(g)
-    #     best_col_score += g_str.count("_") + g_str.count("@")
-    # best_col_score = best_col_score / len(best_col_grids)
-
     # note you want to minimize scre
     if best_row_score < best_col_score:
         return "r", row_idx, best_row_grids
