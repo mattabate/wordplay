@@ -3,6 +3,7 @@
 embed_seperate.py
 filter_words/*
 fast_search/*
+torus/__pycache__/
 
 nohup.out
 keys.py
