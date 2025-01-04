@@ -231,6 +231,7 @@ def main():
             or "SATORI" in words
             or "LEONES" in words
             or "LEONID" in words
+            or "LEIDAY" not in words
         ):
             continue
         # if "WREST" in words or "TRANSOCEAN" in words:
