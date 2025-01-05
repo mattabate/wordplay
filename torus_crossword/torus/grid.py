@@ -134,9 +134,16 @@ def contains_bad_word_pairs(words):
     if (
         ("DOUGHNUT" in words and "DONUT" in words)
         or ("DOUGHNUT" in words and "DONUTS" in words)
+        or ("DOUGHNUT" in words and "COCONUTS" in words)
+        or ("DOUGHNUT" in words and "HAZELNUT" in words)
+        or ("DOUGHNUT" in words and "HAZELNUTS" in words)
+        or ("SETSAGOAL" in words and "SETATODDS" in words)
         or ("OPENDATES" in words and "TOURDATES" in words)
+        or ("GENS" in words and "GEN" in words)
         or ("SKA" in words and "SKABANDS" in words)
         or ("NOTSMART" in words and "NOTATRACE" in words)
+        or ("SPEEDDATE" in words and "STARDATE" in words)
+        or ("SPEEDDATE" in words and "STARDATES" in words)
     ):
         return True
     return False

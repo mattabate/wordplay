@@ -226,13 +226,7 @@ def main():
         ]:
             continue
         words = torus.grid.get_words_in_filled_grid(cw)
-        if (
-            "ABATEMENT" in words
-            or "SATORI" in words
-            or "LEONES" in words
-            or "LEONID" in words
-            or "LEIDAY" not in words
-        ):
+        if "SATORI" in words or "LEONES" in words or "LEONID" in words:
             continue
         # if "WREST" in words or "TRANSOCEAN" in words:
         #     continue

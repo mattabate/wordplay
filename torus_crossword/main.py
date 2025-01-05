@@ -24,7 +24,6 @@ from config import (
     GRID_TEMPLATE_FLIPPED_MIN,
     get_failures_json,
     get_solutions_json,
-    get_bad_solutions_json,
 )
 import yaml
 import torus
@@ -60,15 +59,10 @@ MAX_WAL = forward_search["max_walls"]
 
 FAI_JSON = get_failures_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
 SOL_JSON = get_solutions_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
-BAD_SOL_JSON = get_bad_solutions_json(IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED)
 if not os.path.exists(FAI_JSON):
     torus.json.write_json(FAI_JSON, [])
 if not os.path.exists(SOL_JSON):
     torus.json.write_json(SOL_JSON, [])
-if not os.path.exists(BAD_SOL_JSON):
-    torus.json.write_json(BAD_SOL_JSON, [])
-current_bad_solutions = torus.json.load_json(BAD_SOL_JSON)
-# current_bad_solutions = []
 
 if not IC_TYPE:
     STA_JSON = STARS_FOUND_FLIPPED_JSON
@@ -475,16 +469,7 @@ def get_best_row(grid: list[str], rc: str = "") -> tuple[int, int, list[list[str
 
             # grid is approved!
             num_new_grids_from_line += 1
-
-            # the idea us that i need -> 1000 grids with 0 blanks
-            # less preferable then -> 10 grids with 100 blanks
-            # 1000 grids with 0 blanks > 10 grids with 100 blanks
-            # score = num_grids * (num_blanks + 1)
-
-            # score = num_new_grids_from_line * (num_blanks + 1)
-            # score = num_blanks
             score = num_new_grids_from_line
-            # score = num_blanks + num_new_grids_from_line
 
             if score > K_MIN_SCORE:  # minimize score
                 break
@@ -585,7 +570,7 @@ def recursive_search(grid, level=0):
         tqdm.tqdm.write(T_NORMAL)
 
         current_solutions = torus.json.load_json(SOL_JSON)
-        if grid in current_solutions or "".join(grid) in current_bad_solutions:
+        if grid in current_solutions:
             tqdm.tqdm.write(T_PINK + "Already in solutions" + T_NORMAL)
             return
         torus.json.append_json(SOL_JSON, grid)
