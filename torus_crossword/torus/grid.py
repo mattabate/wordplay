@@ -131,6 +131,8 @@ def get_words_in_filled_grid(grid: list[str]) -> list[str]:
 
 
 def contains_bad_word_pairs(words):
+    if len(words) != len(set(words)):
+        return True
     if (
         ("DOUGHNUT" in words and "DONUT" in words)
         or ("DOUGHNUT" in words and "DONUTS" in words)
@@ -144,6 +146,7 @@ def contains_bad_word_pairs(words):
         or ("NOTSMART" in words and "NOTATRACE" in words)
         or ("SPEEDDATE" in words and "STARDATE" in words)
         or ("SPEEDDATE" in words and "STARDATES" in words)
+        or ("STANDSUP" in words and "STANDREADY" in words)
     ):
         return True
     return False

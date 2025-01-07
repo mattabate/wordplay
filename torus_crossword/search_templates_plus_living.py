@@ -66,7 +66,7 @@ def recursive_search(grid, level=0):
 
     if grid_filled(grid):
         solutions.append(grid)
-        if torus.json.append_json_list(SOL_JSON, grid):
+        if torus.json.append_json_list(SOL_JSON, "".join(grid)):
             tqdm.tqdm.write(
                 T_GREEN + "New Solution found"
             )  # Green text indicating success

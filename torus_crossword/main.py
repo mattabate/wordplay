@@ -564,19 +564,20 @@ def recursive_search(grid, level=0):
     if contains_bad_words(grid):
         return
 
+    grid_str = "".join(grid)
+
     if grid_filled(grid):
         tqdm.tqdm.write(T_GREEN + "Solution found")  # Green text indicating success
         tqdm.tqdm.write(json.dumps(grid, indent=2, ensure_ascii=False))
         tqdm.tqdm.write(T_NORMAL)
 
         current_solutions = torus.json.load_json(SOL_JSON)
-        if grid in current_solutions:
+        if grid_str in current_solutions:
             tqdm.tqdm.write(T_PINK + "Already in solutions" + T_NORMAL)
             return
-        torus.json.append_json(SOL_JSON, grid)
+        torus.json.append_json(SOL_JSON, grid_str)
         return
 
-    grid_str = "".join(grid)
     if grid_str.count("_") == 0:
         for i, line in enumerate(grid):
             if C_WALL not in line:
@@ -729,6 +730,7 @@ if __name__ == "__main__":
         recursive_search(grid, 0)
 
         all_solutions = torus.json.load_json(SOL_JSON)
+        all_solutions = [torus.grid.str_to_grid(s) for s in all_solutions]
         for s in all_solutions:
             star = get_star_from_grid(s, SEARCH_W_FLIPPED)
             if star == star_str:

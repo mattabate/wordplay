@@ -37,10 +37,12 @@ if __name__ == "__main__":
     print(T_YELLOW, "Reducing Solutions to Unique", T_NORMAL)
     if f_reomve_duplicates:
         print("Number of solutions in json:", len(torus.json.load_json(SOLS_PATH)))
-        solutions = torus.json.remove_duplicates(SOLS_PATH)
+        solutions: list[str] = torus.json.remove_duplicates(SOLS_PATH)
+        solutions: list[list[str]] = [torus.grid.str_to_grid(s) for s in solutions]
         print("Number of unique solutions:", len(solutions))
     else:
-        solutions: list[list[str]] = torus.json.load_json(SOLS_PATH)
+        solutions: list[str] = torus.json.load_json(SOLS_PATH)
+        solutions: list[list[str]] = [torus.grid.str_to_grid(s) for s in solutions]
 
     bad_solutions: list[str] = torus.json.load_json(BAD_SOLUTIONS)
     if f_reomve_duplicates_bad:

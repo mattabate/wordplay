@@ -175,11 +175,11 @@ def get_bad_solutions_json(type: str, max_walls: int, flipped: bool = False) -> 
 
 # the wordlist contains all words in consideration for the search
 # the format is a list of strings, about 100k total
-WOR_JSON = "wordlist/word_list.json"
+WOR_JSON = "wordlist/raw_wordlist.json"
 SCORES_DICT_JSON = "wordlist/scores_dict.json"
 ACTIVE_WORDS_JSON = "filter_words/words_in_active_grids.json"
-WORDS_OMITTED_JSON = "wordlist/words_omitted.json"
-WORDS_APPROVED_JSON = "wordlist/words_approved.json"
+WORDS_OMITTED_JSON = "wordlist/rejected.json"
+WORDS_APPROVED_JSON = "wordlist/approved.json"
 WORDS_CONSIDERED_JSON = "filter_words/in_consideration.json"
 WORDS_IN_SOLUTIONS_JSON = "filter_words/words_in_valid_solutions.json"
 

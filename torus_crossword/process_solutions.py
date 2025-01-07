@@ -51,9 +51,7 @@ def score_words(grid: list[str]):
     ) + get_word_locations(grid=grid, direction=Direction.DOWN)
     # if contains duplicates, remove them
     if len(words) != len(set(words)):
-        sols = torus.json.load_json(SOLS_PATH)
-        sols.remove(grid)
-        torus.json.write_json(SOLS_PATH, sols)
+        torus.json.remove_from_json_list(SOLS_PATH, "".join(grid))
         return
 
     word_strings = []
@@ -76,7 +74,7 @@ def score_words(grid: list[str]):
 
 
 print(T_YELLOW + "REMOVE DUPLICATES" + T_NORMAL)
-solutions = reduce_to_unique_solutions()
+solution_grid_strs = reduce_to_unique_solutions()
 
 
 print(T_YELLOW + "SCORING GRIDS" + T_NORMAL)
@@ -89,7 +87,8 @@ best_s = []
 best_w = []
 
 av_scores = []
-for s in tqdm.tqdm(solutions):
+for s_str in tqdm.tqdm(solution_grid_strs):
+    s = torus.grid.str_to_grid(s_str)
     word_strings, scores = score_words(s)
 
     num_words = len(word_strings)
@@ -116,7 +115,7 @@ for s in tqdm.tqdm(solutions):
         best_v.append(s)
 
 
-print(T_YELLOW + "TOTAL SOLUTIONS:" + T_NORMAL, len(solutions))
+print(T_YELLOW + "TOTAL SOLUTIONS:" + T_NORMAL, len(solution_grid_strs))
 print(T_YELLOW + "BEST WORD SCORE:" + T_NORMAL, highest_average_words_score)
 num_best = len(best_s)
 print("NUMBER OF BEST WORD SCORES:", num_best)

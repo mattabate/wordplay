@@ -48,9 +48,10 @@ def add_solution_to_json(solution: list[str], verbose=True):
             T_GREEN + "Solution found" + "\n" + "\n".join(solution) + T_NORMAL
         )  # Green text indicating success
 
-    if solution in load_json(SOL_JSON) or "".join(solution) in get_bad_solutions_json(
+    sol_str = "".join(solution)
+    if sol_str in load_json(SOL_JSON) or sol_str in get_bad_solutions_json(
         IC_TYPE, MAX_WAL, flipped=SEARCH_W_FLIPPED
     ):
         tqdm.tqdm.write(T_PINK + "Already in solutions" + T_NORMAL)
         return
-    append_json(SOL_JSON, solution)
+    append_json(SOL_JSON, sol_str)
