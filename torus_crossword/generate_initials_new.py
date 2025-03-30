@@ -60,10 +60,20 @@ across_suff_set = list(set(get_suffix(word=w, len_suff=6) for w in words_for_acr
 
 col1 = list(set(get_suffix(word=w, len_suff=6) for w in words_for_down if w[0] == "T"))
 col2 = list(set(get_suffix(word=w, len_suff=6) for w in words_for_down if w[0] == "L"))
-col3 = list(set(get_suffix(word=w, len_suff=6) for w in words_for_down if w[0] == "O"))
-col4 = list(set(get_prefix(word=w, len_pref=6) for w in words_for_down if w[-1]== "E"))
-col5 = list(set(get_prefix(word=w, len_pref=6) for w in words_for_down if w[-1]== "S"))
-col6 = list(set(get_prefix(word=w, len_pref=6) for w in words_for_down if w[-1]== "A"))
+col3 = list(
+    set(get_suffix(word=w, len_suff=6) for w in words_for_down if w[0] == "O")
+)  # froot loops
+# FROOTLOOPS TLO
+
+
+col4 = list(
+    set(get_prefix(word=w, len_pref=6) for w in words_for_down if w[-1] == "O")
+)  # life savers
+col5 = list(set(get_prefix(word=w, len_pref=6) for w in words_for_down if w[-1] == "N"))
+col6 = list(set(get_prefix(word=w, len_pref=6) for w in words_for_down if w[-1] == "R"))
+# LIFESAVERS ESA
+# ONIONRINGS ONR
+
 down_pref_set = list(set(get_prefix(word=w, len_pref=6) for w in words_for_down))
 down_suff_set = list(set(get_suffix(word=w, len_suff=6) for w in words_for_down))
 
@@ -119,7 +129,7 @@ def get_word_locations(grid: list[list[str]], direction: Direction) -> list[Word
                     word_holder.possibilities = col4
                 elif c == 4:
                     word_holder.possibilities = col5
-                elif c == 5:    
+                elif c == 5:
                     word_holder.possibilities = col6
                 else:
                     print("ERROR")
