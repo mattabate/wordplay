@@ -58,12 +58,18 @@ words_for_down = WORDLIST_BY_LEN[8]
 across_pref_set = list(set(get_prefix(word=w, len_pref=6) for w in words_for_across))
 across_suff_set = list(set(get_suffix(word=w, len_suff=6) for w in words_for_across))
 
-col1 = list(set(get_suffix(word=w, len_suff=6) for w in words_for_down if w[0] == "T"))
-col2 = list(set(get_suffix(word=w, len_suff=6) for w in words_for_down if w[0] == "L"))
+# tried
+# FROOTLOOPS LIFESAVERS
+# FROOTLOOPS ONIONRINGS
+
+
+col1 = list(set(get_suffix(word=w, len_suff=6) for w in words_for_down if w[0] == "S"))
+col2 = list(set(get_suffix(word=w, len_suff=6) for w in words_for_down if w[0] == "A"))
 col3 = list(
-    set(get_suffix(word=w, len_suff=6) for w in words_for_down if w[0] == "O")
+    set(get_suffix(word=w, len_suff=6) for w in words_for_down if w[0] == "V")
 )  # froot loops
 # FROOTLOOPS TLO
+# LIFESAVERS SAV
 
 
 col4 = list(
@@ -73,6 +79,8 @@ col5 = list(set(get_prefix(word=w, len_pref=6) for w in words_for_down if w[-1] 
 col6 = list(set(get_prefix(word=w, len_pref=6) for w in words_for_down if w[-1] == "R"))
 # LIFESAVERS ESA
 # ONIONRINGS ONR
+# FROOTLOOPS OTL
+
 
 down_pref_set = list(set(get_prefix(word=w, len_pref=6) for w in words_for_down))
 down_suff_set = list(set(get_suffix(word=w, len_suff=6) for w in words_for_down))
