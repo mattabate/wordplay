@@ -59,10 +59,26 @@ across_pref_set = list(set(get_prefix(word=w, len_pref=6) for w in words_for_acr
 across_suff_set = list(set(get_suffix(word=w, len_suff=6) for w in words_for_across))
 
 # tried
-# FROOTLOOPS LIFESAVERS
-# FROOTLOOPS ONIONRINGS
+# LIFESAVERS FROOTLOOPS
+# ONIONRINGS FROOTLOOPS
+# ONIONRINGS LIFESAVERS
+
+# running
 
 
+# topleft of grid
+col4 = list(
+    set(get_prefix(word=w, len_pref=6) for w in words_for_down if w[-1] == "E")
+)  # life savers
+col5 = list(set(get_prefix(word=w, len_pref=6) for w in words_for_down if w[-1] == "R"))
+col6 = list(set(get_prefix(word=w, len_pref=6) for w in words_for_down if w[-1] == "T"))
+# LIFESAVERS ESA
+# ONIONRINGS ONR
+# FROOTLOOPS OTL
+# INNERTUBES ERT
+
+
+# bottomright of grid
 col1 = list(set(get_suffix(word=w, len_suff=6) for w in words_for_down if w[0] == "S"))
 col2 = list(set(get_suffix(word=w, len_suff=6) for w in words_for_down if w[0] == "A"))
 col3 = list(
@@ -70,16 +86,7 @@ col3 = list(
 )  # froot loops
 # FROOTLOOPS TLO
 # LIFESAVERS SAV
-
-
-col4 = list(
-    set(get_prefix(word=w, len_pref=6) for w in words_for_down if w[-1] == "O")
-)  # life savers
-col5 = list(set(get_prefix(word=w, len_pref=6) for w in words_for_down if w[-1] == "N"))
-col6 = list(set(get_prefix(word=w, len_pref=6) for w in words_for_down if w[-1] == "R"))
-# LIFESAVERS ESA
-# ONIONRINGS ONR
-# FROOTLOOPS OTL
+# ONIONRINGS NRI
 
 
 down_pref_set = list(set(get_prefix(word=w, len_pref=6) for w in words_for_down))
