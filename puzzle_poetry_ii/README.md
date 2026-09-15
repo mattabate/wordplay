@@ -1,15 +1,7 @@
-# Puzzle Poetry II
+# Moved
 
-The goal of this study was to find two gramatically correct sentences that use the same letters in the same order, for example
+Puzzle Poetry II — the same letters in the same order, spaced two ways ("a ten dad" / "at end ad") — is now Caterpillars, and lives at
 
-```there also no fun```
+**https://github.com/mattabate/caterpillars**
 
-```the real son of un```
-
-or
-
-```at end ad```
-
-```a ten dad```
-
-The script is messy but it "works" - only problem is it hasn't turned up anything gramatically correct.
+The commit history of the original files is preserved in this repository.
